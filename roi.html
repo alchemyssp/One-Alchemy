@@ -1,0 +1,564 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROI Analysis — SSP</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="js/config.js?v=3"></script>
+<style>
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
+h1, h2, h3, h4, h5 { font-weight: 800; text-wrap: balance; }
+button { font-family: 'DM Sans', system-ui, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; }
+input, select, textarea { font-family: 'DM Sans', system-ui, sans-serif; font-size: 13px; font-weight: 400; }
+label { font-family: 'DM Sans', system-ui, sans-serif; font-size: 11px; font-weight: 700; }
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+.sidebar{
+  width:240px;height:100vh;
+  background:#12070A;
+  position:fixed;left:0;top:0;
+  display:flex;flex-direction:column;
+  z-index:100;
+  box-shadow:4px 0 32px rgba(0,0,0,.45);
+  overflow:hidden;
+}
+.sidebar::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#8B0000,#D40000,#FF7070,#D40000,#8B0000);
+  background-size:200% 100%;
+  animation:sbStripe 3s linear infinite;
+}
+@keyframes sbStripe{0%{background-position:0% 0}100%{background-position:200% 0}}
+.sb-logo{padding:28px 20px 20px;display:flex;align-items:center;gap:12px}
+.sb-logo-icon{width:38px;height:38px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#8B0000,#D40000);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(212,0,0,.4);}
+.sb-logo-text h3{font-size:14px;font-weight:800;color:#fff;letter-spacing:.3px}
+.sb-logo-text p{font-size:10.5px;color:rgba(255,255,255,.35);margin-top:1px;font-weight:400}
+.nav-links{flex:1;padding:8px 12px;overflow-y:auto;overflow-x:hidden}
+.nav-links::-webkit-scrollbar{width:3px}
+.nav-links::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
+.nav-section{padding:16px 8px 6px;font-size:9.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,.22);}
+.nav-section:first-child{padding-top:4px}
+.nav-links a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;font-weight:500;transition:background .18s,color .18s,transform .15s;position:relative;margin-bottom:2px;border:1px solid transparent;}
+.nav-links a .nav-ico{width:34px;height:34px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;background:rgba(255,255,255,.05);transition:background .18s,box-shadow .18s;}
+.nav-links a:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);transform:translateX(2px);}
+.nav-links a:hover .nav-ico{background:rgba(255,255,255,.1)}
+.nav-links a.active{background:linear-gradient(135deg,rgba(139,0,0,.55),rgba(212,0,0,.3));color:#fff;border-color:rgba(212,0,0,.35);box-shadow:0 4px 16px rgba(139,0,0,.25),inset 0 1px 0 rgba(255,255,255,.08);}
+.nav-links a.active .nav-ico{background:linear-gradient(135deg,#8B0000,#D40000);box-shadow:0 4px 12px rgba(212,0,0,.45);}
+.nav-links a.nav-sub{padding-left:24px;font-size:12px;color:rgba(255,255,255,.4);margin-left:8px;border-radius:8px;}
+.nav-links a.nav-sub .nav-ico{width:28px;height:28px;font-size:13px;background:transparent;}
+.nav-links a.nav-sub:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.05)}
+.nav-links a.nav-sub.active{color:#fff;background:rgba(212,0,0,.2);border-color:rgba(212,0,0,.25);}
+.nav-links a.nav-sub.active .nav-ico{background:rgba(212,0,0,.3)}
+.sidebar-user{padding:14px 16px 18px;border-top:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);}
+.sb-user-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sb-avatar{width:36px;height:36px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#8B0000,#D40000);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;box-shadow:0 3px 10px rgba(139,0,0,.4);}
+.sidebar-user .sname{font-size:12.5px;font-weight:700;color:#fff;line-height:1.2}
+.sidebar-user .semail{font-size:10.5px;color:rgba(255,255,255,.3);margin-top:1px}
+.btn-logout{width:100%;padding:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.09);border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .18s;}
+.btn-logout:hover{background:rgba(139,0,0,.35);color:#fff;border-color:rgba(212,0,0,.4)}
+
+.main { margin-left: 240px; flex: 1; padding: 32px; min-height: 100vh; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+.page-header h2 { font-size: 22px; font-weight: 800; }
+.page-header p { font-size: 13px; color: #888; margin-top: 4px; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px; margin-bottom: 24px;
+}
+.stat-card {
+  background: #fff; border-radius: 16px;
+  padding: 22px; box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+.stat-card .label { font-size: 11px; color: #888; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+.stat-card .value { font-size: 28px; font-weight: 600; margin: 8px 0 4px; }
+.stat-card .sub { font-size: 12px; color: #aaa; }
+.blue .value { color: #8B1A1A; }
+.green .value { color: #27ae60; }
+.orange .value { color: #f39c12; }
+.red .value { color: #e74c3c; }
+
+.tabs {
+  display: flex; gap: 4px; background: #f0f4f8;
+  border-radius: 12px; padding: 4px; margin-bottom: 20px;
+}
+.tab-btn {
+  flex: 1; padding: 10px; border: none; border-radius: 9px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  cursor: pointer; color: #888; background: transparent; transition: all .2s;
+}
+.tab-btn.active { background: #fff; color: #2c3e50; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.section {
+  background: #fff; border-radius: 16px;
+  padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 20px;
+}
+.section-head {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+}
+.section-head h3 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.chart-wrap { position: relative; height: 300px; }
+
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 10px 12px; font-size: 12px; color: #fff; font-weight: 500; background: linear-gradient(90deg,#780000 0%,#A00000 100%); white-space: nowrap; }
+th:hover { background: linear-gradient(90deg,#5A2424 0%,#990000 100%); }
+td { padding: 11px 12px; font-size: 13.5px; border-bottom: 1px solid #f8f9fa; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #FFF5F5; }
+
+.badge {
+  display: inline-block; padding: 3px 10px;
+  border-radius: 20px; font-size: 12px; font-weight: 500;
+}
+.b-good { background: #e8f8f0; color: #27ae60; }
+.b-warn { background: #fff3cd; color: #856404; }
+.b-bad  { background: #ffeaea; color: #c0392b; }
+.b-draft { background: #f0f0f0; color: #888; }
+.b-active { background: #e8f8f0; color: #27ae60; }
+.b-expired { background: #ffeaea; color: #c0392b; }
+.b-cancelled { background: #f0f0f0; color: #888; }
+
+.roi-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.roi-bg { flex: 1; height: 6px; background: #f0f4f8; border-radius: 3px; min-width: 50px; }
+.roi-fill { height: 6px; border-radius: 3px; }
+
+.btn-export {
+  padding: 9px 18px; background: #fff;
+  border: 1px solid #e6edf2; border-radius: 10px;
+  font-size: 13px; font-family: inherit;
+  cursor: pointer; font-weight: 500; color: #555;
+  display: flex; align-items: center; gap: 6px; transition: all .2s;
+}
+.btn-export:hover { background: #FEF2F2; border-color: #8B1A1A; color: #8B1A1A; }
+
+.dot { display: inline-block; width: 8px; height: 8px; background: #EF4444; border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.empty { text-align: center; padding: 40px; color: #bbb; }
+.empty .ei { font-size: 36px; margin-bottom: 12px; }
+.empty p { font-size: 14px; }
+
+.overflow-x { overflow-x: auto; }
+/* force nav labels visible */
+.nav-links a>span{display:inline!important;width:auto!important;max-width:none!important;flex-shrink:1!important;opacity:1!important;color:inherit!important}
+</style>
+<link rel="stylesheet" href="css/ssp-theme.css?v=6">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">🏢</div>
+    <div class="sb-logo-text"><h3>SSP</h3><p>Sales &amp; Promotion</p></div>
+  </div>
+  <div class="nav-links">
+    <div class="nav-section">Main Menu</div>
+    <a href="dashboard.html">Dashboard</a>
+    <div class="nav-section">Master Data</div>
+    <a href="outlets.html">Outlet Master</a>
+    <a href="data_u.html" class="nav-sub">Data Universe</a>
+    <a href="contracts.html">Contract Master</a>
+    <a href="promotions.html">Promotions</a>
+    <div class="nav-section">Analytics</div>
+    <a href="roi.html" class="active">ROI Analysis</a>
+    <a href="offtake.html">Off-take 2026</a>
+    <a href="sku.html">SKU</a>
+    <div class="nav-section">System</div>
+    <a href="users.html">User Management</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="sb-user-row">
+      <div class="sb-avatar" id="userAvatar">—</div>
+      <div><div class="sname" id="userName">—</div><div class="semail" id="userEmail">—</div></div>
+    </div>
+    <button class="btn-logout" onclick="logout()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="page-header">
+    <div>
+      <h2>📈 ROI Analysis <span class="dot"></span></h2>
+      <p>Return on investment per contract — Contract value vs. promotions/discounts given</p>
+    </div>
+    <button class="btn-export" onclick="exportExcel()">⬇️ Export Excel</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card blue">
+      <div class="label">Total Contract Value</div>
+      <div class="value" id="sTotalContract">-</div>
+      <div class="sub">Baht</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="label">Total Promotions/Discounts</div>
+      <div class="value" id="sTotalPromo">-</div>
+      <div class="sub">Baht</div>
+    </div>
+    <div class="stat-card green">
+      <div class="label">Total Net Value</div>
+      <div class="value" id="sNetValue">-</div>
+      <div class="sub">Baht</div>
+    </div>
+    <div class="stat-card" id="sROICard">
+      <div class="label">เฉลี่ย ROI%</div>
+      <div class="value" id="sAvgROI">-</div>
+      <div class="sub">ต่อสัญญา</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('calc')">📊 ROI คำนวณจากสัญญา</button>
+    <button class="tab-btn" onclick="switchTab('raw')">📋 ตาราง Return of Investment</button>
+  </div>
+
+  <!-- Calculated ROI Tab -->
+  <div id="tabCalc" class="tab-panel active">
+    <div class="section">
+      <div class="section-head">
+        <h3>📊 ROI% ต่อสัญญา (สูงสุด 15 อันดับ)</h3>
+        <span style="font-size:12px;color:#aaa">เขียวสด = ROI ≥ 70% | เหลือง = 40-70% | แดง = &lt; 40%</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="roiChart"></canvas>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3 style="margin-bottom:16px">📄 รายละเอียด ROI ต่อสัญญา</h3>
+      <div class="overflow-x">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>เลขสัญญา</th>
+              <th>Outlet</th>
+              <th>ประเภท</th>
+              <th style="text-align:right">มูลค่าสัญญา (฿)</th>
+              <th style="text-align:right">โปรโมชั่นรวม (฿)</th>
+              <th style="text-align:right">Net Value (฿)</th>
+              <th>ROI%</th>
+              <th>สถานะ</th>
+            </tr>
+          </thead>
+          <tbody id="roiTbody">
+            <tr><td colspan="9" style="text-align:center;color:#aaa;padding:32px">กำลังโหลด...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Raw ROI Table Tab -->
+  <div id="tabRaw" class="tab-panel">
+    <div class="section">
+      <div class="section-head">
+        <h3>📋 ข้อมูลจากตาราง "Return of investment"</h3>
+        <span id="rawCount" style="font-size:13px;color:#aaa"></span>
+      </div>
+      <div id="rawWrap" class="overflow-x">
+        <div class="empty"><div class="ei">⏳</div><p>กำลังโหลด...</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let chartInstance = null;
+let calcRows = [];
+let rawRows = [];
+
+function switchTab(t) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === (t === 'calc' ? 0 : 1)));
+  document.getElementById('tabCalc').classList.toggle('active', t === 'calc');
+  document.getElementById('tabRaw').classList.toggle('active', t === 'raw');
+}
+
+async function checkAuth() {
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) { window.location.href = 'index.html'; return; }
+  const u = data.session.user;
+  const { data: p } = await supabase.from('user_profile').select('username').eq('auth_email', u.email).maybeSingle();
+  document.getElementById('userEmail').textContent = u.email;
+  const displayName = (p && p.username) || u.email.split('@')[0];
+  document.getElementById('userName').textContent = displayName;
+  document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
+  Promise.all([loadCalc(), loadRaw()]);
+}
+
+// ดึง table โดย try primary → fallback
+async function fetchTable(primary, fallback) {
+  let { data, error } = await supabase.from(primary).select('*').limit(1000);
+  if (error || !data || !data.length) {
+    ({ data } = await supabase.from(fallback).select('*').limit(1000));
+  }
+  return data || [];
+}
+
+// หา column ที่น่าจะเป็น contract value
+function detectValCol(row) {
+  if (!row) return null;
+  const keys = Object.keys(row);
+  const priority = ['value','amount','contract_value','total','มูลค่า','ราคา','budget'];
+  for (const p of priority) {
+    const found = keys.find(k => k.toLowerCase().includes(p) && typeof row[k] === 'number');
+    if (found) return found;
+  }
+  return keys.find(k => typeof row[k] === 'number') || null;
+}
+
+// หา column ที่น่าจะเป็น label/name ของสัญญา
+function detectLabelCol(row, hint = []) {
+  if (!row) return null;
+  const keys = Object.keys(row);
+  const terms = [...hint, 'contract_no','contract_name','name','no','เลขสัญญา','ชื่อ'];
+  for (const t of terms) {
+    const found = keys.find(k => k.toLowerCase().includes(t) && typeof row[k] === 'string');
+    if (found) return found;
+  }
+  return keys.find(k => typeof row[k] === 'string') || null;
+}
+
+// หา column ที่เชื่อม promo → contract
+function detectLinkCol(pRow, cKeys) {
+  if (!pRow) return { pCol: null, cCol: null };
+  const pKeys = Object.keys(pRow);
+  const linkTerms = ['contract_id','contract_no','contract','สัญญา'];
+  for (const t of linkTerms) {
+    const pCol = pKeys.find(k => k.toLowerCase().includes(t));
+    if (pCol) {
+      const cCol = cKeys.find(k => k === 'id' || k.toLowerCase().includes(t));
+      if (cCol) return { pCol, cCol };
+    }
+  }
+  return { pCol: null, cCol: null };
+}
+
+async function loadCalc() {
+  const [contracts, promotions] = await Promise.all([
+    fetchTable('Contract Master', 'contracts'),
+    fetchTable('Promotion / Trade deal', 'promotions')
+  ]);
+
+  if (!contracts.length) {
+    document.getElementById('roiTbody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#aaa;padding:32px">ไม่พบข้อมูลสัญญา — กรุณารัน add_rls_existing_tables.sql ก่อน</td></tr>';
+    return;
+  }
+
+  const cSample = contracts[0];
+  const pSample = promotions[0];
+  const cKeys = Object.keys(cSample);
+
+  const cValCol   = detectValCol(cSample);
+  const cLabelCol = detectLabelCol(cSample, ['contract_no','contract_name','no']);
+  const cTypeCol  = cKeys.find(k => /type|ประเภท/i.test(k)) || null;
+  const cStatCol  = cKeys.find(k => /^status$/i.test(k) || /สถานะ/.test(k)) || null;
+  const cOutletCol = cKeys.find(k => /outlet|ลูกค้า|ร้าน/i.test(k)) || null;
+
+  const { pCol, cCol } = detectLinkCol(pSample, cKeys);
+  const pValCol = detectValCol(pSample);
+
+  // Build promo map grouped by contract link
+  const pMap = {};
+  if (pCol && pValCol) {
+    promotions.forEach(p => {
+      const key = String(p[pCol] || '');
+      if (!pMap[key]) pMap[key] = 0;
+      pMap[key] += parseFloat(p[pValCol] || 0);
+    });
+  }
+
+  calcRows = contracts.map(c => {
+    const cLinkVal = String(c[cCol] || c['id'] || '');
+    const cv = parseFloat(c[cValCol] || 0);
+    const pv = pMap[cLinkVal] || 0;
+    const net = cv - pv;
+    const roi = cv > 0 ? (net / cv * 100) : 0;
+    return {
+      contract_no: c[cLabelCol] || String(cLinkVal).slice(0, 12),
+      outlet: cOutletCol ? (c[cOutletCol] || '-') : '-',
+      type: cTypeCol ? (c[cTypeCol] || '-') : '-',
+      cv, pv, net, roi,
+      status: cStatCol ? (c[cStatCol] || '-') : '-'
+    };
+  });
+
+  updateStats(calcRows);
+  renderChart(calcRows);
+  renderTable(calcRows);
+}
+
+function updateStats(rows) {
+  const totalCV = rows.reduce((s, r) => s + r.cv, 0);
+  const totalPV = rows.reduce((s, r) => s + r.pv, 0);
+  const totalNet = totalCV - totalPV;
+  const withVal = rows.filter(r => r.cv > 0);
+  const avgROI = withVal.length ? withVal.reduce((s, r) => s + r.roi, 0) / withVal.length : 0;
+
+  document.getElementById('sTotalContract').textContent = fNum(totalCV);
+  document.getElementById('sTotalPromo').textContent = fNum(totalPV);
+  document.getElementById('sNetValue').textContent = fNum(totalNet);
+  document.getElementById('sAvgROI').textContent = avgROI.toFixed(1) + '%';
+  const card = document.getElementById('sROICard');
+  card.classList.add(avgROI >= 70 ? 'green' : avgROI >= 40 ? 'orange' : 'red');
+}
+
+function fNum(n) {
+  if (n === null || n === undefined) return '-';
+  return Number(n).toLocaleString('th-TH', { maximumFractionDigits: 0 });
+}
+
+function renderChart(rows) {
+  const sorted = [...rows].sort((a, b) => b.roi - a.roi).slice(0, 15);
+  const labels = sorted.map(r => r.contract_no);
+  const vals = sorted.map(r => parseFloat(r.roi.toFixed(1)));
+  const colors = vals.map(v => v >= 70 ? '#27ae60' : v >= 40 ? '#f39c12' : '#e74c3c');
+
+  const ctx = document.getElementById('roiChart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'ROI (%)',
+        data: vals,
+        backgroundColor: colors,
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `ROI: ${ctx.parsed.y.toFixed(1)}%` } }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { callback: v => v + '%' },
+          grid: { color: '#f0f4f8' }
+        },
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function renderTable(rows) {
+  const tbody = document.getElementById('roiTbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#aaa;padding:32px">ยังไม่มีข้อมูลสัญญา</td></tr>';
+    return;
+  }
+  const stMap = { draft: 'b-draft', active: 'b-active', expired: 'b-expired', cancelled: 'b-cancelled' };
+  const stTh  = { draft: 'ร่าง', active: 'ใช้งาน', expired: 'หมดอายุ', cancelled: 'ยกเลิก' };
+
+  tbody.innerHTML = [...rows].sort((a, b) => b.roi - a.roi).map((r, i) => {
+    const rc = r.roi >= 70 ? '#27ae60' : r.roi >= 40 ? '#f39c12' : '#e74c3c';
+    const rb = r.roi >= 70 ? 'b-good' : r.roi >= 40 ? 'b-warn' : 'b-bad';
+    const bw = Math.min(100, Math.max(0, r.roi));
+    return `<tr>
+      <td style="color:#aaa;font-size:12px">${i + 1}</td>
+      <td><strong>${r.contract_no}</strong></td>
+      <td>${r.outlet}</td>
+      <td>${r.type}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums">${fNum(r.cv)}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;color:#e74c3c">${fNum(r.pv)}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;color:#27ae60">${fNum(r.net)}</td>
+      <td>
+        <div class="roi-bar-wrap">
+          <div class="roi-bg"><div class="roi-fill" style="width:${bw}%;background:${rc}"></div></div>
+          <span class="badge ${rb}" style="white-space:nowrap">${r.roi.toFixed(1)}%</span>
+        </div>
+      </td>
+      <td><span class="badge ${stMap[r.status] || ''}">${stTh[r.status] || r.status}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+async function loadRaw() {
+  const { data, error } = await supabase
+    .from('Return of investment')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(500);
+
+  const wrap = document.getElementById('rawWrap');
+
+  if (error || !data || !data.length) {
+    document.getElementById('rawCount').textContent = '';
+    wrap.innerHTML = `<div class="empty">
+      <div class="ei">📭</div>
+      <p>ไม่พบข้อมูลในตาราง "Return of investment"<br>
+      <span style="color:#ccc;font-size:12px">${error ? error.message : 'ตารางยังไม่มีข้อมูล หรือยังไม่ได้เปิด RLS Policy'}</span></p>
+    </div>`;
+    return;
+  }
+
+  rawRows = data;
+  document.getElementById('rawCount').textContent = `${data.length} รายการ`;
+
+  const skipCols = ['id'];
+  const cols = Object.keys(data[0]).filter(c => !skipCols.includes(c));
+  const fv = v => {
+    if (v === null || v === undefined) return '<span style="color:#ccc">-</span>';
+    if (typeof v === 'number') return Number(v).toLocaleString('th-TH');
+    if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v)) return new Date(v).toLocaleDateString('th-TH');
+    const s = String(v);
+    return s.length > 80 ? s.slice(0, 77) + '...' : s;
+  };
+  const label = c => c.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+  wrap.innerHTML = `<table>
+    <thead><tr>${cols.map(c => `<th>${label(c)}</th>`).join('')}</tr></thead>
+    <tbody>${data.map(row => `<tr>${cols.map(c => `<td>${fv(row[c])}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function exportExcel() {
+  const wb = XLSX.utils.book_new();
+  if (calcRows.length) {
+    const ws1 = XLSX.utils.json_to_sheet(calcRows.map((r, i) => ({
+      'ลำดับ': i + 1,
+      'เลขสัญญา': r.contract_no,
+      'Outlet': r.outlet,
+      'ประเภท': r.type,
+      'มูลค่าสัญญา (บาท)': r.cv,
+      'โปรโมชั่นรวม (บาท)': r.pv,
+      'Net Value (บาท)': r.net,
+      'ROI (%)': parseFloat(r.roi.toFixed(2)),
+      'สถานะ': r.status
+    })));
+    XLSX.utils.book_append_sheet(wb, ws1, 'ROI คำนวณ');
+  }
+  if (rawRows.length) {
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rawRows), 'Return of Investment');
+  }
+  if (!calcRows.length && !rawRows.length) { alert('ยังไม่มีข้อมูล'); return; }
+  XLSX.writeFile(wb, `ROI_Analysis_${new Date().toISOString().slice(0, 10)}.xlsx`);
+}
+
+async function logout() {
+  await supabase.auth.signOut();
+  window.location.href = 'index.html';
+}
+
+checkAuth();
+</script>
+</body>
+</html>
+

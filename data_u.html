@@ -1,0 +1,2157 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Universe — SSP</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="js/config.js?v=3"></script>
+<style>
+/* ============================================================
+   BAKED APPLE PALETTE
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:linear-gradient(to bottom right,#FFFFFF 0%,#F0F2F5 55%,#E2E5EA 100%);background-attachment:fixed;color:#1E293B;display:flex;font-size:14px;line-height:1.55;min-height:100vh;font-weight:400}
+h1,h2,h3,h4,h5{font-weight:800;text-wrap:balance}
+button{cursor:pointer;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:600;transition:all .15s}
+input,select,textarea{font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:400}
+label{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:.35px;text-transform:uppercase;color:#475569}
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+.sidebar{
+  width:240px;height:100vh;
+  background:#66f5ff6c;
+  position:fixed;left:0;top:0;
+  display:flex;flex-direction:column;
+  z-index:100;
+  box-shadow:4px 0 32px rgb(0, 0, 0);
+  overflow:hidden;
+}
+/* glow stripe */
+.sidebar::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#dddddd,#ececec,#ffffff,#D40000,#8B0000);
+  background-size:200% 100%;
+  animation:sbStripe 3s linear infinite;
+}
+@keyframes sbStripe{0%{background-position:0% 0}100%{background-position:200% 0}}
+
+/* logo area */
+.sb-logo{padding:28px 20px 20px;display:flex;align-items:center;gap:12px}
+.sb-logo-icon{
+  width:38px;height:38px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,#023658,#0492a5);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;box-shadow:0 4px 14px rgb(204, 0, 0);
+}
+.sb-logo-text h3{font-size:14px;font-weight:800;color:#000000;letter-spacing:.3px}
+.sb-logo-text p{font-size:10.5px;color:rgba(0, 0, 0, 0.35);margin-top:1px;font-weight:400}
+
+/* nav scroll area */
+.nav-links{flex:1;padding:8px 12px;overflow-y:auto;overflow-x:hidden}
+.nav-links::-webkit-scrollbar{width:3px}
+.nav-links::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
+
+/* section label */
+.nav-section{
+  padding:16px 8px 6px;
+  font-size:9.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
+  color:rgba(255,255,255,.22);
+}
+.nav-section:first-child{padding-top:4px}
+
+/* nav item */
+.nav-links a{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:10px;
+  color:rgba(255,255,255,.5);
+  text-decoration:none;font-size:13px;font-weight:500;
+  transition:background .18s,color .18s,transform .15s;
+  position:relative;margin-bottom:2px;
+  border:1px solid transparent;
+}
+.nav-links a .nav-ico{
+  width:34px;height:34px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;
+  background:rgba(255,255,255,.05);
+  transition:background .18s,box-shadow .18s;
+}
+.nav-links a:hover{
+  background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);
+  transform:translateX(2px);
+}
+.nav-links a:hover .nav-ico{background:rgba(255,255,255,.1)}
+.nav-links a.active{
+  background:linear-gradient(135deg,rgba(139,0,0,.55),rgba(212,0,0,.3));
+  color:#fff;
+  border-color:rgba(212,0,0,.35);
+  box-shadow:0 4px 16px rgba(139,0,0,.25),inset 0 1px 0 rgba(255,255,255,.08);
+}
+.nav-links a.active .nav-ico{
+  background:linear-gradient(135deg,#8B0000,#D40000);
+  box-shadow:0 4px 12px rgba(212,0,0,.45);
+}
+
+/* sub-item */
+.nav-links a.nav-sub{
+  padding-left:24px;font-size:12px;
+  color:rgba(255,255,255,.4);
+  margin-left:8px;
+  border-radius:8px;
+}
+.nav-links a.nav-sub .nav-ico{
+  width:28px;height:28px;font-size:13px;
+  background:transparent;
+}
+.nav-links a.nav-sub:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.05)}
+.nav-links a.nav-sub.active{
+  color:#fff;
+  background:rgba(212,0,0,.2);
+  border-color:rgba(212,0,0,.25);
+}
+.nav-links a.nav-sub.active .nav-ico{background:rgba(212,0,0,.3)}
+
+/* user footer */
+.sidebar-user{
+  padding:14px 16px 18px;
+  border-top:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.02);
+}
+.sb-user-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sb-avatar{
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,#8B0000,#D40000);
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:#fff;
+  box-shadow:0 3px 10px rgba(139,0,0,.4);
+}
+.sidebar-user .sname{font-size:12.5px;font-weight:700;color:#fff;line-height:1.2}
+.sidebar-user .semail{font-size:10.5px;color:rgba(255,255,255,.3);margin-top:1px}
+.btn-logout{
+  width:100%;padding:8px;
+  background:rgba(255,255,255,.05);
+  color:rgba(255,255,255,.5);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:8px;font-size:12px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:all .18s;
+}
+.btn-logout:hover{background:rgba(139,0,0,.35);color:#fff;border-color:rgba(212,0,0,.4)}
+
+/* MAIN */
+.main{margin-left:240px;flex:1;padding:28px 32px;min-height:100vh}
+.page-title{font-size:26px;font-weight:800;color:#1A0000}
+.page-sub{font-size:13px;color:#A00000;margin-top:5px;font-weight:400}
+.dot-live{display:inline-block;width:8px;height:8px;background:#22C55E;border-radius:50%;animation:pulse 2s infinite;vertical-align:middle;margin-left:6px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* KPI CARDS — fluid responsive via clamp() */
+.kpi-row{display:flex;gap:clamp(8px,1.4vw,16px);margin-bottom:16px;flex-wrap:wrap}
+.kpi-card{background:#fff;border-radius:clamp(14px,1.6vw,20px);padding:clamp(12px,1.5vw,18px) clamp(14px,1.8vw,22px) 0;box-shadow:0 4px 20px rgba(0,0,0,.07),0 1px 4px rgba(0,0,0,.04);flex:1 1 170px;min-width:0;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.kpi-top{display:flex;align-items:center;gap:clamp(8px,1.1vw,12px);margin-bottom:clamp(6px,0.9vw,10px)}
+.kpi-icon{width:clamp(34px,3.4vw,46px);height:clamp(34px,3.4vw,46px);border-radius:clamp(10px,1.2vw,13px);display:flex;align-items:center;justify-content:center;font-size:clamp(17px,2vw,24px);flex-shrink:0}
+.kpi-title{font-size:clamp(11px,1.15vw,14px);font-weight:700;color:#1F2937;line-height:1.3;letter-spacing:-.1px}
+.kpi-num{font-size:clamp(28px,4vw,60px);font-weight:800;color:#111827;font-variant-numeric:tabular-nums;line-height:1;margin-bottom:clamp(4px,0.7vw,8px)}
+.kpi-num span:last-child{font-size:clamp(11px,1.25vw,17px);font-weight:500;color:#9CA3AF;margin-left:clamp(5px,0.7vw,10px);vertical-align:middle}
+.kpi-badge{display:inline-flex;align-items:center;padding:clamp(3px,0.4vw,5px) clamp(8px,1vw,12px);border-radius:20px;font-size:clamp(10px,1vw,12px);font-weight:700;letter-spacing:.15px;margin-bottom:0;width:fit-content}
+.kpi-wave{margin:clamp(4px,0.6vw,6px) clamp(-14px,-1.8vw,-22px) 0;line-height:0;display:flex;align-items:flex-end}
+.kpi-wave svg{display:block;width:100%;height:clamp(26px,3.2vw,44px)}
+@media(max-width:640px){.kpi-card{flex-basis:calc(50% - 5px);max-width:calc(50% - 5px)}}
+@media(max-width:420px){.kpi-card{flex-basis:100%;max-width:100%}}
+/* legacy dot kept for other uses */
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-green{background:#22C55E}
+
+/* TOOLBAR */
+.toolbar{background:#fff;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(100,0,0,.10);margin-bottom:12px;border:1px solid #F5E8E8}
+.search-wrap{position:relative}
+.search-wrap input{padding:10px 14px 10px 36px;border:1.5px solid #FFD0D0;border-radius:10px;font-size:14px;background:#FFF7F7;color:#1E293B;font-weight:400;width:200px;transition:width .2s,border-color .15s,background .15s}
+.search-wrap input:focus{outline:none;border-color:#C00000;background:#fff;width:260px}
+.search-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#D40000;pointer-events:none;width:15px;height:15px}
+.flt{padding:10px 13px;border:1.5px solid #FFD0D0;border-radius:10px;font-size:14px;background:#FFF7F7;color:#1E293B;min-width:120px;font-weight:500}
+.flt:focus{outline:none;border-color:#C00000}
+.spacer{flex:1}
+
+/* BUTTONS */
+.btn-add{padding:10px 18px;background:linear-gradient(135deg,#D40000 0%,#C00000 45%,#990000 100%);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 3px 10px rgba(155,0,0,.32),0 1px 2px rgba(0,0,0,.1)}
+.btn-add:hover{background:linear-gradient(135deg,#C00000 0%,#990000 100%);box-shadow:0 4px 14px rgba(155,0,0,.4);transform:translateY(-1px)}
+.btn-outline{padding:9px 14px;background:#fff;color:#8B0000;border:1.5px solid #FF9090;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.btn-outline:hover{background:#FBF0F0;border-color:#C00000}
+.btn-export-dark{padding:9px 14px;background:#1A1A1A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;transition:all .15s}
+.btn-export-dark:hover{background:#000;transform:translateY(-1px)}
+.btn-import{padding:9px 14px;background:#1A1A1A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-import:hover{background:#000;transform:translateY(-1px)}
+.btn-col{padding:9px 12px;background:#fff;color:#8B0000;border:1.5px solid #FF9090;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px}
+.btn-col:hover{background:#FFF7F7;border-color:#D40000}
+.rc-tag{font-size:12px;color:#D40000;white-space:nowrap;padding:0 4px;margin-left:auto;font-weight:400}
+
+/* FILTER BAR */
+.filter-bar{background:#fff;border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;box-shadow:0 1px 6px rgba(100,0,0,.08);margin-bottom:12px}
+.filter-bar .fb-label{font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.fb-sep{width:1px;height:24px;background:#FFD0D0;flex-shrink:0;margin:0 2px}
+
+/* COLUMN PICKER */
+.col-picker-wrap{position:relative;display:inline-block}
+.col-picker-panel{position:absolute;top:calc(100% + 6px);left:0;background:#fff;border-radius:12px;border:1.5px solid #FFD0D0;box-shadow:0 8px 24px rgba(100,0,0,.14);width:230px;z-index:50;display:none}
+.col-picker-panel.open{display:block}
+.cp-hdr{padding:11px 14px 8px;border-bottom:1px solid #F5EDED;display:flex;align-items:center;justify-content:space-between}
+.cp-hdr-title{font-size:11px;font-weight:700;color:#7B0000;text-transform:uppercase;letter-spacing:.5px}
+.cp-reset{font-size:11px;font-weight:700;color:#C00000;background:none;border:none;padding:0;cursor:pointer}
+.cp-reset:hover{text-decoration:underline}
+.cp-list{padding:6px 0;max-height:300px;overflow-y:auto}
+.cp-item{display:flex;align-items:center;gap:10px;padding:6px 14px;cursor:pointer;transition:background .1s}
+.cp-item:hover{background:#FFF7F7}
+.cp-item input[type="checkbox"]{width:14px;height:14px;accent-color:#C00000;cursor:pointer;flex-shrink:0}
+.cp-item-lbl{font-size:12.5px;color:#374151;font-weight:400;cursor:pointer;user-select:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* TABLE */
+.tcard{background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(100,0,0,.1),0 1px 4px rgba(100,0,0,.06);overflow:hidden}
+.tscroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:600px}
+thead th{text-align:left;padding:11px 14px;font-size:11px;color:#fff;font-weight:700;background:linear-gradient(90deg,#780000 0%,#A00000 100%);white-space:nowrap;cursor:pointer;user-select:none;letter-spacing:.4px;text-transform:uppercase;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+thead th:hover{background:linear-gradient(90deg,#5A2424 0%,#990000 100%)}
+thead th.sa::after{content:' ↑';opacity:.7}
+thead th.sd::after{content:' ↓';opacity:.7}
+tbody td{padding:10px 14px;font-size:13px;border-bottom:1px solid #FFF5F5;color:#374151;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;font-weight:400}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#FFF8F8}
+.td-act{display:flex;gap:6px}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.bb{background:#F5EDED;color:#8B0000}
+.ba{background:#D1FAE5;color:#065F46}
+.bi{background:#FEE2E2;color:#991B1B}
+
+/* PAGINATION */
+.pagi{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid #F5EDED;flex-wrap:wrap;gap:8px}
+.pg-info{font-size:12px;color:#D40000;font-weight:400}
+.pg-btns{display:flex;gap:4px}
+.pg-btn{min-width:32px;height:32px;border-radius:8px;border:1.5px solid #FFD0D0;background:#fff;font-size:13px;font-weight:700;color:#374151;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 6px;transition:all .15s}
+.pg-btn:hover:not([disabled]){border-color:#C00000;color:#C00000}
+.pg-btn.active{background:#C00000;border-color:#C00000;color:#fff}
+.pg-btn[disabled]{opacity:.35;cursor:not-allowed}
+
+/* MODALS */
+.overlay{position:fixed;inset:0;background:rgba(100,0,0,.45);display:none;z-index:200;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px}
+.overlay.open{display:flex}
+.form-modal{background:#F7F3F3;border-radius:16px;width:720px;max-width:100%;box-shadow:0 24px 64px rgba(100,0,0,.28);display:flex;flex-direction:column;margin:auto;position:relative}
+.fmhdr{padding:24px 28px 18px;background:#fff;border-radius:16px 16px 0 0;border-bottom:1px solid #FFD0D0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.fmtitle{font-size:22px;font-weight:800;color:#1A0000}
+.fmsub{font-size:12px;color:#D40000;margin-top:4px;font-weight:400}
+.fmx{width:34px;height:34px;border-radius:8px;border:none;background:transparent;color:#D40000;font-size:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+.fmx:hover{background:#FFF2F2;color:#C00000}
+.fmbody{padding:20px 24px;overflow-y:auto;max-height:calc(90vh - 140px)}
+.fmftr{padding:16px 28px;background:#fff;border-top:1px solid #FFD0D0;border-radius:0 0 16px 16px;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0}
+.discard-shield{display:none;position:absolute;inset:0;background:rgba(0,0,0,.52);z-index:50;border-radius:16px;align-items:center;justify-content:center}
+.discard-shield.show{display:flex}
+.discard-card{background:#fff;border-radius:14px;padding:30px 30px 24px;max-width:340px;width:90%;text-align:center;box-shadow:0 20px 56px rgba(0,0,0,.38)}
+.discard-card h4{font-size:16px;font-weight:800;color:#1A0000;margin-bottom:8px}
+.discard-card p{font-size:13px;color:#64748B;margin-bottom:20px;line-height:1.6}
+.dc-btns{display:flex;gap:10px;justify-content:center}
+.dc-stay{padding:10px 22px;background:#F1F5F9;color:#374151;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer}
+.dc-stay:hover{background:#E2E8F0}
+.dc-leave{padding:10px 22px;background:linear-gradient(135deg,#D40000,#990000);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer}
+.dc-leave:hover{background:#8B0000}
+.btn-cancel{padding:10px 22px;background:#fff;color:#8B0000;border:1.5px solid #FF9090;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer}
+.btn-cancel:hover{background:#FFF5F5}
+.btn-save{padding:10px 24px;background:#C00000;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;cursor:pointer}
+.btn-save:hover{background:#990000}
+.confirm-modal{background:#fff;border-radius:16px;padding:28px;width:420px;max-width:95vw;box-shadow:0 20px 60px rgba(100,0,0,.25);margin:auto;text-align:center}
+
+/* GENERIC FORM GRID */
+.fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg.full{grid-column:1/-1}
+.flbl{font-size:11px;font-weight:700;color:#8B0000;letter-spacing:.35px;text-transform:uppercase}
+.finput{padding:10px 12px;border:1.5px solid #FFD0D0;border-radius:10px;font-size:13px;color:#1E293B;background:#fff;width:100%;font-weight:400}
+.finput:focus{outline:none;border-color:#C00000}
+select.finput{appearance:auto}
+
+/* ADD RECORD — 2-card layout */
+.add-card{background:#fff;border-radius:12px;border:1px solid #FFD0D0;margin-bottom:16px;overflow:hidden;box-shadow:0 2px 10px rgba(100,0,0,.08)}
+.add-card-hdr{background:linear-gradient(90deg,#7B0000,#A00000);color:#fff;padding:11px 18px;font-size:12.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:flex;align-items:center;gap:9px}
+.add-card-num{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.22);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.add-card-body{padding:16px 18px}
+.add-sub-lbl{font-size:10px;font-weight:700;color:#A00000;text-transform:uppercase;letter-spacing:.8px;margin:18px 0 10px;padding-bottom:5px;border-bottom:1px solid #FFE8E8;grid-column:1/-1}
+.add-hint{font-size:11px;color:#22C55E;font-weight:500;margin-top:3px}
+/* Outlet Code preview bar */
+.cpb{background:linear-gradient(90deg,#7B0000 0%,#A00000 100%);padding:11px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.cpb-lbl{font-size:9px;font-weight:700;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+.cpb-code{font-size:15px;font-weight:800;color:#fff;letter-spacing:1.5px;flex:1;font-variant-numeric:tabular-nums}
+.cpb-note{font-size:11px;color:rgba(255,255,255,.55);font-style:italic}
+
+/* IMPORT MODAL */
+.imp-step{display:flex;gap:16px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #F5EDED}
+.imp-step:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.imp-step-num{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#C00000,#990000);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.imp-step-title{font-size:14px;font-weight:700;color:#1A0000;margin-bottom:3px}
+.imp-step-desc{font-size:12.5px;color:#A00000;line-height:1.6}
+.imp-dropzone{margin-top:12px;border:2px dashed #FF9090;border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#FFF7F7}
+.imp-dropzone:hover,.imp-dropzone.drag-over{border-color:#C00000;background:#F5EDED}
+.imp-dropzone.has-file{border-color:#22C55E;background:#F0FDF4;border-style:solid}
+.imp-dz-icon{font-size:32px;margin-bottom:8px}
+.imp-dz-text{font-size:13.5px;font-weight:600;color:#374151}
+.imp-dz-sub{font-size:11.5px;color:#9CA3AF;margin-top:4px}
+.imp-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700}
+.imp-badge-add{background:#D1FAE5;color:#065F46}
+.imp-badge-upd{background:#FEF3C7;color:#92400E}
+.imp-preview-hdr{display:flex;align-items:center;gap:10px;margin:16px 0 8px;flex-wrap:wrap}
+.imp-preview-hdr .imp-pc{font-size:13px;font-weight:700;color:#1A0000;flex:1}
+.imp-pwrap{overflow-x:auto;border:1px solid #F0E8E8;border-radius:10px;max-height:200px;overflow-y:auto}
+.imp-pwrap table{width:100%;border-collapse:collapse;min-width:400px}
+.imp-pwrap th{padding:8px 12px;font-size:11px;color:#fff;font-weight:700;white-space:nowrap;letter-spacing:.3px;text-transform:uppercase;position:sticky;top:0;background:linear-gradient(90deg,#780000,#A00000)}
+.imp-pwrap td{padding:8px 12px;font-size:12.5px;border-bottom:1px solid #F5EDED;white-space:nowrap;color:#374151;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.imp-pwrap tr:last-child td{border-bottom:none}
+.imp-prog{margin-top:12px;background:#F5EDED;border-radius:8px;height:6px;overflow:hidden;display:none}
+.imp-prog-bar{height:100%;background:linear-gradient(90deg,#C00000,#D40000);width:0%;transition:width .2s;border-radius:8px}
+.bte{padding:4px 10px;border-radius:7px;border:none;background:#EDF5FF;color:#2563EB;font-size:11.5px;font-weight:700;cursor:pointer}
+.btd{padding:4px 10px;border-radius:7px;border:none;background:#FFF2F2;color:#C00000;font-size:11.5px;font-weight:700;cursor:pointer}
+.bte:hover{background:#DBEAFE}.btd:hover{background:#FEE2E2}
+
+/* LOG DRAWER */
+.log-drawer{position:fixed;right:-440px;top:0;width:420px;height:100vh;background:#fff;box-shadow:-4px 0 28px rgba(100,0,0,.18);z-index:300;display:flex;flex-direction:column;transition:right .25s cubic-bezier(.4,0,.2,1)}
+.log-drawer.open{right:0}
+.lhdr{padding:20px;background:#7B0000;color:#fff;position:relative}
+.lhdr h3{font-size:15px;font-weight:800}
+.lhdr p{font-size:11px;color:rgba(255,255,255,.42);margin-top:3px;font-weight:400}
+.lhdr-x{position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:8px;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.lhdr-x:hover{background:rgba(255,255,255,.22)}
+.lbody{flex:1;overflow-y:auto;padding:14px}
+.litem{background:#FFF7F7;border-radius:10px;padding:12px 14px;margin-bottom:9px}
+.litem.li{border-left:3px solid #22C55E}.litem.lu{border-left:3px solid #D40000}.litem.ld{border-left:3px solid #C00000}
+.la{font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.li .la{color:#16A34A}.lu .la{color:#990000}.ld .la{color:#C00000}
+.ldesc{font-size:12.5px;color:#374151;margin-top:3px;font-weight:400}
+.lmeta{font-size:11px;color:#D40000;margin-top:5px;font-weight:400}
+.brst{margin-top:8px;padding:4px 12px;border-radius:7px;background:#F0E8E8;color:#8B0000;border:none;font-size:11.5px;font-weight:700;cursor:pointer}
+.brst:hover{background:#E4D0D0}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{padding:12px 18px;border-radius:10px;font-size:13px;font-weight:700;box-shadow:0 4px 20px rgba(100,0,0,.22);display:flex;align-items:center;gap:8px;animation:tin .25s ease}
+.tok{background:#065F46;color:#fff}.terr{background:#990000;color:#fff}.tinf{background:#7B0000;color:#fff}
+@keyframes tin{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+.empty-state{text-align:center;padding:60px 20px;color:#FF9090}
+.empty-state .ei{font-size:42px;margin-bottom:12px}
+.empty-state p{font-size:14px;font-weight:400}
+.btn-secondary{padding:9px 14px;background:linear-gradient(135deg,#990000 0%,#8B0000 100%);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(100,0,0,.25)}
+.btn-secondary:hover{background:linear-gradient(135deg,#8B0000 0%,#7B0000 100%)}
+</style>
+<link rel="stylesheet" href="css/ssp-theme.css?v=6">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">🍸</div>
+    <div class="sb-logo-text">
+      <h3>SSP</h3>
+      <p>Sales &amp; Promotion</p>
+    </div>
+  </div>
+
+  <div class="nav-links">
+    <div class="nav-section">Main Menu</div>
+    <a href="dashboard.html">Dashboard</a>
+
+    <div class="nav-section">Master Data</div>
+    <a href="outlets.html">Outlet Master</a>
+    <a href="data_u.html" class="nav-sub active">Data Universe</a>
+    <a href="contracts.html">Contract Master</a>
+    <a href="promotions.html">Promotions</a>
+
+    <div class="nav-section">Analytics</div>
+    <a href="roi.html">ROI Analysis</a>
+    <a href="offtake.html">Off-take 2026</a>
+    <a href="sku.html">SKU</a>
+
+    <div class="nav-section">System</div>
+    <a href="users.html">User Management</a>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="sb-user-row">
+      <div class="sb-avatar" id="userAvatar">—</div>
+      <div>
+        <div class="sname" id="userName">—</div>
+        <div class="semail" id="userEmail">—</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="logout()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
+  </div>
+</nav>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div>
+    <h2 class="page-title">Data Universe <span class="dot-live"></span></h2>
+  </div>
+
+  <!-- Context banner: shown when filtered by outlet code via URL param -->
+  <div id="codeCtx" style="display:none;background:linear-gradient(90deg,#8B0000,#990000);color:#fff;border-radius:10px;padding:10px 18px;margin:8px 0;align-items:center;gap:14px;flex-wrap:wrap">
+    <span style="font-size:20px">🔗</span>
+    <div style="flex:1">
+      <div style="font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">Linked Outlet Code</div>
+      <div style="font-weight:800;font-size:16px;letter-spacing:1px;font-family:monospace" id="codeCtxValue">—</div>
+    </div>
+    <a href="outlets.html" style="color:rgba(255,255,255,.85);font-size:12px;font-weight:600;text-decoration:none;padding:7px 14px;border:1px solid rgba(255,255,255,.3);border-radius:8px;white-space:nowrap">← Outlet Master</a>
+    <a href="data_u.html" style="color:rgba(255,255,255,.5);font-size:11px;text-decoration:none;padding:5px 10px;border:1px solid rgba(255,255,255,.15);border-radius:6px;white-space:nowrap">✕ Clear filter</a>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-row">
+    <!-- Total Outlet -->
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <div class="kpi-icon" style="background:rgba(245,158,11,.13)">🏪</div>
+        <div class="kpi-title">Total Outlet</div>
+      </div>
+      <div class="kpi-num"><span id="statTotal">—</span><span> outlets</span></div>
+      <div class="kpi-badge" style="background:rgba(245,158,11,.12);color:#92400E">All Records</div>
+      <div class="kpi-wave">
+        <svg viewBox="0 0 220 52" preserveAspectRatio="none">
+          <path d="M0,38 C25,28 45,46 75,33 C100,22 125,42 155,28 C175,18 200,32 220,29 L220,52 L0,52 Z" fill="rgba(245,158,11,.10)"/>
+          <path d="M0,38 C25,28 45,46 75,33 C100,22 125,42 155,28 C175,18 200,32 220,29" fill="none" stroke="rgba(245,158,11,.45)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+    <!-- New Outlet -->
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <div class="kpi-icon" style="background:rgba(16,185,129,.12)">✨</div>
+        <div class="kpi-title">New Outlet</div>
+      </div>
+      <div class="kpi-num"><span id="statNew">—</span><span> outlets</span></div>
+      <div class="kpi-badge" style="background:rgba(16,185,129,.12);color:#065F46">New</div>
+      <div class="kpi-wave">
+        <svg viewBox="0 0 220 52" preserveAspectRatio="none">
+          <path d="M0,40 C30,25 55,44 85,30 C110,18 135,38 165,26 C185,16 205,34 220,30 L220,52 L0,52 Z" fill="rgba(16,185,129,.10)"/>
+          <path d="M0,40 C30,25 55,44 85,30 C110,18 135,38 165,26 C185,16 205,34 220,30" fill="none" stroke="rgba(16,185,129,.45)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+    <!-- Current Outlet -->
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <div class="kpi-icon" style="background:rgba(192,57,43,.10)">📌</div>
+        <div class="kpi-title">Current Outlet</div>
+      </div>
+      <div class="kpi-num"><span id="statCurrent">—</span><span> outlets</span></div>
+      <div class="kpi-badge" style="background:rgba(192,57,43,.09);color:#7B0000">Current</div>
+      <div class="kpi-wave">
+        <svg viewBox="0 0 220 52" preserveAspectRatio="none">
+          <path d="M0,36 C20,26 50,44 80,32 C108,20 130,40 158,27 C178,17 202,33 220,28 L220,52 L0,52 Z" fill="rgba(192,57,43,.07)"/>
+          <path d="M0,36 C20,26 50,44 80,32 C108,20 130,40 158,27 C178,17 202,33 220,28" fill="none" stroke="rgba(192,57,43,.35)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Combined action + filter bar (one row) -->
+  <div class="toolbar">
+    <!-- Search -->
+    <div class="search-wrap">
+      <svg class="search-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="Search all..." oninput="applyFilters()">
+    </div>
+
+    <!-- Team filter -->
+    <select class="flt" id="fltTeam" onchange="onTeamChange()" style="min-width:120px" title="Team">
+      <option value="">All Teams</option>
+    </select>
+
+    <!-- BDE filter (cascaded by Team) -->
+    <select class="flt" id="fltBDE" onchange="applyFilters()" style="min-width:130px" title="BDE">
+      <option value="">All BDE</option>
+    </select>
+
+    <!-- New or Current filter — populated from DB -->
+    <select class="flt" id="fltNewCur" onchange="applyFilters()" style="min-width:130px" title="New / Current">
+      <option value="">New / Current</option>
+    </select>
+
+    <!-- Clear filters (shown only when active) -->
+    <button class="btn-outline" onclick="clearFilters()" id="btnClearFilters" style="display:none;padding:7px 10px;font-size:12px;white-space:nowrap">✕ Clear</button>
+
+    <!-- Column Picker -->
+    <div class="col-picker-wrap" id="colPickerWrap">
+      <button class="btn-col" onclick="toggleColPicker(event)" title="Show / Hide Columns">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+        Columns<span id="colPickerCount" style="font-weight:400;color:#D40000"></span>
+      </button>
+      <div class="col-picker-panel" id="colPickerPanel" style="left:0;min-width:240px">
+        <div class="cp-hdr">
+          <span class="cp-hdr-title">Show / Hide Columns</span>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="cp-reset" onclick="showAllCols()">All</button>
+            <button class="cp-reset" onclick="resetCols()" style="color:#9CA3AF">Default</button>
+          </div>
+        </div>
+        <div class="cp-list" id="colPickerList"></div>
+      </div>
+    </div>
+
+    <button class="btn-add" onclick="openAdd()">＋ Add New</button>
+
+    <div class="spacer"></div>
+
+    <!-- Action buttons (right side) -->
+    <button class="btn-import" onclick="openImport()">⬇ Import</button>
+    <button class="btn-export-dark" onclick="exportExcel()">⬆ Export</button>
+    <button class="btn-secondary" onclick="openLog()">📜 Log</button>
+    <span class="rc-tag" id="rowCount">Loading...</span>
+  </div>
+
+  <!-- Table -->
+  <div class="tcard">
+    <div class="tscroll"><div id="tableWrap"><div class="empty-state"><div class="ei">⏳</div><p>Loading...</p></div></div></div>
+    <div class="pagi" id="pagiWrap"></div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="overlay" id="importOverlay">
+  <div class="form-modal" style="max-width:660px">
+    <div class="fmhdr">
+      <div>
+        <div class="fmtitle">⬇Import Data Universe</div>
+        <div class="fmsub">Add or update records from Excel — duplicate name = replace existing</div>
+      </div>
+      <button class="fmx" onclick="closeImport()">✕</button>
+    </div>
+    <div class="fmbody" style="padding:24px 28px">
+      <div class="imp-step">
+        <div class="imp-step-num">1</div>
+        <div style="flex:1">
+          <div class="imp-step-title">Download Template</div>
+          <div class="imp-step-desc">Download the Excel template with column headers matching the database.</div>
+          <button class="btn-outline" onclick="downloadTemplate()" style="margin-top:10px;font-size:12.5px">⬇️ Download Template (.xlsx)</button>
+        </div>
+      </div>
+      <div class="imp-step">
+        <div class="imp-step-num">2</div>
+        <div style="flex:1">
+          <div class="imp-step-title">Upload Excel File</div>
+          <div class="imp-step-desc">Fill in the template then upload. New rows will be <strong style="color:#22C55E">Added</strong>; existing names will be <strong style="color:#C00000">Updated</strong>.</div>
+          <div class="imp-dropzone" id="impDropzone"
+               onclick="document.getElementById('impFileInput').click()"
+               ondragover="impDragOver(event)" ondragleave="impDragLeave(event)" ondrop="impDrop(event)">
+            <div class="imp-dz-icon">📂</div>
+            <div class="imp-dz-text" id="impDzText">Click or Drag &amp; Drop Excel file here</div>
+            <div class="imp-dz-sub">.xlsx or .xls only</div>
+          </div>
+          <input type="file" id="impFileInput" accept=".xlsx,.xls" style="display:none" onchange="impFileChosen(event)">
+        </div>
+      </div>
+      <div id="impPreviewWrap" style="display:none">
+        <div class="imp-preview-hdr">
+          <span class="imp-pc" id="impPreviewCount"></span>
+          <span id="impPreviewBadges"></span>
+        </div>
+        <div class="imp-pwrap">
+          <table id="impPreviewTable"></table>
+        </div>
+        <div class="imp-prog" id="impProg"><div class="imp-prog-bar" id="impProgBar"></div></div>
+        <div style="font-size:12px;color:#9CA3AF;margin-top:8px" id="impProgText"></div>
+      </div>
+    </div>
+    <div class="fmftr">
+      <button class="btn-cancel" onclick="closeImport()">Cancel</button>
+      <button class="btn-save" id="impDoBtn" style="display:none;background:linear-gradient(135deg,#22C55E,#16A34A)" onclick="doImport()">⬆ Import Records</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOG DRAWER -->
+<div class="log-drawer" id="logDrawer">
+  <div class="lhdr">
+    <h3>📜 Log History</h3>
+    <p>Last 50 changes — Restore to revert</p>
+    <button class="lhdr-x" onclick="closeLog()">✕</button>
+  </div>
+  <div class="lbody" id="logBody"></div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="overlay" id="addOverlay" onclick="if(event.target===this)closeAdd()">
+  <div class="form-modal">
+    <div class="fmhdr">
+      <div><div class="fmtitle">Add Record</div><div class="fmsub">Outlet Information &amp; SKU — บันทึกลง Supabase ทันที</div></div>
+      <button class="fmx" onclick="closeAdd()">✕</button>
+    </div>
+    <div class="cpb" id="add_cpbBar">
+      <span class="cpb-lbl">Outlet Code</span>
+      <span class="cpb-code" id="add_codeBar">Select New or Current first</span>
+      <span class="cpb-note" id="add_codeBarNote">Auto-generated from Team + Province + Region</span>
+    </div>
+    <div class="fmbody" id="addFormBody"></div>
+    <div class="fmftr">
+      <button class="btn-cancel" onclick="closeAdd()">Cancel</button>
+      <button class="btn-save" onclick="saveAdd()">💾 Save Record</button>
+    </div>
+    <!-- Discard confirmation shield -->
+    <div class="discard-shield" id="addDiscardShield">
+      <div class="discard-card">
+        <h4>Leave without saving?</h4>
+        <p>Your changes have not been saved.<br>Are you sure you want to leave this form?</p>
+        <div class="dc-btns">
+          <button class="dc-stay" onclick="cancelDiscardDu()">Keep editing</button>
+          <button class="dc-leave" onclick="confirmDiscardDu()">Leave without saving</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="overlay" id="editOverlay">
+  <div class="form-modal">
+    <div class="fmhdr">
+      <div><div class="fmtitle">Edit Record</div><div class="fmsub">Update the record details below</div></div>
+      <button class="fmx" onclick="closeEdit()">✕</button>
+    </div>
+    <div class="fmbody" id="editFormBody"></div>
+    <div class="fmftr">
+      <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
+      <button class="btn-save" onclick="saveEdit()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM -->
+<div class="overlay" id="delOverlay">
+  <div class="confirm-modal">
+    <div style="font-size:52px;margin-bottom:14px">🗑️</div>
+    <div style="font-size:16px;font-weight:800;color:#1A0000;margin-bottom:6px" id="delName">—</div>
+    <div style="font-size:13px;color:#D40000;font-weight:400">This record will be permanently deleted.<br>Restorable from Log History.</div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:24px">
+      <button class="btn-cancel" onclick="closeDel()">Cancel</button>
+      <button class="btn-save" style="background:#C00000" onclick="confirmDel()">Delete Record</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ============================================================
+   CONFIG
+   ============================================================ */
+const TABLE     = 'Data Universe';
+const LOG_TABLE = 'outlet_change_log';
+const PAGE_SIZE = 100;
+const LS_KEY    = 'ssp_datau_cols_v5'; /* bump version to reset cached column order */
+const URL_CODE  = new URLSearchParams(location.search).get('code') || '';
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let allData = [], cols = [], uniqueVals = {};
+let filtered = [], sortCol = '', sortAsc = true, page = 1;
+let editTarget = null, delTarget = null;
+let outletMasterMap = {}; /* key: lowercase outlet name → Outlet Master row */
+let outletTypeVals = {}; /* unique values from Outlet Master for type/segmentation dropdowns */
+let addFormDirty = false; /* true when user has started filling the add form */
+let visibleCols = [];
+let pkCol = 'id';
+let labelCol = null;
+let skuMasterData_du = []; /* SKU master cache for add form dropdowns */
+let skuColMap = {};        /* maps desired field name → actual column in SKU table */
+let skuFilterState = {};   /* { prefix: { fieldName: selectedValue } } — cascade filter state */
+
+/* SKU field → multiple column name variants to try */
+const SKU_FIELD_KEYS = {
+  'SKU Code':   ['SKU Code','sku_code','SKUCode'],
+  'SKU':        ['SKU','sku','SKU Name','sku_name'],
+  'Principle':  ['Principle','principle','PRINCIPLE'],
+  'Category':   ['Category','category','CATEGORY'],
+  'Brand':      ['Brand','brand','BRAND'],
+  'Product':    ['Product','product','PRODUCT'],
+  'Size':       ['Size','size','SIZE'],
+  'Pack':       ['Pack','pack','PACK'],
+  'SKU Status': ['SKU Status','sku_status','Status','status'],
+};
+/* Fields shown as linked dropdowns (excludes readonly SKU Code) */
+const SKU_SELECTABLE = ['SKU','Principle','Category','Brand','Product','Size','Pack','SKU Status'];
+
+/* Fields forced to select dropdown regardless of cardinality */
+const FORCE_SELECT_FIELDS = new Set([
+  'AlchemyOutlet Type','AlchemySub Type','Alchemy Image','Alchemy Volum','Alchemy Sehmentation',
+  'CAMPARI OUTLET SEGMENTATION(NEW)','CAMPARI OUTLET SEGMENTATION(OLD)',
+  'TEG OUTLET SEGMENTATION','TEG GRADING','RC SUB TYPE','RC IMAGE',
+]);
+/* SKU fields that use SKU-master data for their options */
+const SKU_COMBO_FIELDS = new Set(['Brand','SKU','Product','Pack','Size','SKU Status']);
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const norm = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+function detectPkCol(row) {
+  const keys = Object.keys(row);
+  const uuidRx = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  /* 1. Exact 'id' column */
+  const exact = keys.find(k => k.toLowerCase() === 'id');
+  if (exact) return exact;
+  /* 2. Integer column ending with 'id' */
+  const byIntId = keys.find(k => k.toLowerCase().endsWith('id') && Number.isInteger(row[k]));
+  if (byIntId) return byIntId;
+  /* 3. Any integer column */
+  const byInt = keys.find(k => Number.isInteger(row[k]));
+  if (byInt) return byInt;
+  /* 4. UUID column */
+  const byUuid = keys.find(k => typeof row[k] === 'string' && uuidRx.test(row[k]));
+  if (byUuid) return byUuid;
+  /* 5. Prefer outlet code over generic fallback */
+  const byCode = keys.find(k => /outlet.?code/i.test(k));
+  if (byCode) return byCode;
+  /* 6. Last resort: first key */
+  return keys[0];
+}
+
+function showToast(msg, type = 'ok') {
+  const w = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type === 'err' ? 'terr' : type === 'inf' ? 'tinf' : 'tok');
+  t.textContent = msg;
+  w.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 350); }, 3800);
+}
+
+/* Detect field input type from column name & sample values */
+function detectFieldType(col) {
+  const n = col.toLowerCase();
+  if (/date|time|created|updated/.test(n)) return 'date';
+  if (/phone|tel|fax/.test(n)) return 'tel';
+  if (/email/.test(n)) return 'email';
+  if (/url|link|website/.test(n)) return 'url';
+  if (/\bno\b|\bcode\b|number/.test(n)) return 'text';
+  /* low cardinality → dropdown (up to 50 unique values) */
+  const uv = uniqueVals[col] || [];
+  if (uv.length > 0 && uv.length <= 50) return 'select';
+  /* check if all non-null values are numeric */
+  const sample = allData.slice(0, 50).map(r => r[col]).filter(v => v != null && v !== '');
+  if (sample.length > 0 && sample.every(v => !isNaN(Number(v)))) return 'number';
+  return 'text';
+}
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+async function checkAuth() {
+  try {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) { window.location.href = 'index.html'; return; }
+    const u = data.session.user;
+    document.getElementById('userEmail').textContent = u.email;
+    const { data: p } = await supabase.from('user_profile').select('username').eq('auth_email', u.email).maybeSingle();
+    const displayName = (p && p.username) || u.email.split('@')[0];
+    document.getElementById('userName').textContent = displayName;
+    document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
+    /* Show context banner if coming from Outlet Master with code param */
+    if (URL_CODE) {
+      const ctx = document.getElementById('codeCtx');
+      if (ctx) { ctx.style.display = 'flex'; document.getElementById('codeCtxValue').textContent = URL_CODE; }
+    }
+    loadData();
+    loadOutletMaster();  /* load Outlet Master lookup in background */
+    ensureDuSkuData();   /* preload SKU master for add form combos */
+  } catch(e) {
+    document.getElementById('tableWrap').innerHTML = `<div class="empty-state"><div class="ei">⚠️</div><p>Connection error: ${esc(e.message)}<br><small style="color:#FF9090">Check your Supabase config in js/config.js</small></p></div>`;
+  }
+}
+
+/* ============================================================
+   LOAD DATA  (parallel batch: show first 1,000 instantly → rest via parallel fetch)
+   ============================================================ */
+let bgLoading = false;
+
+async function loadData() {
+  const wrap = document.getElementById('tableWrap');
+  const cntEl = document.getElementById('rowCount');
+  wrap.innerHTML = '<div class="empty-state"><div class="ei">⏳</div><p>Loading…</p></div>';
+
+  /* ── Phase 1: first 1,000 rows + total count — both in parallel ── */
+  let totalCount = null, first = null, error = null, countError = null;
+  try {
+    const [r1, r2] = await Promise.all([
+      supabase.from(TABLE).select('*', { count: 'exact', head: true }),
+      supabase.from(TABLE).select('*').range(0, 999)
+    ]);
+    totalCount = r1.count;
+    countError = r1.error;
+    first      = r2.data;
+    error      = r2.error;
+  } catch(ex) {
+    wrap.innerHTML = `<div class="empty-state"><div class="ei">⚠️</div><p>JS Error: ${esc(ex.message)}</p></div>`;
+    cntEl.textContent = 'Error'; return;
+  }
+
+  /* Debug — open browser DevTools Console to read */
+  const { data: { session } } = await supabase.auth.getSession();
+  console.log('[DataU Debug]', {
+    table: TABLE,
+    totalCount,
+    countError: countError?.message || null,
+    dataRows: first?.length ?? null,
+    dataError: error?.message || null,
+    hasSession: !!session,
+    userEmail: session?.user?.email || null
+  });
+
+  if (error) {
+    const hint = error.message.includes('does not exist')
+      ? '<br><small style="color:#FF9090">กรุณาสร้าง table "Data Universe" ใน Supabase และตั้งค่า RLS อนุญาตการอ่าน</small>'
+      : (error.message.includes('row-level') || error.message.includes('permission'))
+      ? '<br><small style="color:#FF9090">เปิด RLS policy: allow SELECT — ดู setup_data_u.sql</small>'
+      : '';
+    wrap.innerHTML = `<div class="empty-state"><div class="ei">⚠️</div><p>Load failed: ${esc(error.message)}${hint}</p></div>`;
+    cntEl.textContent = 'Load failed'; return;
+  }
+
+  if (!first || !first.length) {
+    const diagLine = `Count query: <b>${totalCount ?? 'null (blocked)'}</b> | Count error: <b>${countError?.message || 'none'}</b> | Session: <b>${session?.user?.email || 'NONE'}</b>`;
+    wrap.innerHTML = `<div class="empty-state"><div class="ei">📭</div>
+      <p style="font-size:14px;font-weight:600;color:#7B0000">ไม่พบข้อมูลใน table "Data Universe"</p>
+      <div style="margin:10px auto;max-width:560px;background:#F9F9F9;border:1px solid #E5E7EB;border-radius:8px;padding:10px 14px;font-size:12px;color:#374151;text-align:left">${diagLine}</div>
+      <p style="margin-top:4px;font-size:12.5px;color:#9CA3AF">เปิด DevTools → Console เพื่อดูข้อมูล debug เพิ่มเติม</p>
+      <div style="margin-top:16px;background:#FFF7F7;border-radius:10px;padding:14px 18px;text-align:left;max-width:520px;margin-left:auto;margin-right:auto;border:1px solid #FFD0D0">
+        <div style="font-size:11px;font-weight:700;color:#990000;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">วิธีแก้: รัน SQL นี้ใน Supabase SQL Editor</div>
+        <pre style="font-size:11.5px;color:#374151;background:#F9F9F9;border-radius:6px;padding:10px;overflow-x:auto;line-height:1.6;border:1px solid #E5E7EB">ALTER TABLE "Data Universe" ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can read Data Universe"
+  ON "Data Universe" FOR SELECT
+  USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Users can insert Data Universe"
+  ON "Data Universe" FOR INSERT
+  WITH CHECK (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Users can update Data Universe"
+  ON "Data Universe" FOR UPDATE
+  USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Users can delete Data Universe"
+  ON "Data Universe" FOR DELETE
+  USING (auth.uid() IS NOT NULL);</pre>
+        <p style="font-size:11.5px;color:#A00000;margin-top:8px">ไฟล์ SQL เต็ม: <code style="background:#F0E8E8;padding:2px 6px;border-radius:4px">setup_data_u.sql</code> ในโฟลเดอร์ contracthub</p>
+      </div>
+    </div>`;
+    cntEl.textContent = '0 records';
+    document.getElementById('statTotal').textContent = '0';
+    return;
+  }
+
+  /* Initialise from first batch and render immediately */
+  try {
+    pkCol = detectPkCol(first[0]);
+    allData = [...first].sort((a, b) => (b[pkCol] ?? 0) - (a[pkCol] ?? 0));
+
+    /* Only hide pkCol when it is a true internal key (named 'id', integer, or UUID) */
+    const _pkVal      = first[0][pkCol];
+    const _uuidRx     = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const _pkInternal = pkCol.toLowerCase() === 'id'
+                     || Number.isInteger(_pkVal)
+                     || (typeof _pkVal === 'string' && _uuidRx.test(_pkVal));
+    const _allCols = Object.keys(first[0]).filter(c => _pkInternal ? c !== pkCol : true);
+
+    /* Build cols in EXACT preferred order — flexible matching handles name variations */
+    const PREFERRED_COL_ORDER = [
+      'New Or Current','Outlet Code','Outlet Name','Company Name',
+      'Group Name','Group Code','Team','BDE','Area','Contracts','Primary Contract',
+      'Wholseller Supply',
+      'Region','Province','District','Soi','Road',
+      'Contact Person Name','Contact Person Position','Contact Person Phone Number',
+      'AlchemyOutlet Type','AlchemySub Type','Alchemy Image','Alchemy Volum','Alchemy Sehmentation',
+      'CAMPARI OUTLET SEGMENTATION(NEW)','CAMPARI OUTLET SEGMENTATION(OLD)',
+      'TEG OUTLET SEGMENTATION','TEG GRADING','RC SUB TYPE','RC IMAGE',
+      'SKU Code','Principle','Category','Brand','SKU','Product','Size','Pack',
+      'SKU Status','Date_Register','Update_Date',
+    ];
+    const _nk = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    /* Explicit aliases: when exact/prefix matching fails, try these alternative normalized names */
+    const _ALIAS = {
+      'primarycontract':          ['contractwith','contractw','primarycon'],
+      'contactpersonname':        ['contactname','contactperson'],
+      'contactpersonposition':    ['position','contactposition'],
+      'contactpersonphonenumber': ['phonenumber','phone','phoneno'],
+      'wholsellersupply':         ['wholesellersupply','wholseller','wholesaler'],
+      'alchemysehmentation':      ['alchemysegmentation','alchemysehm','alchemyseg'],
+      'alchemyoutlettype':        ['alcoutlettype','outlettype'],
+      'alchemysubtype':           ['alcsubtype','subtype'],
+      'alchemyvolum':             ['alchemyvolume','alcvolum'],
+    };
+
+    /* Match preferred name → actual DB column (pool-based, no double-use)
+       Strategy 1: exact normalized
+       Strategy 2: DB col starts-with preferred (≥4 chars) — "Area"→"Area of BDE"
+       Strategy 3: preferred starts-with DB col (≥6 chars)
+       Strategy 4: preferred ends-with DB col (≥6 chars) — "Contact Person Position"→"Position"
+       Strategy 5: explicit alias map */
+    const _findMatch = (prefName, pool) => {
+      const pnk = _nk(prefName);
+      // 1. exact
+      let idx = pool.findIndex(c => _nk(c) === pnk);
+      if (idx >= 0) return idx;
+      // 2. DB col _nk starts-with preferred _nk (min 4 chars)
+      if (pnk.length >= 4) {
+        const cands = pool.map((c,i) => ({c,i})).filter(({c}) => _nk(c).startsWith(pnk));
+        if (cands.length >= 1) return cands.sort((a,b) => _nk(a.c).length - _nk(b.c).length)[0].i;
+      }
+      // 3. preferred _nk starts-with DB col _nk (min 6 chars)
+      {
+        const cands = pool.map((c,i) => ({c,i})).filter(({c}) => _nk(c).length >= 6 && pnk.startsWith(_nk(c)));
+        if (cands.length === 1) return cands[0].i;
+      }
+      // 4. preferred _nk ends-with DB col _nk (min 6 chars) — "Contact Person Position"→"Position"
+      {
+        const cands = pool.map((c,i) => ({c,i})).filter(({c}) => _nk(c).length >= 6 && pnk.endsWith(_nk(c)));
+        if (cands.length === 1) return cands[0].i;
+        if (cands.length > 1) return cands.sort((a,b) => _nk(b.c).length - _nk(a.c).length)[0].i;
+      }
+      // 5. explicit alias map
+      for (const alias of (_ALIAS[pnk] || [])) {
+        idx = pool.findIndex(c => _nk(c) === alias || _nk(c).startsWith(alias));
+        if (idx >= 0) return idx;
+      }
+      return -1;
+    };
+
+    const _pool = [..._allCols];
+    const _ordered = [];
+    for (const prefName of PREFERRED_COL_ORDER) {
+      const idx = _findMatch(prefName, _pool);
+      if (idx >= 0) { _ordered.push(_pool[idx]); _pool.splice(idx, 1); }
+    }
+    cols = [..._ordered, ..._pool]; /* remaining (unmatched) cols appended at end */
+
+    console.log('[DataU Step2]', { pkCol, pkInternal: _pkInternal, totalCols: cols.length, allCols: cols });
+
+    rebuildMeta();
+    initVisibleCols();
+    buildFilterDropdowns();
+    buildColPickerList();
+    applyFilters();
+    console.log('[DataU Step4]', { filteredCount: filtered.length, page });
+    setupRealtime();
+    fetchStatsFromDB();
+  } catch(renderErr) {
+    console.error('[DataU RenderError]', renderErr);
+    wrap.innerHTML = `<div class="empty-state"><div class="ei">⚠️</div>
+      <p style="color:#C00000;font-weight:700">Render Error: ${esc(renderErr.message)}</p>
+      <pre style="font-size:11px;color:#666;text-align:left;max-width:600px;margin:10px auto;background:#f5f5f5;padding:10px;border-radius:6px;overflow-x:auto">${esc(renderErr.stack || '')}</pre>
+    </div>`;
+    cntEl.textContent = 'Render error'; return;
+  }
+
+  /* ── Phase 2: parallel-fetch remaining rows ── */
+  if (first.length === 1000) {
+    cntEl.textContent = `${allData.length.toLocaleString()}+ records (loading…)`;
+    loadParallel(totalCount); /* fire-and-forget — totalCount may be null (fallback handles it) */
+  }
+}
+
+/* ── Rebuild uniqueVals / labelCol from allData ── */
+function rebuildMeta() {
+  uniqueVals = {};
+  cols.forEach(c => {
+    uniqueVals[c] = [...new Set(allData.map(r => r[c]).filter(v => v != null && v !== ''))].sort();
+  });
+  labelCol = cols.find(c => {
+    const n = c.toLowerCase();
+    return !/(^id$|_id$|uuid|created|updated|timestamp)/.test(n) && typeof allData[0][c] === 'string';
+  }) || cols[0];
+}
+
+/* ── Parallel fetcher: loads all remaining batches concurrently ── */
+async function loadParallel(totalCount) {
+  /* bgLoading already = true (set by loadData) */
+  const BATCH = 1000, CONCURRENCY = 8;
+  const cntEl = document.getElementById('rowCount');
+  const received = [];
+
+  if (totalCount && totalCount > 1000) {
+    /* ── Known total: pre-build all ranges and fetch in parallel groups ── */
+    const ranges = [];
+    for (let from = 1000; from < totalCount; from += BATCH)
+      ranges.push([from, from + BATCH - 1]);
+
+    for (let i = 0; i < ranges.length; i += CONCURRENCY) {
+      const results = await Promise.all(
+        ranges.slice(i, i + CONCURRENCY).map(([f, t]) =>
+          supabase.from(TABLE).select('*').range(f, t)
+        )
+      );
+      for (const { data, error } of results)
+        if (!error && data) received.push(...data);
+      if (cntEl) cntEl.textContent = `${(allData.length + received.length).toLocaleString()}+ records (loading…)`;
+    }
+  } else {
+    /* ── Unknown total (count failed): sequential fallback ── */
+    let from = 1000;
+    while (true) {
+      const { data, error } = await supabase.from(TABLE).select('*').range(from, from + BATCH - 1);
+      if (error || !data || !data.length) break;
+      received.push(...data);
+      if (cntEl) cntEl.textContent = `${(allData.length + received.length).toLocaleString()}+ records (loading…)`;
+      if (data.length < BATCH) break;
+      from += BATCH;
+    }
+  }
+
+  /* Single merge + sort */
+  const seen = new Set(allData.map(r => String(r[pkCol])));
+  const fresh = received.filter(r => !seen.has(String(r[pkCol])));
+  if (fresh.length)
+    allData = [...allData, ...fresh].sort((a, b) => (b[pkCol] ?? 0) - (a[pkCol] ?? 0));
+
+  bgLoading = false;
+  rebuildMeta();
+  buildFilterDropdowns();
+  buildColPickerList();
+  applyFilters();
+  if (cntEl) cntEl.textContent = filtered.length.toLocaleString() + ' records';
+}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+function buildStats() { /* stats now come from fetchStatsFromDB() — this is a no-op placeholder */ }
+
+async function fetchStatsFromDB() {
+  const { data, error } = await supabase.rpc('data_u_stats');
+  if (error) { console.warn('[Stats RPC]', error.message); return; }
+  if (!data) return;
+  document.getElementById('statTotal').textContent = Number(data.total   ?? 0).toLocaleString();
+  document.getElementById('statNew').textContent    = Number(data.new     ?? 0).toLocaleString();
+  document.getElementById('statCurrent').textContent = Number(data.current ?? 0).toLocaleString();
+}
+
+
+/* ============================================================
+   FILTER DROPDOWNS  (Team / BDE / New-or-Current)
+   ============================================================ */
+
+/* column name resolvers — detected once from actual DB schema */
+let _teamCol = '', _bdeCol = '', _newCurCol = '';
+
+function detectFilterCols() {
+  const cl = cols.map(c => ({ orig: c, lc: c.toLowerCase().replace(/[\s_-]/g,'') }));
+
+  /* Team */
+  _teamCol = (cl.find(x => x.lc === 'team')
+           || cl.find(x => x.lc.includes('team'))
+           || { orig: '' }).orig;
+
+  /* BDE — expanded aliases: bde, sale, salesman, sr, rep, staff variants */
+  _bdeCol = (cl.find(x => x.lc === 'bde')
+          || cl.find(x => x.lc.includes('bde'))
+          || cl.find(x => x.lc === 'salename' || x.lc === 'salesperson' || x.lc === 'salesman')
+          || cl.find(x => x.lc === 'sale' || x.lc === 'sales')
+          || cl.find(x => x.lc.includes('sale') && x.lc.includes('name'))
+          || cl.find(x => x.lc === 'srname' || x.lc === 'repname' || x.lc === 'staffname')
+          || cl.find(x => x.lc.includes('represent'))
+          || { orig: '' }).orig;
+
+  /* New / Current — column containing new+current, or new_or_cur, type, status */
+  _newCurCol = (cl.find(x => x.lc.includes('new') && x.lc.includes('current'))
+             || cl.find(x => x.lc === 'neworcurrent' || x.lc === 'newcurrent')
+             || cl.find(x => x.lc === 'type' || x.lc === 'outlettype')
+             || { orig: '' }).orig;
+}
+
+/* teamBdeMap: { teamName → Set of bde values } — rebuilt from allData */
+let teamBdeMap = {};
+
+function buildTeamBdeMap() {
+  teamBdeMap = {};
+  if (!_teamCol || !_bdeCol) return;
+  allData.forEach(r => {
+    const t = String(r[_teamCol] ?? '').trim();
+    const b = String(r[_bdeCol]  ?? '').trim();
+    if (!t || !b) return;
+    if (!teamBdeMap[t]) teamBdeMap[t] = new Set();
+    teamBdeMap[t].add(b);
+  });
+}
+
+function buildFilterDropdowns() {
+  detectFilterCols();
+  buildTeamBdeMap();
+
+  /* Team */
+  const teams = _teamCol
+    ? [...new Set(allData.map(r => String(r[_teamCol] ?? '').trim()).filter(Boolean))].sort()
+    : [];
+  const fltTeam = document.getElementById('fltTeam');
+  const prevTeam = fltTeam.value;
+
+  if (!_teamCol) {
+    fltTeam.innerHTML = '<option value="">Team (ยังไม่มีข้อมูล)</option>';
+  } else if (!teams.length) {
+    fltTeam.innerHTML = '<option value="">Team (ข้อมูลยังว่าง)</option>';
+  } else {
+    fltTeam.innerHTML = '<option value="">All Teams</option>' +
+      teams.map(t => `<option value="${esc(t)}"${t === prevTeam ? ' selected' : ''}>${esc(t)}</option>`).join('');
+  }
+
+  /* BDE — seeded by current team selection */
+  refreshBdeOptions(fltTeam.value, false);
+
+  /* New / Current — dynamic from DB column */
+  const fltNewCur = document.getElementById('fltNewCur');
+  const prevNewCur = fltNewCur.value;
+  if (!_newCurCol) {
+    fltNewCur.innerHTML = '<option value="">New / Current</option>';
+  } else {
+    const ncVals = [...new Set(allData.map(r => String(r[_newCurCol] ?? '').trim()).filter(Boolean))].sort();
+    if (!ncVals.length) {
+      fltNewCur.innerHTML = '<option value="">New / Current (ข้อมูลยังว่าง)</option>';
+    } else {
+      fltNewCur.innerHTML = '<option value="">All Types</option>' +
+        ncVals.map(v => `<option value="${esc(v)}"${v === prevNewCur ? ' selected' : ''}>${esc(v)}</option>`).join('');
+    }
+  }
+}
+
+function refreshBdeOptions(selectedTeam, resetValue) {
+  const fltBDE = document.getElementById('fltBDE');
+  const prevBde = resetValue ? '' : fltBDE.value;
+
+  let bdes = [];
+  if (selectedTeam) {
+    /* exact match first, then case-insensitive fallback */
+    const exactSet = teamBdeMap[selectedTeam];
+    if (exactSet) {
+      bdes = [...exactSet].sort();
+    } else {
+      const fuzzyKey = Object.keys(teamBdeMap).find(k => k.toLowerCase() === selectedTeam.toLowerCase());
+      if (fuzzyKey) bdes = [...teamBdeMap[fuzzyKey]].sort();
+    }
+  } else {
+    bdes = _bdeCol
+      ? [...new Set(allData.map(r => String(r[_bdeCol] ?? '').trim()).filter(Boolean))].sort()
+      : [];
+  }
+
+  if (!_bdeCol) {
+    fltBDE.innerHTML = '<option value="">BDE (ยังไม่มีข้อมูล)</option>';
+  } else if (!bdes.length) {
+    fltBDE.innerHTML = '<option value="">BDE (ข้อมูลยังว่าง)</option>';
+  } else {
+    fltBDE.innerHTML = '<option value="">All BDE</option>' +
+      bdes.map(b => `<option value="${esc(b)}"${b === prevBde ? ' selected' : ''}>${esc(b)}</option>`).join('');
+  }
+}
+
+function onTeamChange() {
+  const team = document.getElementById('fltTeam').value;
+  refreshBdeOptions(team, true);   /* reset BDE when team changes */
+  applyFilters();
+}
+
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('fltTeam').value    = '';
+  document.getElementById('fltBDE').value     = '';
+  document.getElementById('fltNewCur').value  = '';
+  refreshBdeOptions('', false);
+  applyFilters();
+}
+
+/* ============================================================
+   FILTER + SORT
+   ============================================================ */
+function applyFilters() {
+  const q      = (document.getElementById('searchInput').value || '').toLowerCase();
+  const team   = document.getElementById('fltTeam').value;
+  const bde    = document.getElementById('fltBDE').value;
+  const newCur = document.getElementById('fltNewCur').value;
+
+  filtered = allData.filter(r => {
+    /* Filter by outlet code from URL param (linked from Outlet Master) */
+    if (URL_CODE && !Object.values(r).some(v => String(v ?? '').toLowerCase() === URL_CODE.toLowerCase())) return false;
+    /* case-insensitive trim comparison for Team and BDE */
+    if (team   && _teamCol   && String(r[_teamCol]   ?? '').trim().toLowerCase() !== team.toLowerCase())  return false;
+    if (bde    && _bdeCol    && String(r[_bdeCol]    ?? '').trim().toLowerCase() !== bde.toLowerCase())   return false;
+    /* New/Current: exact match on dynamic value from DB */
+    if (newCur && _newCurCol && String(r[_newCurCol] ?? '').trim() !== newCur) return false;
+    if (q && !cols.some(c => String(r[c] ?? '').toLowerCase().includes(q)))   return false;
+    return true;
+  });
+
+  if (sortCol) filtered.sort((a, b) => {
+    const av = a[sortCol], bv = b[sortCol];
+    if (av == null) return 1; if (bv == null) return -1;
+    return sortAsc ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+  });
+
+  /* show/hide Clear button */
+  const hasFilter = q || team || bde || newCur;
+  const btnClr = document.getElementById('btnClearFilters');
+  if (btnClr) btnClr.style.display = hasFilter ? '' : 'none';
+
+  page = 1;
+  document.getElementById('rowCount').textContent = filtered.length.toLocaleString() + ' records';
+  renderTable();
+}
+
+function sortBy(col) { if (sortCol === col) sortAsc = !sortAsc; else { sortCol = col; sortAsc = true; } applyFilters(); }
+
+/* ============================================================
+   COLUMN VISIBILITY
+   ============================================================ */
+/* Default visible columns (matched case-insensitively against actual DB cols) */
+const DEFAULT_VISIBLE_NAMES = [
+  'New Or Current','Outlet Code','Outlet Name','Company Name','Group Name',
+  'Team','BDE','Region','Province','District','Soi',
+  'AlchemyOutlet Type','AlchemySub Type','Alchemy Image','Alchemy Volum','Alchemy Sehmentation',
+  'CAMPARI OUTLET SEGMENTATION(NEW)',
+  'SKU Code','Brand','SKU','SKU Status','Date_Register','Update_Date',
+];
+const _normV = s => String(s).toLowerCase().replace(/[^a-z0-9]/g,'');
+function _defaultVisibleCols() {
+  const matched = DEFAULT_VISIBLE_NAMES
+    .map(n => cols.find(c => _normV(c) === _normV(n)
+                          || _normV(c).startsWith(_normV(n))
+                          || _normV(n).endsWith(_normV(c).slice(-6))))
+    .filter(Boolean);
+  return matched.length ? matched : cols.slice(0, 15);
+}
+function initVisibleCols() {
+  const saved = localStorage.getItem(LS_KEY);
+  if (saved) {
+    try {
+      const arr = JSON.parse(saved);
+      if (Array.isArray(arr) && arr.length === 0) { visibleCols = []; updateColCount(); return; }
+      const kept = arr.filter(c => cols.includes(c));
+      if (kept.length) { visibleCols = cols.filter(c => kept.includes(c)); saveVisibleCols(); return; }
+    } catch(e) {}
+  }
+  visibleCols = _defaultVisibleCols();
+  saveVisibleCols();
+}
+function saveVisibleCols() { localStorage.setItem(LS_KEY, JSON.stringify(visibleCols)); updateColCount(); }
+function updateColCount() {
+  const h = cols.length - visibleCols.length;
+  const el = document.getElementById('colPickerCount');
+  if (el) el.textContent = h > 0 ? ` (${h} hidden)` : '';
+}
+function toggleColPicker(e) { e.stopPropagation(); document.getElementById('colPickerPanel').classList.toggle('open'); }
+function buildColPickerList() {
+  const el = document.getElementById('colPickerList');
+  if (!el) return;
+  el.innerHTML = cols.map(c => {
+    const cid = 'cp_' + norm(c);
+    const checked = visibleCols.includes(c);
+    return `<label class="cp-item" for="${cid}"><input type="checkbox" id="${cid}" ${checked?'checked':''} onchange="toggleCol('${esc(c)}',this.checked)"><span class="cp-item-lbl" title="${esc(c)}">${esc(c)}</span></label>`;
+  }).join('');
+}
+function toggleCol(col, show) {
+  if (show) { if (!visibleCols.includes(col)) visibleCols.push(col); }
+  else { visibleCols = visibleCols.filter(c => c !== col); }
+  visibleCols = cols.filter(c => visibleCols.includes(c));
+  saveVisibleCols(); buildColPickerList(); renderTable();
+}
+function showAllCols() { visibleCols = [...cols]; saveVisibleCols(); buildColPickerList(); renderTable(); showToast('All columns shown'); }
+function resetCols() { localStorage.removeItem(LS_KEY); initVisibleCols(); buildColPickerList(); renderTable(); showToast('Columns reset to default'); }
+document.addEventListener('click', e => { const w = document.getElementById('colPickerWrap'); if (w && !w.contains(e.target)) document.getElementById('colPickerPanel').classList.remove('open'); });
+
+/* ============================================================
+   RENDER TABLE
+   ============================================================ */
+function fv(v, col) {
+  if (v == null || v === '') return '<span style="color:#FF9090">—</span>';
+  if (typeof v === 'boolean') return v ? '<span class="badge ba">Yes</span>' : '<span class="badge bi">No</span>';
+  if (typeof v === 'number') return `<span style="font-variant-numeric:tabular-nums">${Number(v).toLocaleString('th-TH')}</span>`;
+  const s = String(v);
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s).toLocaleDateString('th-TH');
+  return esc(s.length > 60 ? s.slice(0, 58) + '…' : s);
+}
+
+function renderTable() {
+  const start = (page - 1) * PAGE_SIZE, rows = filtered.slice(start, start + PAGE_SIZE);
+  const wrap = document.getElementById('tableWrap');
+  if (!filtered.length) { wrap.innerHTML = '<div class="empty-state"><div class="ei">🔍</div><p>No records match the current filters.</p></div>'; document.getElementById('pagiWrap').innerHTML = ''; return; }
+  if (!visibleCols.length) { wrap.innerHTML = '<div class="empty-state"><div class="ei">👁️</div><p>No columns selected. Use the Columns button to show columns.</p></div>'; document.getElementById('pagiWrap').innerHTML = ''; return; }
+  const arrow = c => sortCol === c ? (sortAsc ? ' sa' : ' sd') : '';
+  const lbl = c => c.replace(/_/g, ' ');
+  const safeId = v => String(v ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  wrap.innerHTML = `<table><thead><tr>${visibleCols.map(c => `<th class="${arrow(c)}" onclick="sortBy('${esc(c)}')">${esc(lbl(c))}</th>`).join('')}<th>Actions</th></tr></thead><tbody>${rows.map(r => `<tr>${visibleCols.map(c => `<td title="${esc(String(r[c] ?? ''))}">${fv(r[c], c)}</td>`).join('')}<td><div class="td-act"><button class="bte" onclick="openEdit('${safeId(r[pkCol])}')">Edit</button><button class="btd" onclick="openDel('${safeId(r[pkCol])}')">Del</button></div></td></tr>`).join('')}</tbody></table>`;
+  console.log('[DataU renderTable done]', { visibleRows: rows.length, domTag: wrap.firstChild?.tagName });
+  renderPagi();
+}
+
+/* ============================================================
+   PAGINATION
+   ============================================================ */
+function renderPagi() {
+  const total = filtered.length, pages = Math.ceil(total / PAGE_SIZE);
+  const start = (page - 1) * PAGE_SIZE + 1, end = Math.min(page * PAGE_SIZE, total);
+  let btns = `<button class="pg-btn" onclick="goPage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>‹</button>`;
+  const show = new Set([1, pages, page - 1, page, page + 1].filter(p => p >= 1 && p <= pages));
+  let prev = 0;
+  [...show].sort((a, b) => a - b).forEach(p => {
+    if (prev && p - prev > 1) btns += `<span style="padding:0 4px;color:#FF9090;font-size:13px">…</span>`;
+    btns += `<button class="pg-btn${p === page ? ' active' : ''}" onclick="goPage(${p})">${p}</button>`;
+    prev = p;
+  });
+  btns += `<button class="pg-btn" onclick="goPage(${page + 1})" ${page >= pages ? 'disabled' : ''}>›</button>`;
+  document.getElementById('pagiWrap').innerHTML = `<span class="pg-info">Showing ${start.toLocaleString()}–${end.toLocaleString()} of ${total.toLocaleString()}</span><div class="pg-btns">${btns}</div>`;
+}
+function goPage(p) { const pages = Math.ceil(filtered.length / PAGE_SIZE); if (p < 1 || p > pages) return; page = p; renderTable(); }
+
+/* ============================================================
+   ADD FORM — column definitions (matching Supabase schema)
+   ============================================================ */
+const FORM_OUTLET_BASIC = [
+  'New Or Current','Outlet Name','Company Name','Outlet Code',
+  'Group Name','Group Code','Team','BDE','Area','Contracts','Primary Contract'
+];
+const FORM_ADDRESS = ['Region','Province','Soi','Road','District'];
+const FORM_CONTACT = [
+  'Contact Person Name','Contact Person Position',
+  'Contact Person Phone Number','Wholseller Supply'
+];
+const FORM_OUTLET_TYPE = [
+  'AlchemyOutlet Type','AlchemySub Type','Alchemy Image','Alchemy Volum','Alchemy Sehmentation',
+  'CAMPARI OUTLET SEGMENTATION(NEW)','CAMPARI OUTLET SEGMENTATION(OLD)',
+  'TEG OUTLET SEGMENTATION','TEG GRADING','RC SUB TYPE','RC IMAGE'
+];
+const FORM_SKU = [
+  'SKU Code','Principle','Category','Brand','SKU','Product',
+  'Size','Pack','SKU Status','Date_Register','Update_Date'
+];
+
+/* Find actual DB column name — exact lowercase first, then normalized (ignore spaces/parens/hyphens) */
+function findActualCol(desired) {
+  const d = desired.toLowerCase();
+  let found = cols.find(c => c.toLowerCase() === d);
+  if (found) return found;
+  const dn = d.replace(/[\s()\-_]/g, '');
+  found = cols.find(c => c.toLowerCase().replace(/[\s()\-_]/g, '') === dn);
+  return found || null;
+}
+
+/* Build a single form field — desired is the display/schema name */
+function buildField(prefix, desired, rowData, extraAttrs) {
+  const actual  = findActualCol(desired);
+  const col     = actual || desired;
+  const today   = new Date().toISOString().slice(0,10);
+  let   ftype   = actual ? detectFieldType(actual) : (desired.toLowerCase().includes('date') ? 'date' : 'text');
+
+  /* Force select for outlet-type segmentation fields */
+  if (FORCE_SELECT_FIELDS.has(desired)) ftype = 'select';
+
+  /* Default value — dates default to today when adding (no rowData) */
+  const val = rowData && actual ? esc(rowData[actual] ?? '')
+    : (ftype === 'date' ? today : '');
+
+  const fid   = `${prefix}_field_${norm(desired)}`;
+  const lbl   = desired.replace(/_/g, ' ');
+  const attrs = extraAttrs || '';
+  let input   = '';
+
+  if (ftype === 'select') {
+    const duOpts   = (actual ? uniqueVals[actual] : null) || [];
+    const typeOpts = outletTypeVals[desired] || [];
+    /* Merge DU values + Outlet Master values, deduplicated */
+    const merged   = [...new Set([...duOpts, ...typeOpts])].sort();
+    const opts     = merged.length ? merged : duOpts;
+    input = `<select class="finput" id="${fid}" ${attrs}><option value="">— Select —</option>${opts.map(o=>`<option value="${esc(o)}"${String(o)===String(rowData?rowData[actual]??'':'')?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
+  } else {
+    input = `<input class="finput" id="${fid}" type="${ftype==='number'?'text':ftype}" value="${val}" placeholder="${esc(lbl)}" ${attrs}>`;
+  }
+  const fullWidth = /contract|segmentation|address|remark|note|desc|phone|number|position/i.test(desired);
+  return `<div class="fg${fullWidth?' full':''}"><label class="flbl">${esc(lbl)}</label>${input}</div>`;
+}
+
+function buildGrid(prefix, desired_list, rowData) {
+  return `<div class="fg-grid">${desired_list.map(d=>buildField(prefix,d,rowData)).join('')}</div>`;
+}
+
+/* ============================================================
+   ADD FORM — 2 cards with sub-sections
+   ============================================================ */
+function buildAddForm(prefix, rowData) {
+  /* Outlet Name field — with datalist autocomplete */
+  const outNameField = (() => {
+    const actual = findActualCol('Outlet Name');
+    const compActual = findActualCol('Company Name');
+    const outNames = actual ? [...new Set(allData.map(r=>r[actual]).filter(Boolean))].sort().slice(0,300) : [];
+    const fid = `${prefix}_field_outletname`;
+    const cid = `${prefix}_field_companyname`;
+    const val = rowData && actual ? esc(rowData[actual]??'') : '';
+    return `
+      <div class="fg full">
+        <label class="flbl">Outlet Name</label>
+        <input class="finput" id="${fid}" list="${prefix}_outletList" value="${val}" placeholder="พิมพ์หรือเลือก outlet..."
+          oninput="onOutletNameInput('${prefix}')">
+        <datalist id="${prefix}_outletList">${outNames.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
+        <div class="add-hint" id="${prefix}_outletHint" style="display:none">✓ Company Name, Group Name &amp; Code fill-in auto from Outlet Master</div>
+      </div>`;
+  })();
+
+  /* New Or Current field */
+  const ncField = (() => {
+    const actual = findActualCol('New Or Current');
+    const fid = `${prefix}_field_neworcurrent`;
+    const opts = actual ? (uniqueVals[actual] || []) : ['New','Current'];
+    const val = rowData && actual ? rowData[actual] : '';
+    return `
+      <div class="fg">
+        <label class="flbl">New Or Current</label>
+        <select class="finput" id="${fid}" onchange="onNewOrCurrent('${prefix}',this)">
+          <option value="">— Select —</option>
+          ${opts.map(o=>`<option value="${esc(o)}"${String(o)===String(val)?' selected':''}>${esc(o)}</option>`).join('')}
+          ${!opts.length?'<option value="New">New</option><option value="Current">Current</option>':''}
+        </select>
+        <div class="add-hint" id="${prefix}_codeHint" style="display:none">✓ Code generated</div>
+      </div>`;
+  })();
+
+
+
+  return `
+    <!-- CARD 1: Outlet Information -->
+    <div class="add-card">
+      <div class="add-card-hdr"><div class="add-card-num">1</div>Outlet Information</div>
+      <div class="add-card-body">
+        <div class="fg-grid">
+          ${ncField}
+          ${outNameField}
+          ${FORM_OUTLET_BASIC
+            .filter(d => !['New Or Current','Outlet Name'].includes(d))
+            .map(d => {
+              if (d === 'Team')
+                return buildField(prefix, d, rowData, `onchange="onDuCodeTrigger('${prefix}')"`);
+              if (d === 'Group Name')
+                return buildField(prefix, d, rowData,
+                  `oninput="onDuGroupNameChange('${prefix}',this.value);onDuCodeTrigger('${prefix}')"
+                   onchange="onDuGroupNameChange('${prefix}',this.value);onDuCodeTrigger('${prefix}')"`);
+              if (d === 'Group Code')
+                return buildField(prefix, d, rowData,
+                  `readonly style="background:#F5F3F3;color:#8B0000;font-weight:600"`);
+              return buildField(prefix, d, rowData);
+            }).join('')}
+        </div>
+      </div>
+    </div>
+    <!-- CARD 2: Address of Outlet -->
+    <div class="add-card">
+      <div class="add-card-hdr"><div class="add-card-num">2</div>Address of Outlet</div>
+      <div class="add-card-body">
+        <div class="fg-grid">
+          ${FORM_ADDRESS.map(d => {
+            if (d === 'Province') return buildField(prefix, d, rowData, `onchange="onDuProvinceChange('${prefix}')" oninput="onDuProvinceChange('${prefix}')"`);
+            if (d === 'Region')   return buildField(prefix, d, rowData, `onchange="onDuCodeTrigger('${prefix}')"`);
+            return buildField(prefix, d, rowData);
+          }).join('')}
+        </div>
+        <div class="fg-grid" style="margin-top:14px">
+          <div class="add-sub-lbl">📞 Contact Person</div>
+          ${FORM_CONTACT.map(d=>buildField(prefix,d,rowData)).join('')}
+        </div>
+      </div>
+    </div>
+    <!-- CARD 3: Outlet Type -->
+    <div class="add-card">
+      <div class="add-card-hdr"><div class="add-card-num">3</div>Outlet Type</div>
+      <div class="add-card-body">
+        ${buildGrid(prefix, FORM_OUTLET_TYPE, rowData)}
+      </div>
+    </div>
+    <!-- CARD 4: SKU Selling -->
+    <div class="add-card">
+      <div class="add-card-hdr"><div class="add-card-num">4</div>SKU Selling</div>
+      <div class="add-card-body">
+        ${buildSkuSection(prefix, rowData)}
+      </div>
+    </div>`;
+}
+
+/* ── Get a value from a SKU row, trying multiple column name variants ─── */
+function frSku(row, field) {
+  const keys = SKU_FIELD_KEYS[field] || [field, field.toLowerCase()];
+  for (const k of keys) { const v = row[k]; if (v != null && String(v) !== '') return String(v); }
+  return '';
+}
+
+/* ── Get SKU master rows that match all current cascade filters ─── */
+function getSkuFilteredRows(prefix) {
+  const filter = skuFilterState[prefix] || {};
+  return skuMasterData_du.filter(row => {
+    for (const [field, val] of Object.entries(filter)) {
+      if (!val) continue;
+      if (frSku(row, field).trim().toLowerCase() !== String(val).trim().toLowerCase()) return false;
+    }
+    return true;
+  });
+}
+
+/* ── Called when any SKU dropdown changes — updates all linked dropdowns ─── */
+function onSkuFieldChange(prefix, field) {
+  if (!skuFilterState[prefix]) skuFilterState[prefix] = {};
+  const el = document.getElementById(`${prefix}_field_${norm(field)}`);
+  if (!el) return;
+  const val = el.value;
+
+  /* Update filter state */
+  if (val) skuFilterState[prefix][field] = val;
+  else delete skuFilterState[prefix][field];
+
+  const filtered = getSkuFilteredRows(prefix);
+
+  /* Rebuild all OTHER selectable dropdowns with valid options only */
+  SKU_SELECTABLE.forEach(f => {
+    if (f === field) return;
+    const fEl = document.getElementById(`${prefix}_field_${norm(f)}`);
+    if (!fEl || fEl.tagName !== 'SELECT') return;
+    const curVal = fEl.value;
+    /* Include DU uniqueVals as fallback if SKU master has no data */
+    const fromMaster = filtered.map(r => frSku(r, f)).filter(Boolean);
+    const fromDU = (() => { const ac = findActualCol(f); return ac ? (uniqueVals[ac] || []) : []; })();
+    const validOpts = [...new Set(fromMaster.length ? fromMaster : fromDU)].sort();
+    fEl.innerHTML = `<option value="">— Select —</option>` +
+      validOpts.map(o => `<option value="${esc(o)}"${o===curVal?' selected':''}>${esc(o)}</option>`).join('');
+    /* If previously selected value is no longer valid, clear it from filter too */
+    if (curVal && !validOpts.includes(curVal)) {
+      fEl.value = '';
+      delete skuFilterState[prefix][f];
+    }
+  });
+
+  /* Auto-fill SKU Code when exactly 1 row matches, or when SKU name is directly selected */
+  const codeEl = document.getElementById(`${prefix}_field_skucode`);
+  let matchRow = filtered.length === 1 ? filtered[0]
+    : (field === 'SKU' && val)
+      ? filtered.find(r => frSku(r,'SKU').trim().toLowerCase() === val.toLowerCase()) || null
+      : null;
+
+  if (matchRow) {
+    if (codeEl) codeEl.value = frSku(matchRow, 'SKU Code');
+    /* If the user just selected a specific SKU name → fill all still-empty linked fields */
+    if (field === 'SKU') {
+      SKU_SELECTABLE.forEach(f => {
+        if (f === 'SKU') return;
+        const fEl = document.getElementById(`${prefix}_field_${norm(f)}`);
+        if (fEl && !fEl.value) {
+          const v = frSku(matchRow, f);
+          if (v) { fEl.value = v; skuFilterState[prefix][f] = v; }
+        }
+      });
+    }
+  } else {
+    /* More than 1 match — clear SKU Code until unique */
+    if (codeEl) codeEl.value = '';
+  }
+}
+
+/* ── SKU section builder — linked cascading dropdowns ─── */
+function buildSkuSection(prefix, rowData) {
+  const today = new Date().toISOString().slice(0, 10);
+  skuFilterState[prefix] = {}; /* reset cascade state when form is (re)built */
+
+  /* Initial options: all values from SKU master + DU fallback, merged */
+  const initOpts = (field) => {
+    const fromMaster = [...new Set(skuMasterData_du.map(r => frSku(r, field)).filter(Boolean))];
+    const ac = findActualCol(field); const fromDU = ac ? (uniqueVals[ac] || []) : [];
+    return [...new Set([...fromMaster, ...fromDU])].sort();
+  };
+
+  const rv = (field) => rowData ? (findActualCol(field) ? esc(rowData[findActualCol(field)] ?? '') : '') : '';
+  const skuCodeVal = rv('SKU Code');
+  const drVal = rowData ? (findActualCol('Date_Register') ? esc(rowData[findActualCol('Date_Register')] ?? today) : today) : today;
+  const udVal = rowData ? (findActualCol('Update_Date')   ? esc(rowData[findActualCol('Update_Date')]   ?? today) : today) : today;
+
+  const mkSkuSel = (field) => {
+    const val = rv(field);
+    const opts = initOpts(field);
+    const id = `${prefix}_field_${norm(field)}`;
+    return `<select class="finput" id="${id}" onchange="onSkuFieldChange('${prefix}','${field}')">` +
+      `<option value="">— Select —</option>` +
+      opts.map(o => `<option value="${esc(o)}"${o===val?' selected':''}>${esc(o)}</option>`).join('') +
+      `</select>`;
+  };
+
+  return `<div class="fg-grid">
+    <div class="fg">
+      <label class="flbl">SKU Code <span style="font-size:9px;font-weight:400;color:#D40000">(auto)</span></label>
+      <input class="finput" id="${prefix}_field_skucode" type="text" value="${skuCodeVal}" placeholder="Auto-filled"
+        style="background:#F5F3F3;color:#8B0000;font-weight:600" readonly>
+    </div>
+    <div class="fg">
+      <label class="flbl">SKU <span style="font-size:9px;font-weight:400;color:#D40000">*</span></label>
+      ${mkSkuSel('SKU')}
+    </div>
+    <div class="fg">
+      <label class="flbl">Principle</label>
+      ${mkSkuSel('Principle')}
+    </div>
+    <div class="fg">
+      <label class="flbl">Category</label>
+      ${mkSkuSel('Category')}
+    </div>
+    <div class="fg">
+      <label class="flbl">Brand</label>
+      ${mkSkuSel('Brand')}
+    </div>
+    <div class="fg">
+      <label class="flbl">Product</label>
+      ${mkSkuSel('Product')}
+    </div>
+    <div class="fg">
+      <label class="flbl">Size</label>
+      ${mkSkuSel('Size')}
+    </div>
+    <div class="fg">
+      <label class="flbl">Pack</label>
+      ${mkSkuSel('Pack')}
+    </div>
+    <div class="fg">
+      <label class="flbl">SKU Status</label>
+      ${mkSkuSel('SKU Status')}
+    </div>
+    <div class="fg">
+      <label class="flbl">Date Register <span style="font-size:9px;font-weight:400;color:#999">(auto today)</span></label>
+      <input class="finput" id="${prefix}_field_dateregister" type="date" value="${drVal}">
+    </div>
+    <div class="fg">
+      <label class="flbl">Update Date <span style="font-size:9px;font-weight:400;color:#999">(auto today)</span></label>
+      <input class="finput" id="${prefix}_field_updatedate" type="date" value="${udVal}">
+    </div>
+  </div>`;
+}
+
+/* ── Load SKU master data + detect actual column names ──────── */
+async function ensureDuSkuData() {
+  if (skuMasterData_du.length) return;
+  try {
+    const { data } = await supabase.from('SKU').select('*').limit(2000);
+    if (data && data.length) {
+      skuMasterData_du = data;
+      /* Detect actual column names via normalized match */
+      const tCols = Object.keys(data[0]);
+      const norm2 = s => s.toLowerCase().replace(/[\s_\-]/g, '');
+      ['SKU Code','SKU','Principle','Category','Brand','Product','Pack','Size','SKU Status'].forEach(desired => {
+        const dn = norm2(desired);
+        const actual = tCols.find(c => norm2(c) === dn);
+        if (actual) skuColMap[desired] = actual;
+      });
+    }
+  } catch(e) {}
+}
+
+/* ── Group Name → auto-fill Group Code ──────────────────────── */
+function onDuGroupNameChange(prefix, val) {
+  const codeEl = document.getElementById(`${prefix}_field_groupcode`);
+  if (!codeEl) return;
+  if (!val || !val.trim()) { codeEl.value = ''; return; }
+  const gnCol = findActualCol('Group Name');
+  const gcCol = findActualCol('Group Code');
+  /* Search Data Universe first, then Outlet Master */
+  let gc = '';
+  if (gnCol && gcCol) {
+    const match = allData.find(r => String(r[gnCol]??'').trim().toLowerCase() === val.trim().toLowerCase());
+    if (match) gc = match[gcCol] || '';
+  }
+  if (!gc) {
+    const masterMatch = Object.values(outletMasterMap).find(r =>
+      String(r['Group Name']??'').trim().toLowerCase() === val.trim().toLowerCase()
+    );
+    if (masterMatch) gc = masterMatch['Group Code'] || '';
+  }
+  codeEl.value = gc || val.trim().slice(0, 3).toUpperCase();
+}
+
+
+/* ── Code generation: {TeamCode}-{ProvNum}-{RegNum}-{RunNum}-{GroupCode}
+   e.g.  O-5-84-1093-UNC
+   Only triggered for "New" outlets after Province is selected ──── */
+const TEAM_CODE_MAP_DU = {
+  horeca:'H','on-premise':'O','on premise':'O',onpremise:'O',
+  'off-premise':'F','off premise':'F',offpremise:'F',
+  'modern trade':'M',moderntrade:'M','food service':'FS',
+  foodservice:'FS',national:'N'
+};
+
+function generateDuCode(teamVal, provVal, regVal, grpVal) {
+  const tc = teamVal ? (TEAM_CODE_MAP_DU[teamVal.toLowerCase()] || teamVal.slice(0,1).toUpperCase()) : '?';
+  const provCol = findActualCol('Province');
+  const sortedProvs = provCol ? [...new Set(allData.map(r=>r[provCol]).filter(Boolean))].sort() : [];
+  const provNum = provVal ? (sortedProvs.indexOf(provVal) + 1 || '?') : '?';
+  const regCol = findActualCol('Region');
+  const sortedRegs = regCol ? [...new Set(allData.map(r=>r[regCol]).filter(Boolean))].sort() : [];
+  const regNum = regVal ? (sortedRegs.indexOf(regVal) + 1 || '?') : '?';
+  const runNum = regVal && regCol ? (1000 + allData.filter(r=>r[regCol]===regVal).length + 1) : 1001;
+  const grpCode = grpVal && grpVal.trim() ? grpVal.trim().slice(0,3).toUpperCase() : 'UNC';
+  return `${tc}-${provNum}-${regNum}-${runNum}-${grpCode}`;
+}
+
+function generateAndSetCode(prefix) {
+  const codeEl   = document.getElementById(`${prefix}_field_outletcode`);
+  const hint     = document.getElementById(`${prefix}_codeHint`);
+  const barEl    = document.getElementById('add_codeBar');
+  const noteEl   = document.getElementById('add_codeBarNote');
+  const setBar   = (msg, isCode) => {
+    if (!barEl) return;
+    barEl.textContent = msg;
+    barEl.style.fontStyle   = isCode ? 'normal'  : 'italic';
+    barEl.style.fontWeight  = isCode ? '800'      : '400';
+    barEl.style.fontSize    = isCode ? '16px'     : '13px';
+    barEl.style.color       = isCode ? '#fff'     : 'rgba(255,255,255,.55)';
+    if (noteEl) noteEl.style.display = isCode ? '' : 'none';
+  };
+  if (!codeEl || codeEl.readOnly) return;
+  const provVal = (document.getElementById(`${prefix}_field_province`)?.value || '').trim();
+  if (!provVal) {
+    codeEl.value = ''; codeEl.style.background = '';
+    codeEl.placeholder = 'Select Province (Section 2) to generate code';
+    if (hint) { hint.textContent = 'Please select Province first'; hint.style.display = ''; hint.style.color = '#D40000'; }
+    setBar('Select Province (Section 2) to generate code', false);
+    return;
+  }
+  const teamVal = (document.getElementById(`${prefix}_field_team`)?.value || '').trim();
+  const regVal  = (document.getElementById(`${prefix}_field_region`)?.value || '').trim();
+  const grpVal  = (document.getElementById(`${prefix}_field_groupname`)?.value || '').trim();
+  const code = generateDuCode(teamVal, provVal, regVal, grpVal);
+  codeEl.value = code;
+  codeEl.style.background = '#F0FDF4';
+  codeEl.placeholder = 'Outlet Code';
+  if (hint) { hint.textContent = `✓ Code: ${code}`; hint.style.display = ''; hint.style.color = '#16A34A'; }
+  setBar(code, true);
+}
+
+/* ── Auto-behaviors ─────────────────────────────────────────── */
+function onNewOrCurrent(prefix, select) {
+  const val    = (select.value || '').toLowerCase().trim();
+  const codeEl = document.getElementById(`${prefix}_field_outletcode`);
+  const hint   = document.getElementById(`${prefix}_codeHint`);
+  const barEl  = document.getElementById('add_codeBar');
+  const noteEl = document.getElementById('add_codeBarNote');
+  if (codeEl && !codeEl.readOnly) {
+    if (val === 'new') {
+      generateAndSetCode(prefix);
+    } else {
+      codeEl.value = ''; codeEl.style.background = ''; codeEl.placeholder = 'Outlet Code';
+      if (hint) hint.style.display = 'none';
+      if (barEl) { barEl.textContent = val ? 'Code only generated for New outlets' : 'Select New or Current first'; barEl.style.fontStyle='italic'; barEl.style.fontWeight='400'; barEl.style.fontSize='13px'; barEl.style.color='rgba(255,255,255,.55)'; }
+      if (noteEl) noteEl.style.display = 'none';
+    }
+  }
+}
+
+/* Province change → re-generate if "New" is selected */
+function onDuProvinceChange(prefix) {
+  const newOrCurEl = document.getElementById(`${prefix}_field_neworcurrent`);
+  if (!newOrCurEl) return;
+  if ((newOrCurEl.value || '').toLowerCase().trim() === 'new') {
+    generateAndSetCode(prefix);
+  }
+}
+
+/* Region / Team / Group change → re-generate if "New" + Province already filled */
+function onDuCodeTrigger(prefix) {
+  const newOrCurEl = document.getElementById(`${prefix}_field_neworcurrent`);
+  const provEl = document.getElementById(`${prefix}_field_province`);
+  if (!newOrCurEl || !provEl) return;
+  if ((newOrCurEl.value || '').toLowerCase().trim() === 'new' && provEl.value.trim()) {
+    generateAndSetCode(prefix);
+  }
+}
+
+/* Load Outlet Master as lookup map + unique values for outlet type dropdowns */
+async function loadOutletMaster() {
+  const typeAccum = {}; /* desired field name → Set of values */
+  let omCols = null;
+  try {
+    let from = 0, batch = 1000, done = false;
+    while (!done) {
+      const { data, error } = await supabase
+        .from('Outlet Master')
+        .select('*')
+        .range(from, from + batch - 1);
+      if (error || !data || !data.length) { done = true; break; }
+      if (!omCols) omCols = Object.keys(data[0]);
+      data.forEach(r => {
+        const key = String(r['Outlet Name'] ?? '').toLowerCase().trim();
+        if (key) outletMasterMap[key] = r;
+      });
+      /* Accumulate outlet type values */
+      FORCE_SELECT_FIELDS.forEach(desired => {
+        const dn = desired.toLowerCase().replace(/[\s()\-_]/g, '');
+        const actual = omCols.find(c => c.toLowerCase().replace(/[\s()\-_]/g, '') === dn);
+        if (!actual) return;
+        if (!typeAccum[desired]) typeAccum[desired] = new Set();
+        data.forEach(r => { const v = r[actual]; if (v != null && v !== '') typeAccum[desired].add(String(v)); });
+      });
+      if (data.length < batch) done = true;
+      from += batch;
+    }
+  } catch(e) { /* non-fatal */ }
+  /* Convert to sorted arrays */
+  Object.entries(typeAccum).forEach(([k, s]) => { outletTypeVals[k] = [...s].sort(); });
+}
+
+function onOutletNameInput(prefix) {
+  const nameEl      = document.getElementById(`${prefix}_field_outletname`);
+  const companyEl   = document.getElementById(`${prefix}_field_companyname`);
+  const codeEl      = document.getElementById(`${prefix}_field_outletcode`);
+  const groupNameEl = document.getElementById(`${prefix}_field_groupname`);
+  const groupCodeEl = document.getElementById(`${prefix}_field_groupcode`);
+  const hint        = document.getElementById(`${prefix}_outletHint`);
+  if (!nameEl) return;
+  const val = nameEl.value.trim().toLowerCase();
+  const outNameCol   = findActualCol('Outlet Name');
+  const companyCol   = findActualCol('Company Name');
+  const codeCol      = findActualCol('Outlet Code');
+  const groupNameCol = findActualCol('Group Name');
+  const groupCodeCol = findActualCol('Group Code');
+  if (!outNameCol) return;
+
+  /* Outlet Master is the authoritative source */
+  const master   = outletMasterMap[val];
+  /* Fallback: existing row in Data Universe (e.g. fields already filled) */
+  const fallback = master ? null : allData.find(r => String(r[outNameCol]??'').toLowerCase() === val);
+  const src = master || fallback;
+
+  if (src) {
+    /* Company Name: Outlet Master may store EN / TH variants */
+    if (companyEl) {
+      companyEl.value = master
+        ? (master['Company Name'] || master['Company Name EN'] || master['Company Name TH'] || '')
+        : (companyCol ? src[companyCol] || '' : '');
+    }
+    /* Outlet Code */
+    if (codeEl && codeCol && !codeEl.readOnly) { codeEl.value = src[codeCol] || ''; }
+    /* Group Name */
+    if (groupNameEl && groupNameCol) { groupNameEl.value = (master ? master['Group Name'] : src[groupNameCol]) || ''; }
+    /* Group Code */
+    if (groupCodeEl && groupCodeCol) { groupCodeEl.value = (master ? master['Group Code'] : src[groupCodeCol]) || ''; }
+    if (hint) hint.style.display = '';
+  } else {
+    if (hint) hint.style.display = 'none';
+  }
+}
+
+/* Read all add-form fields → object keyed by actual DB column name */
+function readAddForm(prefix) {
+  const ALL = [...FORM_OUTLET_BASIC,...FORM_ADDRESS,...FORM_CONTACT,...FORM_OUTLET_TYPE,...FORM_SKU];
+  const out = {};
+  ALL.forEach(desired => {
+    const el = document.getElementById(`${prefix}_field_${norm(desired)}`);
+    if (!el) return;
+    const actual = findActualCol(desired) || desired;
+    out[actual] = el.value.trim() || null;
+  });
+  return out;
+}
+
+/* ============================================================
+   GENERIC FORM BUILDER  (Edit modal — flat, no sections)
+   ============================================================ */
+function _buildFieldHtml(prefix, col, rowData) {
+  const ftype = detectFieldType(col);
+  const val   = rowData ? esc(rowData[col] ?? '') : '';
+  const fid   = `${prefix}_field_${norm(col)}`;
+  const lbl   = col.replace(/_/g, ' ');
+  let input   = '';
+  if (ftype === 'select') {
+    const opts = uniqueVals[col] || [];
+    input = `<select class="finput" id="${fid}"><option value="">— Select —</option>${opts.map(o=>`<option value="${esc(o)}"${String(o)===String(rowData?rowData[col]??'':'')?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
+  } else {
+    input = `<input class="finput" id="${fid}" type="${ftype==='number'?'text':ftype}" value="${val}" placeholder="${esc(lbl)}">`;
+  }
+  const fullWidth = /note|remark|address|desc|contract|segmentation/i.test(col);
+  return `<div class="fg${fullWidth?' full':''}"><label class="flbl">${esc(lbl)}</label>${input}</div>`;
+}
+
+function buildGenericForm(prefix, rowData) {
+  const editableCols = cols.filter(c => !/(^id$|created_at|updated_at)$/i.test(c));
+  return `<div class="fg-grid">${editableCols.map(c=>_buildFieldHtml(prefix,c,rowData)).join('')}</div>`;
+}
+
+function readGenericForm(prefix) {
+  const editableCols = cols.filter(c => !/(^id$|created_at|updated_at)$/i.test(c));
+  const out = {};
+  editableCols.forEach(col => {
+    const el = document.getElementById(`${prefix}_field_${norm(col)}`);
+    if (!el) return;
+    out[col] = el.value.trim() || null;
+  });
+  return out;
+}
+
+/* ============================================================
+   ADD
+   ============================================================ */
+async function openAdd() {
+  addFormDirty = false;
+  /* Show overlay immediately with a loading state */
+  document.getElementById('addOverlay').classList.add('open');
+  document.getElementById('addFormBody').innerHTML = '<div style="padding:32px;text-align:center;color:#888">Loading form data…</div>';
+  /* Ensure SKU master is loaded before building form so dropdowns are populated */
+  await ensureDuSkuData();
+  document.getElementById('addFormBody').innerHTML = buildAddForm('add', null);
+  /* Mark form dirty on any input/change */
+  const body = document.getElementById('addFormBody');
+  body.addEventListener('input',  () => { addFormDirty = true; }, { passive: true });
+  body.addEventListener('change', () => { addFormDirty = true; }, { passive: true });
+  if (URL_CODE) {
+    const el = document.getElementById('add_field_outletcode');
+    if (el) { el.value = URL_CODE; el.style.background = '#F0FDF4'; el.readOnly = true; }
+  }
+}
+function closeAdd() {
+  if (addFormDirty) {
+    document.getElementById('addDiscardShield').classList.add('show');
+    return;
+  }
+  _closeAddForce();
+}
+function _closeAddForce() {
+  addFormDirty = false;
+  document.getElementById('addDiscardShield').classList.remove('show');
+  document.getElementById('addOverlay').classList.remove('open');
+}
+function confirmDiscardDu() { _closeAddForce(); }
+function cancelDiscardDu()  { document.getElementById('addDiscardShield').classList.remove('show'); }
+async function saveAdd() {
+  const btn = document.querySelector('#addOverlay .btn-save');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Saving...'; }
+  const vals = readAddForm('add');
+  const { data: inserted, error } = await supabase.from(TABLE).insert([vals]).select();
+  if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+  if (error) { showToast('Error: ' + error.message, 'err'); return; }
+  await writeLog('INSERT', inserted?.[0]?.[pkCol] ?? null, null, vals);
+  _closeAddForce();
+  showToast('✅ บันทึกลงฐานข้อมูลแล้ว');
+  loadData();
+}
+
+/* ============================================================
+   EDIT
+   ============================================================ */
+function openEdit(id) {
+  editTarget = allData.find(r => String(r[pkCol]) === String(id));
+  if (!editTarget) return;
+  document.getElementById('editFormBody').innerHTML = buildGenericForm('edit', editTarget);
+  document.getElementById('editOverlay').classList.add('open');
+}
+function closeEdit() { document.getElementById('editOverlay').classList.remove('open'); editTarget = null; }
+async function saveEdit() {
+  if (!editTarget) return;
+  const oldData = { ...editTarget };
+  const vals = readGenericForm('edit');
+  const { error } = await supabase.from(TABLE).update(vals).eq(pkCol, editTarget[pkCol]);
+  if (error) { showToast('Error: ' + error.message, 'err'); return; }
+  await writeLog('UPDATE', editTarget[pkCol], oldData, vals);
+  closeEdit(); showToast('✅ Changes saved'); loadData();
+}
+
+/* ============================================================
+   DELETE
+   ============================================================ */
+function openDel(id) {
+  delTarget = allData.find(r => String(r[pkCol]) === String(id));
+  if (!delTarget) { showToast('Record not found', 'err'); return; }
+  document.getElementById('delName').textContent = delTarget[labelCol] || 'ID: ' + id;
+  document.getElementById('delOverlay').classList.add('open');
+}
+function closeDel() { document.getElementById('delOverlay').classList.remove('open'); delTarget = null; }
+async function confirmDel() {
+  if (!delTarget) return;
+  const old = { ...delTarget };
+  const delId = delTarget[pkCol];
+  const { data: deleted, error } = await supabase.from(TABLE).delete().eq(pkCol, delId).select();
+  if (error) { showToast('Delete failed: ' + error.message, 'err'); return; }
+  if (!deleted || !deleted.length) { showToast('Delete blocked — check RLS DELETE policy', 'err'); return; }
+  await writeLog('DELETE', delId, old, null);
+  closeDel(); showToast('🗑️ Record deleted', 'inf'); loadData();
+}
+
+/* ============================================================
+   LOG HISTORY
+   ============================================================ */
+async function writeLog(action, recordId, oldData, newData) {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    await supabase.from(LOG_TABLE).insert([{ action, record_id: recordId ? String(recordId) : null, old_data: oldData || null, new_data: newData || null, changed_by: session?.user?.email || 'unknown' }]);
+  } catch (e) {}
+}
+async function openLog() {
+  document.getElementById('logDrawer').classList.add('open');
+  const { data } = await supabase.from(LOG_TABLE).select('*').order('changed_at', { ascending: false }).limit(50);
+  const body = document.getElementById('logBody');
+  if (!data || !data.length) { body.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#FF9090"><div style="font-size:36px;margin-bottom:10px">📭</div><p style="font-size:13px">No changes yet</p></div>'; return; }
+  body.innerHTML = data.map(l => {
+    const cls = l.action === 'INSERT' ? 'li' : l.action === 'UPDATE' ? 'lu' : 'ld';
+    const nm = labelCol && (l.new_data || l.old_data) ? ((l.new_data || l.old_data)[labelCol] || 'Record #' + l.record_id) : 'Record #' + l.record_id;
+    const ts = new Date(l.changed_at).toLocaleString('th-TH');
+    return `<div class="litem ${cls}"><div class="la">${l.action}</div><div class="ldesc">${esc(nm)}</div><div class="lmeta">by ${esc(l.changed_by)} · ${ts}</div>${l.action !== 'INSERT' ? `<button class="brst" onclick="restoreLog('${l.id}','${l.action}')">↩ Restore</button>` : ''}</div>`;
+  }).join('');
+}
+function closeLog() { document.getElementById('logDrawer').classList.remove('open'); }
+async function restoreLog(logId, action) {
+  const { data } = await supabase.from(LOG_TABLE).select('*').eq('id', logId).single();
+  if (!data) { showToast('Log entry not found', 'err'); return; }
+  if (action === 'DELETE') {
+    const r = { ...data.old_data }; delete r[pkCol];
+    const { error } = await supabase.from(TABLE).insert([r]);
+    if (error) { showToast('Restore failed: ' + error.message, 'err'); return; }
+    await writeLog('INSERT', null, null, r); showToast('↩ Record restored');
+  } else if (action === 'UPDATE') {
+    const { error } = await supabase.from(TABLE).update(data.old_data).eq(pkCol, data.record_id);
+    if (error) { showToast('Restore failed: ' + error.message, 'err'); return; }
+    await writeLog('UPDATE', data.record_id, data.new_data, data.old_data); showToast('↩ Record reverted');
+  }
+  loadData(); openLog();
+}
+
+/* ============================================================
+   EXPORT
+   ============================================================ */
+function exportExcel() {
+  if (!filtered.length) { showToast('No data to export', 'err'); return; }
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filtered), 'Data Universe');
+  XLSX.writeFile(wb, `Data_U_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  showToast('⬇️ Export downloaded');
+}
+
+/* ============================================================
+   IMPORT
+   ============================================================ */
+let importRows = [];
+
+function openImport() { document.getElementById('importOverlay').classList.add('open'); resetImportUI(); }
+function closeImport() { document.getElementById('importOverlay').classList.remove('open'); resetImportUI(); }
+function resetImportUI() {
+  importRows = [];
+  document.getElementById('impPreviewWrap').style.display = 'none';
+  document.getElementById('impDoBtn').style.display = 'none';
+  document.getElementById('impDzText').textContent = 'Click or Drag & Drop Excel file here';
+  document.getElementById('impDropzone').className = 'imp-dropzone';
+  document.getElementById('impFileInput').value = '';
+  document.getElementById('impProgText').textContent = '';
+  document.getElementById('impProg').style.display = 'none';
+}
+function downloadTemplate() {
+  if (!cols.length) { showToast('Load data first', 'err'); return; }
+  const header = {}; cols.forEach(c => { header[c] = ''; });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([header]), 'Data Universe');
+  XLSX.writeFile(wb, 'DataU_Import_Template.xlsx');
+  showToast('⬇️ Template downloaded');
+}
+function impDragOver(e) { e.preventDefault(); document.getElementById('impDropzone').classList.add('drag-over'); }
+function impDragLeave(e) { document.getElementById('impDropzone').classList.remove('drag-over'); }
+function impDrop(e) { e.preventDefault(); document.getElementById('impDropzone').classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f) processImportFile(f); }
+function impFileChosen(e) { const f = e.target.files[0]; if (f) processImportFile(f); }
+
+function processImportFile(file) {
+  if (!/\.(xlsx|xls)$/i.test(file.name)) { showToast('Please upload .xlsx or .xls file only', 'err'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const wb = XLSX.read(ev.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      if (!rows.length) { showToast('File is empty', 'err'); return; }
+      document.getElementById('impDzText').textContent = `✅ ${file.name}  (${rows.length.toLocaleString()} rows)`;
+      document.getElementById('impDropzone').className = 'imp-dropzone has-file';
+      buildImportPreview(rows);
+    } catch (err) { showToast('Cannot read file: ' + err.message, 'err'); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function buildImportPreview(rows) {
+  const nameMap = {};
+  if (labelCol) {
+    allData.forEach(r => {
+      const n = String(r[labelCol] ?? '').trim().toLowerCase();
+      if (n) nameMap[n] = r[pkCol];
+    });
+  }
+  let addCnt = 0, updCnt = 0;
+  importRows = rows.map(row => {
+    const n = labelCol ? String(row[labelCol] ?? '').trim().toLowerCase() : '';
+    const existId = n ? nameMap[n] : null;
+    if (existId) { updCnt++; return { ...row, _action: 'UPDATE', _id: existId }; }
+    else { addCnt++; return { ...row, _action: 'INSERT', _id: null }; }
+  });
+  document.getElementById('impPreviewCount').textContent = `${rows.length.toLocaleString()} rows ready to import`;
+  document.getElementById('impPreviewBadges').innerHTML = `<span class="imp-badge imp-badge-add">＋${addCnt} New</span> <span class="imp-badge imp-badge-upd">↺ ${updCnt} Update</span>`;
+  const previewCols = Object.keys(rows[0]).filter(c => c !== '_action' && c !== '_id').slice(0, 5);
+  const previewRows = importRows.slice(0, 8);
+  document.getElementById('impPreviewTable').innerHTML = `<thead><tr><th>Status</th>${previewCols.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${previewRows.map(r => `<tr><td>${r._action === 'UPDATE' ? '<span class="imp-badge imp-badge-upd">↺ Replace</span>' : '<span class="imp-badge imp-badge-add">＋ New</span>'}</td>${previewCols.map(c => `<td title="${esc(String(r[c] ?? ''))}">${esc(String(r[c] ?? '').slice(0, 35))}</td>`).join('')}</tr>`).join('')}${rows.length > 8 ? `<tr><td colspan="${previewCols.length + 1}" style="text-align:center;color:#D40000;font-style:italic;padding:10px">... and ${rows.length - 8} more rows</td></tr>` : ''}</tbody>`;
+  document.getElementById('impPreviewWrap').style.display = 'block';
+  const btn = document.getElementById('impDoBtn');
+  btn.style.display = ''; btn.textContent = `⬆ Import ${rows.length.toLocaleString()} Records`; btn.disabled = false;
+}
+
+async function doImport() {
+  if (!importRows.length) { showToast('No data to import', 'err'); return; }
+  const btn = document.getElementById('impDoBtn');
+  const prog = document.getElementById('impProg');
+  const progBar = document.getElementById('impProgBar');
+  const progText = document.getElementById('impProgText');
+  btn.disabled = true; prog.style.display = 'block';
+  let added = 0, updated = 0, errors = 0;
+  const total = importRows.length;
+  for (let i = 0; i < total; i++) {
+    const row = importRows[i];
+    const action = row._action, existId = row._id;
+    const clean = {};
+    Object.entries(row).forEach(([k, v]) => { if (k !== '_action' && k !== '_id') clean[k] = v === '' ? null : v; });
+    if (action === 'UPDATE' && existId) {
+      const { error } = await supabase.from(TABLE).update(clean).eq(pkCol, existId);
+      if (error) errors++; else { updated++; await writeLog('UPDATE', existId, null, clean); }
+    } else {
+      const { error } = await supabase.from(TABLE).insert([clean]);
+      if (error) errors++; else { added++; await writeLog('INSERT', null, null, clean); }
+    }
+    const pct = Math.round(((i + 1) / total) * 100);
+    progBar.style.width = pct + '%';
+    progText.textContent = `Importing... ${i + 1}/${total}`;
+  }
+  btn.disabled = false;
+  closeImport();
+  showToast(`✅ Import complete: Added ${added} | Updated ${updated}${errors ? ` | Errors ${errors}` : ''}`, errors ? 'inf' : 'ok');
+  loadData();
+}
+
+/* ============================================================
+   REALTIME + EVENTS
+   ============================================================ */
+function setupRealtime() {
+  supabase.channel('datau-rt').on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, loadData).subscribe();
+}
+async function logout() { await supabase.auth.signOut(); window.location.href = 'index.html'; }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeAdd(); closeEdit(); closeDel(); closeImport();
+    if (document.getElementById('logDrawer').classList.contains('open')) closeLog();
+  }
+});
+['addOverlay', 'editOverlay', 'delOverlay'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function (e) { if (e.target === this) this.classList.remove('open'); });
+});
+
+checkAuth();
+</script>
+</body>
+</html>

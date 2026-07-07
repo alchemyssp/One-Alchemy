@@ -1,0 +1,389 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — SSP</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js?v=3"></script>
+<style>
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
+h1, h2, h3, h4, h5 { font-weight: 800; text-wrap: balance; }
+button { font-family: 'DM Sans', system-ui, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; }
+input, select, textarea { font-family: 'DM Sans', system-ui, sans-serif; font-size: 13px; font-weight: 400; }
+label { font-family: 'DM Sans', system-ui, sans-serif; font-size: 11px; font-weight: 700; }
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+.sidebar{
+  width:240px;height:100vh;
+  background:#12070A;
+  position:fixed;left:0;top:0;
+  display:flex;flex-direction:column;
+  z-index:100;
+  box-shadow:4px 0 32px rgba(0,0,0,.45);
+  overflow:hidden;
+}
+.sidebar::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#8B0000,#D40000,#FF7070,#D40000,#8B0000);
+  background-size:200% 100%;
+  animation:sbStripe 3s linear infinite;
+}
+@keyframes sbStripe{0%{background-position:0% 0}100%{background-position:200% 0}}
+.sb-logo{padding:28px 20px 20px;display:flex;align-items:center;gap:12px}
+.sb-logo-icon{width:38px;height:38px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#8B0000,#D40000);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(212,0,0,.4);}
+.sb-logo-text h3{font-size:14px;font-weight:800;color:#fff;letter-spacing:.3px}
+.sb-logo-text p{font-size:10.5px;color:rgba(255,255,255,.35);margin-top:1px;font-weight:400}
+.nav-links{flex:1;padding:8px 12px;overflow-y:auto;overflow-x:hidden}
+.nav-links::-webkit-scrollbar{width:3px}
+.nav-links::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
+.nav-section{padding:16px 8px 6px;font-size:9.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,.22);}
+.nav-section:first-child{padding-top:4px}
+.nav-links a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;font-weight:500;transition:background .18s,color .18s,transform .15s;position:relative;margin-bottom:2px;border:1px solid transparent;}
+.nav-links a .nav-ico{width:34px;height:34px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;background:rgba(255,255,255,.05);transition:background .18s,box-shadow .18s;}
+.nav-links a:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);transform:translateX(2px);}
+.nav-links a:hover .nav-ico{background:rgba(255,255,255,.1)}
+.nav-links a.active{background:linear-gradient(135deg,rgba(139,0,0,.55),rgba(212,0,0,.3));color:#fff;border-color:rgba(212,0,0,.35);box-shadow:0 4px 16px rgba(139,0,0,.25),inset 0 1px 0 rgba(255,255,255,.08);}
+.nav-links a.active .nav-ico{background:linear-gradient(135deg,#8B0000,#D40000);box-shadow:0 4px 12px rgba(212,0,0,.45);}
+.nav-links a.nav-sub{padding-left:24px;font-size:12px;color:rgba(255,255,255,.4);margin-left:8px;border-radius:8px;}
+.nav-links a.nav-sub .nav-ico{width:28px;height:28px;font-size:13px;background:transparent;}
+.nav-links a.nav-sub:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.05)}
+.nav-links a.nav-sub.active{color:#fff;background:rgba(212,0,0,.2);border-color:rgba(212,0,0,.25);}
+.nav-links a.nav-sub.active .nav-ico{background:rgba(212,0,0,.3)}
+.sidebar-user{padding:14px 16px 18px;border-top:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);}
+.sb-user-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sb-avatar{width:36px;height:36px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#8B0000,#D40000);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;box-shadow:0 3px 10px rgba(139,0,0,.4);}
+.sidebar-user .sname{font-size:12.5px;font-weight:700;color:#fff;line-height:1.2}
+.sidebar-user .semail{font-size:10.5px;color:rgba(255,255,255,.3);margin-top:1px}
+.btn-logout{width:100%;padding:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.09);border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .18s;}
+.btn-logout:hover{background:rgba(139,0,0,.35);color:#fff;border-color:rgba(212,0,0,.4)}
+
+/* Main */
+.main { margin-left: 240px; flex: 1; padding: 32px; min-height: 100vh; }
+.page-header { margin-bottom: 28px; }
+.page-header h2 { font-size: 22px; font-weight: 800; }
+.page-header p { font-size: 13px; color: #888; margin-top: 4px; }
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px; margin-bottom: 32px;
+}
+.stat-card {
+  background: #fff; border-radius: 16px;
+  padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+.stat-card .label { font-size: 12px; color: #888; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+.stat-card .value { font-size: 36px; font-weight: 600; margin: 8px 0 4px; }
+.stat-card .sub { font-size: 12px; color: #aaa; }
+.stat-card.blue .value { color: #8B1A1A; }
+.stat-card.green .value { color: #27ae60; }
+.stat-card.orange .value { color: #f39c12; }
+.stat-card.red .value { color: #e74c3c; }
+
+/* Recent section */
+.section { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+.section h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 10px 12px; font-size: 12px; color: #fff; font-weight: 500; background: linear-gradient(90deg,#780000 0%,#A00000 100%); border-bottom: 1px solid #f0f4f8; }
+th:hover { background: linear-gradient(90deg,#5A2424 0%,#990000 100%); }
+td { padding: 12px; font-size: 14px; border-bottom: 1px solid #f8f9fa; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #FFF5F5; }
+.badge {
+  display: inline-block; padding: 3px 10px;
+  border-radius: 20px; font-size: 12px; font-weight: 500;
+}
+.badge-active { background: #e8f8f0; color: #27ae60; }
+.badge-inactive { background: #f0f0f0; color: #888; }
+.badge-draft { background: #fff3cd; color: #856404; }
+.badge-expired { background: #ffeaea; color: #c0392b; }
+.badge-cancelled { background: #f0f0f0; color: #888; }
+
+.realtime-dot {
+  display: inline-block; width: 8px; height: 8px;
+  background: #EF4444; border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+.quick-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.quick-card {
+  background: linear-gradient(135deg, #FEF2F2, #FFF5F5);
+  border-radius: 14px; padding: 20px;
+  text-decoration: none; color: #2c3e50;
+  transition: transform .2s, box-shadow .2s;
+}
+.quick-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+.quick-card .q-icon { font-size: 28px; margin-bottom: 10px; }
+.quick-card .q-title { font-size: 15px; font-weight: 600; }
+.quick-card .q-desc { font-size: 12px; color: #555; margin-top: 4px; }
+/* force nav labels visible */
+.nav-links a>span{display:inline!important;width:auto!important;max-width:none!important;flex-shrink:1!important;opacity:1!important;color:inherit!important}
+</style>
+<link rel="stylesheet" href="css/ssp-theme.css?v=6">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">🏢</div>
+    <div class="sb-logo-text">
+      <h3>SSP</h3>
+      <p>Sales &amp; Promotion</p>
+    </div>
+  </div>
+  <div class="nav-links">
+    <div class="nav-section">Main Menu</div>
+    <a href="dashboard.html" class="active">Dashboard</a>
+    <div class="nav-section">Master Data</div>
+    <a href="outlets.html">Outlet Master</a>
+    <a href="data_u.html" class="nav-sub">Data Universe</a>
+    <a href="contracts.html">Contract Master</a>
+    <a href="promotions.html">Promotions</a>
+    <div class="nav-section">Analytics</div>
+    <a href="roi.html">ROI Analysis</a>
+    <a href="offtake.html">Off-take 2026</a>
+    <a href="sku.html">SKU</a>
+    <div class="nav-section">System</div>
+    <a href="users.html">User Management</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="sb-user-row">
+      <div class="sb-avatar" id="userAvatar">—</div>
+      <div>
+        <div class="sname" id="userName">—</div>
+        <div class="semail" id="userEmail">—</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="logout()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
+  </div>
+</nav>
+
+<!-- Main -->
+<div class="main">
+  <div class="page-header">
+    <h2>Dashboard <span class="realtime-dot" title="Real-time Active"></span></h2>
+    <p>System overview — Real-time updates</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card blue">
+      <div class="label">Total Outlets</div>
+      <div class="value" id="statOutlets">-</div>
+      <div class="sub" id="statOutletsActive">-</div>
+    </div>
+    <div class="stat-card green">
+      <div class="label">Active Contracts</div>
+      <div class="value" id="statContracts">-</div>
+      <div class="sub" id="statContractsSub">-</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="label">Active Promotions</div>
+      <div class="value" id="statPromos">-</div>
+      <div class="sub" id="statPromosSub">-</div>
+    </div>
+    <div class="stat-card red">
+      <div class="label">Expiring Contracts</div>
+      <div class="value" id="statExpiring">-</div>
+      <div class="sub">Within 30 days</div>
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="section">
+    <h3>🚀 Quick Access</h3>
+    <div class="quick-links">
+      <a href="outlets.html" class="quick-card">
+        <div class="q-icon">🏪</div>
+        <div class="q-title">Outlet Master</div>
+        <div class="q-desc">Manage customer / store data</div>
+      </a>
+      <a href="contracts.html" class="quick-card">
+        <div class="q-icon">📄</div>
+        <div class="q-title">Contract Master</div>
+        <div class="q-desc">All contracts and trade deals</div>
+      </a>
+      <a href="promotions.html" class="quick-card">
+        <div class="q-icon">🎯</div>
+        <div class="q-title">Promotions</div>
+        <div class="q-desc">Promotions, discounts and rebates</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Recent Contracts -->
+  <div class="section">
+    <h3>📄 Recent Contracts</h3>
+    <table>
+      <thead>
+        <tr id="recentHead">
+          <th>Contract No.</th>
+          <th>Outlet</th>
+          <th>Type</th>
+          <th>End Date</th>
+          <th>Value</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="recentContracts">
+        <tr><td colspan="6" style="text-align:center;color:#aaa;padding:24px">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+async function checkAuth() {
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) { window.location.href = 'index.html'; return; }
+  const u = data.session.user;
+  const { data: p } = await supabase.from('user_profile').select('username').eq('auth_email', u.email).maybeSingle();
+  document.getElementById('userEmail').textContent = u.email;
+  const displayName = (p && p.username) || u.email.split('@')[0];
+  document.getElementById('userName').textContent = displayName;
+  document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
+  loadStats();
+}
+
+// ดึงข้อมูลจาก table จริง (try primary → fallback)
+async function queryTable(primary, fallback) {
+  let { data, error } = await supabase.from(primary).select('*');
+  if (error || !data || !data.length) {
+    ({ data } = await supabase.from(fallback).select('*'));
+  }
+  return data || [];
+}
+
+// หา column ที่น่าจะเป็น status
+function findStatusCol(row) {
+  if (!row) return null;
+  return Object.keys(row).find(k => /^status$/i.test(k) || /สถานะ/.test(k)) || null;
+}
+
+// หา column ที่น่าจะเป็น date (end/expire)
+function findDateCol(row) {
+  if (!row) return null;
+  return Object.keys(row).find(k => /end.?date|expire|หมดอายุ|สิ้นสุด/i.test(k)) || null;
+}
+
+async function loadStats() {
+  const [outlets, contracts, promotions] = await Promise.all([
+    queryTable('Outlet Master', 'outlets'),
+    queryTable('Contract Master', 'contracts'),
+    queryTable('Promotion / Trade deal', 'promotions')
+  ]);
+
+  // Outlets stats
+  document.getElementById('statOutlets').textContent = outlets.length;
+  const oStatusCol = findStatusCol(outlets[0]);
+  const oActive = oStatusCol ? outlets.filter(x => /active|ใช้งาน|เปิด/i.test(String(x[oStatusCol]))).length : outlets.length;
+  document.getElementById('statOutletsActive').textContent = oStatusCol ? `${oActive} active` : `${outlets.length} total outlets`;
+
+  // Contracts stats
+  const cStatusCol = findStatusCol(contracts[0]);
+  const activeC = cStatusCol ? contracts.filter(x => /active|ใช้งาน|เปิด/i.test(String(x[cStatusCol]))) : contracts;
+  document.getElementById('statContracts').textContent = activeC.length;
+  document.getElementById('statContractsSub').textContent = `${contracts.length} total contracts`;
+
+  // Promotions stats
+  const pStatusCol = findStatusCol(promotions[0]);
+  const activeP = pStatusCol ? promotions.filter(x => /active|ใช้งาน|เปิด/i.test(String(x[pStatusCol]))) : promotions;
+  document.getElementById('statPromos').textContent = activeP.length;
+  document.getElementById('statPromosSub').textContent = `${promotions.length} total items`;
+
+  // Expiring contracts
+  const cDateCol = findDateCol(contracts[0]);
+  let expiring = 0;
+  if (cDateCol) {
+    const today = new Date();
+    const in30 = new Date(today); in30.setDate(in30.getDate() + 30);
+    expiring = contracts.filter(x => {
+      if (!x[cDateCol]) return false;
+      const d = new Date(x[cDateCol]);
+      return d >= today && d <= in30;
+    }).length;
+  }
+  document.getElementById('statExpiring').textContent = expiring;
+
+  loadRecentContracts(contracts);
+}
+
+async function loadRecentContracts(contracts) {
+  const tbody = document.getElementById('recentContracts');
+  // ถ้ามี contracts ที่โหลดแล้ว ใช้เลย ไม่งั้น query ใหม่
+  let data = contracts;
+  if (!data) {
+    const res = await supabase.from('Contract Master').select('*').limit(8);
+    data = res.data || [];
+  }
+  const recent = [...data].sort((a, b) => {
+    const da = new Date(a.created_at || 0), db = new Date(b.created_at || 0);
+    return db - da;
+  }).slice(0, 8);
+
+  if (!recent.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:24px">No data found</td></tr>';
+    return;
+  }
+
+  // detect columns dynamically
+  const sample = recent[0];
+  const keys = Object.keys(sample).filter(k => k !== 'id');
+  const dateCol = findDateCol(sample);
+  const statusCol = findStatusCol(sample);
+  const numCols = keys.filter(k => typeof sample[k] === 'number');
+  const strCols = keys.filter(k => typeof sample[k] === 'string' && k !== statusCol);
+  const label = c => c.replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase());
+  const fv = v => {
+    if (v === null || v === undefined) return '-';
+    if (typeof v === 'number') return Number(v).toLocaleString('th-TH');
+    if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v)) return new Date(v).toLocaleDateString('th-TH');
+    return String(v).slice(0, 30);
+  };
+
+  // Show up to 5 columns + status
+  const showCols = [...strCols.slice(0, 3), ...numCols.slice(0, 2)];
+  if (statusCol) showCols.push(statusCol);
+  document.getElementById('recentHead').innerHTML =
+    showCols.map(c => `<th>${label(c)}</th>`).join('');
+
+  tbody.innerHTML = recent.map(r => `<tr>
+    ${showCols.map(c => {
+      if (c === statusCol) {
+        const v = String(r[c] || '');
+        const cls = /active|ใช้งาน/i.test(v) ? 'badge-active' : /expire|หมด/i.test(v) ? 'badge-expired' : /draft|ร่าง/i.test(v) ? 'badge-draft' : 'badge-inactive';
+        return `<td><span class="badge ${cls}">${fv(r[c])}</span></td>`;
+      }
+      return `<td>${fv(r[c])}</td>`;
+    }).join('')}
+  </tr>`).join('');
+}
+
+// Real-time subscriptions
+supabase.channel('dashboard')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'Contract Master' }, loadStats)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'Outlet Master' }, loadStats)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'Promotion / Trade deal' }, loadStats)
+  .subscribe();
+
+async function logout() {
+  await supabase.auth.signOut();
+  window.location.href = 'index.html';
+}
+
+checkAuth();
+</script>
+</body>
+</html>
+

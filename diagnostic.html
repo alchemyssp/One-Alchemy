@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSP — Connection Diagnostic</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js?v=3"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans Thai',system-ui,sans-serif;background:#0F172A;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;font-size:14px;color:#E2E8F0}
+.card{background:#1E293B;border-radius:20px;padding:40px 44px;width:520px;max-width:100%;box-shadow:0 24px 80px rgba(0,0,0,.5)}
+.logo{display:flex;align-items:center;gap:14px;margin-bottom:32px}
+.logo-ico{width:44px;height:44px;background:#8B1A1A;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.logo-text h2{font-size:18px;font-weight:800;color:#F8FAFC}
+.logo-text p{font-size:12px;color:#64748B;margin-top:2px}
+h3{font-size:13px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px}
+.step{display:flex;align-items:flex-start;gap:14px;padding:14px 16px;border-radius:12px;border:1px solid #334155;margin-bottom:10px;transition:all .25s}
+.step.ok{border-color:#166534;background:#052e16}
+.step.err{border-color:#7F1D1D;background:#1c0608}
+.step.run{border-color:#1e3a5f;background:#0c1a2e;animation:pulse 1.4s infinite}
+.step.wait{opacity:.45}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.step-ico{font-size:20px;flex-shrink:0;margin-top:1px}
+.step-title{font-size:13px;font-weight:700;color:#F1F5F9}
+.step-msg{font-size:12px;color:#94A3B8;margin-top:4px;word-break:break-all}
+.step.ok .step-msg{color:#86EFAC}
+.step.err .step-msg{color:#FCA5A5}
+.step.run .step-msg{color:#93C5FD}
+.sep{height:1px;background:#1E293B;border:none;margin:24px 0}
+.tips-card{background:#0F172A;border-radius:12px;padding:18px 20px;border:1px solid #334155}
+.tip{display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:#94A3B8}
+.tip:last-child{margin-bottom:0}
+.tip-num{background:#8B1A1A;color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;margin-top:1px}
+.tip a{color:#60A5FA}
+.tip strong{color:#E2E8F0;font-weight:600}
+.btn{margin-top:24px;width:100%;padding:13px;background:#8B1A1A;color:#fff;border:none;border-radius:12px;font-size:14px;font-family:inherit;font-weight:700;cursor:pointer;letter-spacing:.2px}
+.btn:hover{background:#6F1414}
+.url-info{background:#0F172A;border-radius:10px;padding:12px 14px;border:1px solid #334155;margin-bottom:24px;font-size:12px;color:#64748B;word-break:break-all}
+.url-info strong{color:#94A3B8;display:block;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-ico">🔍</div>
+    <div class="logo-text">
+      <h2>Connection Diagnostic</h2>
+      <p>SSP — Supabase Connection Test</p>
+    </div>
+  </div>
+
+  <div class="url-info">
+    <strong>Supabase Project URL</strong>
+    <span id="urlDisplay">Loading...</span>
+  </div>
+
+  <h3>Diagnostic Steps</h3>
+
+  <div class="step wait" id="s1">
+    <div class="step-ico">🔗</div>
+    <div><div class="step-title">1. Supabase Client Init</div><div class="step-msg" id="m1">Waiting...</div></div>
+  </div>
+  <div class="step wait" id="s2">
+    <div class="step-ico">🌐</div>
+    <div><div class="step-title">2. Network / API Reachable</div><div class="step-msg" id="m2">Waiting...</div></div>
+  </div>
+  <div class="step wait" id="s3">
+    <div class="step-ico">🔑</div>
+    <div><div class="step-title">3. Auth Session</div><div class="step-msg" id="m3">Waiting...</div></div>
+  </div>
+  <div class="step wait" id="s4">
+    <div class="step-ico">🏪</div>
+    <div><div class="step-title">4. Outlet Master Table Access</div><div class="step-msg" id="m4">Waiting...</div></div>
+  </div>
+  <div class="step wait" id="s5">
+    <div class="step-ico">📝</div>
+    <div><div class="step-title">5. Log Table Access</div><div class="step-msg" id="m5">Waiting...</div></div>
+  </div>
+
+  <button class="btn" id="runBtn" onclick="runDiag()">▶ Run Diagnostic</button>
+
+  <hr class="sep">
+
+  <h3>If Something Fails — Checklist</h3>
+  <div class="tips-card">
+    <div class="tip"><div class="tip-num">1</div><div>ไปที่ <a href="https://supabase.com" target="_blank">supabase.com</a> → เปิด Project → ถ้าขึ้น <strong>"Project is paused"</strong> ให้กด Restore/Unpause</div></div>
+    <div class="tip"><div class="tip-num">2</div><div>ไปที่ <strong>Settings → API</strong> → copy URL และ anon key ใหม่ → แล้วแจ้งมาเพื่ออัปเดต config.js</div></div>
+    <div class="tip"><div class="tip-num">3</div><div>ถ้า Step 3 fail → <a href="index.html">กลับไป Sign In</a> อีกครั้ง session อาจหมดอายุ</div></div>
+    <div class="tip"><div class="tip-num">4</div><div>ถ้า Step 4–5 fail → ต้องรัน SQL ใน <strong>Supabase SQL Editor</strong> เพื่อเปิด RLS permissions ให้กับ table</div></div>
+    <div class="tip"><div class="tip-num">5</div><div>ตรวจว่า XAMPP ยังเปิดอยู่: <strong>Apache</strong> ต้อง status <strong>Running</strong></div></div>
+  </div>
+</div>
+
+<script>
+function setStep(id, status, msg) {
+  const el = document.getElementById('s'+id);
+  const m  = document.getElementById('m'+id);
+  el.className = 'step ' + status;
+  m.textContent = msg;
+  const icons = {ok:'✅', err:'❌', run:'⏳', wait:'⬜'};
+  el.querySelector('.step-ico').textContent = icons[status] || '⬜';
+}
+
+async function withTimeout(p, ms=8000) {
+  return Promise.race([p, new Promise((_,r)=>setTimeout(()=>r(new Error('TIMEOUT after '+ms+'ms')),ms))]);
+}
+
+async function runDiag() {
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('runBtn').textContent = '⏳ Running...';
+
+  // Step 1 — client init
+  setStep(1,'run','Checking Supabase client...');
+  try {
+    if (!supabase || typeof supabase.from !== 'function') throw new Error('supabase client not initialized');
+    setStep(1,'ok','Client initialized ✓');
+  } catch(e) {
+    setStep(1,'err','FAIL — '+e.message);
+    setStep(2,'err','Skipped'); setStep(3,'err','Skipped'); setStep(4,'err','Skipped'); setStep(5,'err','Skipped');
+    document.getElementById('runBtn').disabled = false;
+    document.getElementById('runBtn').textContent = '▶ Run Again';
+    return;
+  }
+
+  // Step 2 — network/API
+  setStep(2,'run','Testing API reachability...');
+  try {
+    const url = document.getElementById('urlDisplay').textContent;
+    const r = await withTimeout(fetch(url + '/rest/v1/', {
+      headers: { apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4anh3aHBkeGtzd3hmbXN5dXRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNDAwMzksImV4cCI6MjA5NzkxNjAzOX0.wvGFe0ZyrGV1OVahelj12cy9KnTGdrgXZc2t8HOnacw' }
+    }));
+    if (r.status === 200 || r.status === 404) {
+      setStep(2,'ok','API reachable — HTTP '+r.status+' ✓');
+    } else if (r.status === 503) {
+      setStep(2,'err','HTTP 503 — Project is PAUSED on Supabase. Go to supabase.com and unpause it.');
+    } else {
+      setStep(2,'err','HTTP '+r.status+' — unexpected response');
+    }
+  } catch(e) {
+    setStep(2,'err','Network error — '+e.message+'. Check internet connection or CORS.');
+  }
+
+  // Step 3 — auth session
+  setStep(3,'run','Checking auth session...');
+  try {
+    const {data,error} = await withTimeout(supabase.auth.getSession());
+    if (error) throw new Error(error.message);
+    if (data.session) {
+      setStep(3,'ok','Logged in as: '+data.session.user.email+' ✓');
+    } else {
+      setStep(3,'err','No active session — please Sign In at index.html');
+    }
+  } catch(e) {
+    setStep(3,'err','FAIL — '+e.message);
+  }
+
+  // Step 4 — Outlet Master table
+  setStep(4,'run','Testing "Outlet Master" table access...');
+  try {
+    const {data,error} = await withTimeout(supabase.from('Outlet Master').select('*').limit(1));
+    if (error) throw new Error(error.message + (error.hint?' ('+error.hint+')':''));
+    if (data && data.length > 0) {
+      setStep(4,'ok','Table accessible — '+Object.keys(data[0]).length+' columns found ✓');
+    } else {
+      setStep(4,'ok','Table accessible — 0 rows (table exists but may be empty) ✓');
+    }
+  } catch(e) {
+    const msg = e.message;
+    if (msg.includes('permission denied') || msg.includes('row-level security')) {
+      setStep(4,'err','RLS blocks access — run setup_log_table.sql in Supabase SQL Editor');
+    } else if (msg.includes('does not exist') || msg.includes('relation')) {
+      setStep(4,'err','Table "Outlet Master" not found — check table name in Supabase');
+    } else {
+      setStep(4,'err','FAIL — '+msg);
+    }
+  }
+
+  // Step 5 — Log table
+  setStep(5,'run','Testing "outlet_change_log" table access...');
+  try {
+    const {data,error} = await withTimeout(supabase.from('outlet_change_log').select('*').limit(1));
+    if (error) throw new Error(error.message);
+    setStep(5,'ok','Log table accessible ✓');
+  } catch(e) {
+    const msg = e.message;
+    if (msg.includes('does not exist') || msg.includes('relation')) {
+      setStep(5,'err','Log table not created yet — run setup_log_table.sql once in Supabase SQL Editor (Log History won\'t work until then)');
+    } else {
+      setStep(5,'err','FAIL — '+msg);
+    }
+  }
+
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('runBtn').textContent = '▶ Run Again';
+}
+
+// Show URL
+try {
+  const urlEl = document.getElementById('urlDisplay');
+  const url = window.location.href; // use supabase URL from config
+  // Extract from the supabase client if possible
+  if (supabase && supabase.supabaseUrl) {
+    urlEl.textContent = supabase.supabaseUrl;
+  } else {
+    urlEl.textContent = 'txjxwhpdxkswxfmsyutd.supabase.co';
+  }
+} catch(e) {}
+
+// Auto-run on load
+window.addEventListener('load', () => setTimeout(runDiag, 300));
+</script>
+</body>
+</html>

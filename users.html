@@ -1,0 +1,753 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Management — SSP</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js?v=3"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:linear-gradient(160deg,#fff 0%,#F4F4F5 50%,#EBEBED 100%);background-attachment:fixed;color:#1E293B;display:flex;font-size:14px;line-height:1.55;min-height:100vh}
+button{cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;transition:all .15s}
+input,select,textarea{font-family:inherit;font-size:13px}
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+.sidebar{
+  width:240px;height:100vh;
+  background:#12070A;
+  position:fixed;left:0;top:0;
+  display:flex;flex-direction:column;
+  z-index:100;
+  box-shadow:4px 0 32px rgba(0,0,0,.45);
+  overflow:hidden;
+}
+.sidebar::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#8B0000,#D40000,#FF7070,#D40000,#8B0000);
+  background-size:200% 100%;
+  animation:sbStripe 3s linear infinite;
+}
+@keyframes sbStripe{0%{background-position:0% 0}100%{background-position:200% 0}}
+.sb-logo{padding:28px 20px 20px;display:flex;align-items:center;gap:12px}
+.sb-logo-icon{width:38px;height:38px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#8B0000,#D40000);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(212,0,0,.4);}
+.sb-logo-text h3{font-size:14px;font-weight:800;color:#fff;letter-spacing:.3px}
+.sb-logo-text p{font-size:10.5px;color:rgba(255,255,255,.35);margin-top:1px;font-weight:400}
+.nav-links{flex:1;padding:8px 12px;overflow-y:auto;overflow-x:hidden}
+.nav-links::-webkit-scrollbar{width:3px}
+.nav-links::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
+.nav-section{padding:16px 8px 6px;font-size:9.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,.22);}
+.nav-section:first-child{padding-top:4px}
+.nav-links a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;font-weight:500;transition:background .18s,color .18s,transform .15s;position:relative;margin-bottom:2px;border:1px solid transparent;}
+.nav-links a .nav-ico{width:34px;height:34px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;background:rgba(255,255,255,.05);transition:background .18s,box-shadow .18s;}
+.nav-links a:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);transform:translateX(2px);}
+.nav-links a:hover .nav-ico{background:rgba(255,255,255,.1)}
+.nav-links a.active{background:linear-gradient(135deg,rgba(139,0,0,.55),rgba(212,0,0,.3));color:#fff;border-color:rgba(212,0,0,.35);box-shadow:0 4px 16px rgba(139,0,0,.25),inset 0 1px 0 rgba(255,255,255,.08);}
+.nav-links a.active .nav-ico{background:linear-gradient(135deg,#8B0000,#D40000);box-shadow:0 4px 12px rgba(212,0,0,.45);}
+.nav-links a.nav-sub{padding-left:24px;font-size:12px;color:rgba(255,255,255,.4);margin-left:8px;border-radius:8px;}
+.nav-links a.nav-sub .nav-ico{width:28px;height:28px;font-size:13px;background:transparent;}
+.nav-links a.nav-sub:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.05)}
+.nav-links a.nav-sub.active{color:#fff;background:rgba(212,0,0,.2);border-color:rgba(212,0,0,.25);}
+.nav-links a.nav-sub.active .nav-ico{background:rgba(212,0,0,.3)}
+.sidebar-user{padding:14px 16px 18px;border-top:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);}
+.sb-user-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sb-avatar{width:36px;height:36px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#8B0000,#D40000);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;box-shadow:0 3px 10px rgba(139,0,0,.4);}
+.sidebar-user .sname{font-size:12.5px;font-weight:700;color:#fff;line-height:1.2}
+.sidebar-user .semail{font-size:10.5px;color:rgba(255,255,255,.3);margin-top:1px}
+.btn-logout{width:100%;padding:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.09);border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .18s;}
+.btn-logout:hover{background:rgba(139,0,0,.35);color:#fff;border-color:rgba(212,0,0,.4)}
+
+/* MAIN */
+.main{margin-left:240px;flex:1;padding:28px 32px;display:flex;flex-direction:column;min-height:100vh}
+.page-hdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+.page-title{font-size:24px;font-weight:800;color:#1A0000}
+.page-sub{font-size:13px;color:#A00000;margin-top:4px}
+.rc-tag{font-size:12px;color:#999;font-weight:500;align-self:center}
+
+/* TOOLBAR */
+.toolbar{background:#fff;border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;box-shadow:0 1px 6px rgba(100,0,0,.08);margin-bottom:14px}
+.search-wrap{position:relative}
+.search-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#C00000;pointer-events:none;width:14px;height:14px}
+.search-wrap input{padding:8px 12px 8px 32px;border:1.5px solid #FFD0D0;border-radius:9px;font-size:13px;background:#FFF7F7;width:220px;transition:width .2s}
+.search-wrap input:focus{outline:none;border-color:#C00000;background:#fff;width:270px}
+.flt{padding:8px 12px;border:1.5px solid #FFD0D0;border-radius:9px;font-size:13px;background:#FFF7F7;color:#1E293B;min-width:110px}
+.flt:focus{outline:none;border-color:#C00000}
+.spacer{flex:1}
+.btn-add{padding:9px 16px;background:linear-gradient(135deg,#D40000,#C00000,#990000);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(155,0,0,.28)}
+.btn-add:hover{background:linear-gradient(135deg,#C00000,#990000);transform:translateY(-1px)}
+
+/* TABLE CARD */
+.tcard{background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(100,0,0,.08)}
+table{width:max-content;min-width:100%;border-collapse:collapse}
+thead{position:sticky;top:0;z-index:10}
+thead th{text-align:left;padding:11px 14px;font-size:11px;color:#fff;font-weight:700;background:linear-gradient(90deg,#780000,#A00000);white-space:nowrap;text-transform:uppercase;letter-spacing:.4px;user-select:none}
+tbody td{padding:11px 14px;font-size:13px;border-bottom:1px solid #FFF5F5;color:#374151;white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+tbody tr{cursor:pointer;transition:background .12s}
+tbody tr:hover td{background:#FFF0F0}
+tbody tr.selected td{background:#FFF5F5;border-left:none}
+.td-sys{color:#B0B8C1;font-size:12px}
+.row-hint{color:#D0A0A0;font-size:11px;padding:6px 14px;text-align:center;font-style:italic;border-bottom:1px solid #FFF5F5}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:700}
+.b-admin{background:#FEF3C7;color:#92400E}
+.b-manager{background:#EDE9FE;color:#5B21B6}
+.b-user{background:#F0FDF4;color:#065F46}
+.b-active{background:#DCFCE7;color:#14532D}
+.b-inactive{background:#FFE4E4;color:#7B0000}
+.bdot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:64px 20px;color:#C0B0B0}
+.empty-state .ei{font-size:40px;margin-bottom:12px;opacity:.5}
+
+/* â”€â”€ DETAIL CARD (Edit Panel) â”€â”€ */
+.overlay{position:fixed;inset:0;background:rgba(30,0,0,.35);display:none;z-index:300;align-items:flex-start;justify-content:flex-end}
+.overlay.open{display:flex}
+
+.detail-card{
+  background:#fff;
+  width:480px;
+  max-width:100vw;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  box-shadow:-8px 0 40px rgba(80,0,0,.18);
+  animation:slideIn .22s cubic-bezier(.25,.8,.25,1);
+}
+@keyframes slideIn{from{transform:translateX(100%);opacity:.6}to{transform:none;opacity:1}}
+
+/* Card header */
+.dc-hdr{
+  padding:20px 22px 16px;
+  border-bottom:1px solid #FFD0D0;
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  flex-shrink:0;
+}
+.dc-avatar{
+  width:48px;height:48px;border-radius:12px;
+  background:linear-gradient(135deg,#C00000,#800000);
+  color:#fff;font-size:18px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.dc-meta{flex:1;min-width:0}
+.dc-name{font-size:17px;font-weight:800;color:#1A0000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dc-id{font-size:12px;color:#A00000;margin-top:2px;font-weight:600}
+.dc-hdr-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+/* Status toggle button in header */
+.btn-status{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;
+  border:none;transition:all .15s;
+}
+.btn-status.active{background:#DCFCE7;color:#14532D}
+.btn-status.active:hover{background:#BBF7D0}
+.btn-status.inactive{background:#FFE4E4;color:#7B0000}
+.btn-status.inactive:hover{background:#FFC0C0}
+.btn-status .sdot{width:7px;height:7px;border-radius:50%;background:currentColor}
+
+.dc-close{width:30px;height:30px;border-radius:7px;border:none;background:transparent;color:#C00000;font-size:18px;display:flex;align-items:center;justify-content:center}
+.dc-close:hover{background:#FFF2F2}
+
+/* Card body */
+.dc-body{flex:1;overflow-y:auto;padding:20px 22px}
+.dc-body::-webkit-scrollbar{width:4px}
+.dc-body::-webkit-scrollbar-track{background:transparent}
+.dc-body::-webkit-scrollbar-thumb{background:#FFD0D0;border-radius:4px}
+
+/* Card footer */
+.dc-ftr{padding:14px 22px;border-top:1px solid #FFD0D0;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;background:#FAFAFA}
+
+/* FORM */
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.frow.full{grid-template-columns:1fr}
+.fg{display:flex;flex-direction:column;gap:4px}
+.flbl{font-size:10.5px;font-weight:700;color:#8B0000;text-transform:uppercase;letter-spacing:.4px}
+.finput{padding:9px 11px;border:1.5px solid #FFD0D0;border-radius:9px;font-size:13px;color:#1E293B;background:#fff;width:100%;transition:border-color .15s}
+.finput:focus{outline:none;border-color:#C00000;box-shadow:0 0 0 3px rgba(192,0,0,.1)}
+.finput:disabled{background:#F8F8F8;color:#9CA3AF;cursor:not-allowed;border-color:#F0E0E0}
+select.finput{cursor:pointer}
+.hint{font-size:11px;color:#9CA3AF}
+.pw-wrap{position:relative}
+.pw-wrap .finput{padding-right:38px}
+.pw-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#C00000;font-size:15px;line-height:1;padding:0;cursor:pointer}
+.msect{font-size:10.5px;font-weight:700;color:#8B0000;text-transform:uppercase;letter-spacing:.5px;padding:10px 0 6px;margin-top:6px;border-top:1px solid #FFD0D0;grid-column:1/-1}
+
+/* CANCEL/SAVE */
+.btn-cancel{padding:9px 20px;background:#fff;color:#7B0000;border:1.5px solid #FFD0D0;border-radius:9px;font-size:13px;font-weight:600}
+.btn-cancel:hover{background:#FFF5F5}
+.btn-save{padding:9px 22px;background:#C00000;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700}
+.btn-save:hover{background:#990000}
+.btn-save:disabled{opacity:.5;cursor:not-allowed}
+
+/* ADD MODAL (centered) */
+.add-overlay{position:fixed;inset:0;background:rgba(60,0,0,.4);display:none;z-index:400;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 16px}
+.add-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:560px;max-width:100%;box-shadow:0 24px 64px rgba(100,0,0,.2);margin:auto;display:flex;flex-direction:column}
+.mhdr{padding:22px 26px 16px;border-bottom:1px solid #FFD0D0;display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0}
+.mtitle{font-size:18px;font-weight:800;color:#1A0000}
+.msub{font-size:12px;color:#A00000;margin-top:3px}
+.mclose{width:30px;height:30px;border-radius:7px;border:none;background:transparent;color:#C00000;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mclose:hover{background:#FFF2F2}
+.mbody{padding:22px 26px;overflow-y:auto;max-height:65vh}
+.mftr{padding:14px 26px;border-top:1px solid #FFD0D0;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;background:#FAFAFA;border-radius:0 0 16px 16px}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{padding:11px 16px;border-radius:10px;font-size:13px;font-weight:700;box-shadow:0 4px 20px rgba(100,0,0,.2);display:flex;align-items:center;gap:8px;animation:tin .22s ease}
+.tok{background:#065F46;color:#fff}.terr{background:#990000;color:#fff}.tinf{background:#1E293B;color:#fff}
+@keyframes tin{from{transform:translateX(100%);opacity:0}to{transform:none;opacity:1}}
+/* force nav labels visible */
+.nav-links a>span{display:inline!important;width:auto!important;max-width:none!important;flex-shrink:1!important;opacity:1!important;color:inherit!important}
+</style>
+<link rel="stylesheet" href="css/ssp-theme.css?v=6">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">🏢</div>
+    <div class="sb-logo-text"><h3>SSP</h3><p>Sales &amp; Promotion</p></div>
+  </div>
+  <div class="nav-links">
+    <div class="nav-section">Main Menu</div>
+    <a href="dashboard.html">Dashboard</a>
+    <div class="nav-section">Master Data</div>
+    <a href="outlets.html">Outlet Master</a>
+    <a href="data_u.html" class="nav-sub">Data Universe</a>
+    <a href="contracts.html">Contract Master</a>
+    <a href="promotions.html">Promotions</a>
+    <div class="nav-section">Analytics</div>
+    <a href="roi.html">ROI Analysis</a>
+    <a href="offtake.html">Off-take 2026</a>
+    <a href="sku.html">SKU</a>
+    <div class="nav-section">System</div>
+    <a href="users.html" class="active">User Management</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="sb-user-row">
+      <div class="sb-avatar" id="userAvatar">—</div>
+      <div><div class="sname" id="userName">—</div><div class="semail" id="userEmail">—</div></div>
+    </div>
+    <button class="btn-logout" onclick="logout()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-hdr">
+    <div>
+      <div class="page-title">User Management</div>
+      <div class="page-sub">Credentials set here are used on the Login page &middot; <code>user_profile</code></div>
+    </div>
+    <span class="rc-tag" id="rowCount"></span>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg class="search-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="Search..." oninput="applyFilters()">
+    </div>
+    <select class="flt" id="fltRole" onchange="applyFilters()">
+      <option value="">All Roles</option>
+      <option value="Admin">Admin</option>
+      <option value="Manager">Manager</option>
+      <option value="User">User</option>
+    </select>
+    <select class="flt" id="fltStatus" onchange="applyFilters()">
+      <option value="">All Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+    <button class="btn-add" onclick="openAdd()">+ Add User</button>
+    <div class="spacer"></div>
+  </div>
+
+  <div class="tcard">
+    <div id="tableWrap"><div class="empty-state"><div class="ei"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C8A8A8" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><p>Loading...</p></div></div>
+  </div>
+</div>
+
+<!-- DETAIL / EDIT CARD (right slide-in) -->
+<div class="overlay" id="editOverlay" onclick="overlayClick(event)">
+  <div class="detail-card" id="detailCard">
+
+    <!-- Header -->
+    <div class="dc-hdr">
+      <div class="dc-avatar" id="dcAvatar">?</div>
+      <div class="dc-meta">
+        <div class=”dc-name” id=”dcName”>&mdash;</div>
+        <div class=”dc-id”  id=”dcId”>&mdash;</div>
+      </div>
+      <div class="dc-hdr-right">
+        <button class="btn-status" id="btnStatus" onclick="toggleStatus()">
+          <span class=”sdot”></span><span id=”statusLbl”>&mdash;</span>
+        </button>
+        <button class="dc-close" onclick="closeEdit()">&times;</button>
+      </div>
+    </div>
+
+    <!-- Body: editable fields -->
+    <div class="dc-body" id="editBody"></div>
+
+    <!-- Footer -->
+    <div class="dc-ftr">
+      <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
+      <button class="btn-save"   id="btnSaveEdit" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD USER MODAL (centered) -->
+<div class="add-overlay" id="addOverlay">
+  <div class="modal">
+    <div class="mhdr">
+      <div><div class="mtitle">Add User</div><div class="msub">Create a new account in user_profile + Supabase Auth</div></div>
+      <button class="mclose" onclick="closeAdd()">&times;</button>
+    </div>
+    <div class="mbody" id="addBody"></div>
+    <div class="mftr">
+      <button class="btn-cancel" onclick="closeAdd()">Cancel</button>
+      <button class="btn-save" id="btnSaveAdd" onclick="saveAdd()">Create User</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* â”€â”€ CONFIG â”€â”€ */
+const TABLE       = 'user_profile';
+const SYSTEM_HIDE = ['auth_email'];
+const SYSTEM_RO   = ['created_at','updated_at'];
+const SPECIAL     = ['role','is_active'];
+const FORM_SKIP   = ['no'];
+const ROLE_OPTS   = ['Admin','Manager','User'];
+
+/* â”€â”€ STATE â”€â”€ */
+let allData = [], filtered = [], cols = [], pkCol = '';
+let editTarget = null;
+
+/* â”€â”€ UTILS â”€â”€ */
+const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function showToast(msg, type='ok') {
+  const w = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type==='err'?'terr':type==='inf'?'tinf':'tok');
+  t.textContent = msg;
+  w.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),350); }, 3200);
+}
+
+function togglePw(id, btn) {
+  const el = document.getElementById(id);
+  el.type = el.type==='password' ? 'text' : 'password';
+  btn.textContent = el.type==='password' ? 'Show' : 'Hide';
+}
+
+function roleBadge(r) {
+  const key = r ? r.charAt(0).toUpperCase() + r.slice(1).toLowerCase() : 'User';
+  const m = {Admin:'b-admin',Manager:'b-manager',User:'b-user'};
+  return `<span class="badge ${m[key]||'b-user'}"><span class="bdot"></span>${esc(key)}</span>`;
+}
+function statusBadge(v) {
+  return v!==false
+    ? `<span class="badge b-active"><span class="bdot"></span>Active</span>`
+    : `<span class="badge b-inactive"><span class="bdot"></span>Inactive</span>`;
+}
+function fmtVal(col, val) {
+  if (col==='role')      return roleBadge(val);
+  if (col==='is_active') return statusBadge(val);
+  if (val===null||val===undefined||val==='') return `<span style="color:#DDD">&mdash;</span>`;
+  if (typeof val==='boolean') return val?'Yes':'No';
+  const s = String(val);
+  if (s.length>80) return `<span title="${esc(s)}">${esc(s.substring(0,78))}...</span>`;
+  return esc(s);
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function initials(row) {
+  const n = row.name || row.username || row.full_name || String(row[pkCol]||'?');
+  return n.substring(0,2).toUpperCase();
+}
+
+/* â”€â”€ AUTH â”€â”€ */
+async function checkAuth() {
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) { location.href='index.html'; return; }
+  const u = data.session.user;
+  const { data: p } = await supabase.from(TABLE).select('*').eq('auth_email', u.email).maybeSingle();
+  document.getElementById('userEmail').textContent = u.email;
+  const displayName = (p && p.username) || u.email.split('@')[0];
+  document.getElementById('userName').textContent = displayName;
+  document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
+  loadData();
+}
+async function logout() { await supabase.auth.signOut(); location.href='index.html'; }
+/* â”€â”€ LOAD â”€â”€ */
+async function loadData() {
+  const { data, error } = await supabase.from(TABLE).select('*').order('created_at',{ascending:false});
+  if (error) {
+    document.getElementById('tableWrap').innerHTML =
+      `<div class="empty-state"><div class="ei"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C8A8A8" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><p>Error: ${esc(error.message)}</p></div>`;
+    return;
+  }
+  allData = data || [];
+  if (allData.length) detectCols(allData[0]);
+  applyFilters();
+}
+
+function detectCols(row) {
+  cols = Object.keys(row);
+  pkCol = cols.includes('username')
+    ? 'username'
+    : (cols.find(c => !SYSTEM_HIDE.includes(c) && !SYSTEM_RO.includes(c) && !SPECIAL.includes(c)) || cols[0]);
+}
+
+/* â”€â”€ FILTER â”€â”€ */
+function applyFilters() {
+  const q      = document.getElementById('searchInput').value.toLowerCase();
+  const role   = document.getElementById('fltRole').value;
+  const status = document.getElementById('fltStatus').value;
+
+  filtered = allData.filter(r => {
+    if (role   && (r.role||'User').toLowerCase() !== role.toLowerCase()) return false;
+    if (status==='active'   && r.is_active===false) return false;
+    if (status==='inactive' && r.is_active!==false) return false;
+    if (q && !cols.some(c => String(r[c]??'').toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  document.getElementById('rowCount').textContent =
+    `${filtered.length.toLocaleString()} of ${allData.length.toLocaleString()} records`;
+  renderTable();
+}
+
+/* â”€â”€ RENDER TABLE â”€â”€ */
+function renderTable() {
+  const wrap = document.getElementById('tableWrap');
+  if (!filtered.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="ei"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C8A8A8" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><p>${
+      allData.length ? 'No records match your search.' : 'No users yet — click Add User to create one.'
+    }</p></div>`;
+    return;
+  }
+
+  const showCols = cols.filter(c => !SYSTEM_HIDE.includes(c));
+  const ths = showCols.map(c => `<th>${esc(c)}</th>`).join('');
+  const rows = filtered.map(r => {
+    const pkv = esc(String(r[pkCol]??''));
+    const tds = showCols.map(c => {
+      const cls = SYSTEM_RO.includes(c) ? ' class="td-sys"' : '';
+      const val = SYSTEM_RO.includes(c) ? esc(fmtDate(r[c])) : fmtVal(c, r[c]);
+      return `<td${cls}>${val}</td>`;
+    }).join('');
+    return `<tr data-pk="${pkv}">${tds}</tr>`;
+  }).join('');
+
+  wrap.innerHTML = `<table>
+    <thead><tr>${ths}</tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+  /* Row click â†’ open detail card */
+  wrap.querySelectorAll('tbody tr').forEach(tr => {
+    tr.addEventListener('click', () => openEdit(tr.dataset.pk));
+  });
+}
+
+/* â”€â”€ DETAIL CARD HELPERS â”€â”€ */
+function refreshStatusBtn(isActive) {
+  const btn = document.getElementById('btnStatus');
+  const lbl = document.getElementById('statusLbl');
+  if (isActive !== false) {
+    btn.className = 'btn-status active';
+    lbl.textContent = 'Active';
+  } else {
+    btn.className = 'btn-status inactive';
+    lbl.textContent = 'Inactive';
+  }
+}
+
+/* Toggle status immediately on Supabase */
+async function toggleStatus() {
+  if (!editTarget) return;
+  const newVal = editTarget.is_active === false;   // flip
+  const { error } = await supabase.from(TABLE)
+    .update({ is_active: newVal, updated_at: new Date().toISOString() })
+    .eq(pkCol, editTarget[pkCol]);
+  if (error) { showToast('Error: ' + error.message, 'err'); return; }
+
+  editTarget.is_active = newVal;
+  // update local allData too
+  const idx = allData.findIndex(r => String(r[pkCol]??'') === String(editTarget[pkCol]??''));
+  if (idx >= 0) allData[idx].is_active = newVal;
+
+  refreshStatusBtn(newVal);
+  showToast(newVal ? `"${editTarget[pkCol]}" activated` : `"${editTarget[pkCol]}" deactivated`, newVal?'ok':'inf');
+  applyFilters();   // re-render table to reflect change
+}
+
+/* â”€â”€ OPEN EDIT â”€â”€ */
+function openEdit(pkVal) {
+  editTarget = allData.find(r => String(r[pkCol]??'') === pkVal);
+  if (!editTarget) return;
+
+  /* Header */
+  document.getElementById('dcAvatar').textContent = initials(editTarget);
+  document.getElementById('dcName').textContent   =
+    editTarget.name || editTarget.username || editTarget.full_name || String(editTarget[pkCol]);
+  document.getElementById('dcId').textContent     = `${pkCol}: ${editTarget[pkCol]}`;
+  refreshStatusBtn(editTarget.is_active);
+
+  /* Editable fields */
+  const userCols = cols.filter(c =>
+    !SYSTEM_HIDE.includes(c) && !SYSTEM_RO.includes(c) && !SPECIAL.includes(c) && c !== pkCol
+  );
+
+  /* Login credentials info box */
+  let html = `<div style="background:#FFF5F5;border:1.5px solid #FFD0D0;border-radius:10px;padding:12px 14px;margin-bottom:14px">
+    <div style="font-size:10px;font-weight:700;color:#8B0000;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Login Credentials</div>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+        <span style="width:80px;color:#9B0000;font-weight:600;font-size:11.5px">Username</span>
+        <code style="background:#fff;border:1px solid #FFD0D0;padding:2px 8px;border-radius:6px;font-size:13px;color:#1A0000;font-weight:700">${esc(String(editTarget[pkCol]??''))}</code>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+        <span style="width:80px;color:#9B0000;font-weight:600;font-size:11.5px">Password</span>
+        <span style="color:#9CA3AF;font-size:12px">Set at creation &mdash; reset via Supabase Dashboard</span>
+      </div>
+    </div>
+  </div>`;
+
+  html += `<div class="frow">
+    <div class="fg">
+      <label class="flbl">${esc(pkCol)} (Username for login)</label>
+      <input class="finput" value="${esc(String(editTarget[pkCol]??''))}" disabled>
+    </div>`;
+
+  userCols.forEach((c, i) => {
+    html += `<div class="fg">
+      <label class="flbl">${esc(c)}</label>
+      <input class="finput" id="ef_${esc(c)}" value="${esc(String(editTarget[c]??''))}">
+    </div>`;
+    /* Close and open grid rows every 2 items (first item paired with pkCol) */
+    if (i === 0) { html += `</div><div class="frow">`; }
+    else if ((i+1) % 2 === 0 && i < userCols.length-1) { html += `</div><div class="frow">`; }
+  });
+  html += `</div>`;
+
+  /* Role */
+  html += `<div class="frow">
+    <div class="msect">Account</div>
+  </div>
+  <div class="frow">
+    <div class="fg">
+      <label class="flbl">Role</label>
+      <select class="finput" id="ef_role">
+        ${ROLE_OPTS.map(r=>`<option value="${r}"${(editTarget.role||'').toLowerCase()===r.toLowerCase()?' selected':''}>${r}</option>`).join('')}
+      </select>
+    </div>`;
+
+  /* Auth email readonly */
+  if (editTarget.auth_email) {
+    html += `<div class="fg">
+      <label class="flbl">Auth Email</label>
+      <input class="finput" value="${esc(editTarget.auth_email||'')}" disabled>
+    </div>`;
+  }
+  html += `</div>`;
+
+  /* System dates */
+  if (editTarget.created_at || editTarget.updated_at) {
+    html += `<div class="frow">
+      <div class="msect">Record Info</div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Created</label><input class="finput" value="${esc(fmtDate(editTarget.created_at))}" disabled></div>
+      <div class="fg"><label class="flbl">Updated</label><input class="finput" value="${esc(fmtDate(editTarget.updated_at))}" disabled></div>
+    </div>`;
+  }
+
+  document.getElementById('editBody').innerHTML = html;
+  document.getElementById('editOverlay').classList.add('open');
+
+  /* Highlight selected row */
+  document.querySelectorAll('tbody tr').forEach(tr => tr.classList.remove('selected'));
+  document.querySelectorAll(`tbody tr[data-pk="${CSS.escape(pkVal)}"]`).forEach(tr => tr.classList.add('selected'));
+}
+
+function closeEdit() {
+  document.getElementById('editOverlay').classList.remove('open');
+  document.querySelectorAll('tbody tr').forEach(tr => tr.classList.remove('selected'));
+  editTarget = null;
+}
+
+function overlayClick(e) {
+  if (e.target === document.getElementById('editOverlay')) closeEdit();
+}
+
+/* â”€â”€ SAVE EDIT â”€â”€ */
+async function saveEdit() {
+  if (!editTarget) return;
+  const userCols = cols.filter(c =>
+    !SYSTEM_HIDE.includes(c) && !SYSTEM_RO.includes(c) && !SPECIAL.includes(c) && c !== pkCol
+  );
+
+  const updates = {};
+  userCols.forEach(c => {
+    const el = document.getElementById('ef_' + c);
+    if (el) updates[c] = el.value;
+  });
+  const roleEl = document.getElementById('ef_role');
+  if (roleEl) updates.role = roleEl.value;
+  updates.updated_at = new Date().toISOString();
+
+  const btn = document.getElementById('btnSaveEdit');
+  btn.disabled = true; btn.textContent = 'Saving...';
+
+  const { error } = await supabase.from(TABLE).update(updates).eq(pkCol, editTarget[pkCol] ?? '');
+  btn.disabled = false; btn.textContent = 'Save Changes';
+
+  if (error) { showToast('Error: ' + error.message, 'err'); return; }
+
+  showToast(`"${editTarget[pkCol]}" saved`);
+  closeEdit();
+  loadData();
+}
+
+/* â”€â”€ ADD USER â”€â”€ */
+function openAdd() {
+  const teams = [...new Set(allData.map(r => r.team).filter(Boolean))].sort();
+  const SKIP  = new Set([...SYSTEM_HIDE, ...SYSTEM_RO, ...SPECIAL, ...FORM_SKIP, pkCol]);
+  const userCols = cols.filter(c => !SKIP.has(c));
+
+  /* Username (for login) — full-width at top */
+  let html = `<div class="frow">
+    <div class="fg" style="grid-column:1/-1">
+      <label class="flbl">Username <span style="color:#C00000;font-weight:500">(for login)</span></label>
+      <input class="finput" id="add_${esc(pkCol)}" placeholder="e.g. john, nida">
+      <span class="hint">This is what the user types on the Login page</span>
+    </div>
+  </div><div class="frow">`;
+
+  let i = 0;
+  userCols.forEach(c => {
+    if (i > 0 && i % 2 === 0) html += `</div><div class="frow">`;
+    if (c === 'team') {
+      html += `<div class="fg">
+        <label class="flbl">Team</label>
+        <select class="finput" id="add_team">
+          <option value="">— Select —</option>
+          ${teams.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+        </select>
+      </div>`;
+    } else if (c === 'password') {
+      html += `<div class="fg">
+        <label class="flbl">Password</label>
+        <div class="pw-wrap">
+          <input class="finput" id="add_password" type="password" value="Aa1234">
+          <button class="pw-eye" type="button" onclick="togglePw('add_password',this)">Show</button>
+        </div>
+        <span class="hint">Default: Aa1234</span>
+      </div>`;
+    } else {
+      html += `<div class="fg">
+        <label class="flbl">${esc(c)}</label>
+        <input class="finput" id="add_${esc(c)}">
+      </div>`;
+    }
+    i++;
+  });
+  html += `</div>`;
+
+  /* Account Settings — Role only */
+  html += `<div class="frow"><div class="msect">Account Settings</div></div>
+  <div class="frow">
+    <div class="fg">
+      <label class="flbl">Role</label>
+      <select class="finput" id="add_role">
+        ${ROLE_OPTS.map(r=>`<option value="${r}">${r}</option>`).join('')}
+      </select>
+    </div>
+  </div>`;
+
+  document.getElementById('addBody').innerHTML = html;
+  document.getElementById('btnSaveAdd').textContent = 'Create User';
+  document.getElementById('btnSaveAdd').disabled = false;
+  document.getElementById('addOverlay').classList.add('open');
+}
+function closeAdd() { document.getElementById('addOverlay').classList.remove('open'); }
+
+async function saveAdd() {
+  const SKIP     = new Set([...SYSTEM_HIDE, ...SYSTEM_RO, ...SPECIAL, ...FORM_SKIP, pkCol]);
+  const userCols = cols.filter(c => !SKIP.has(c));
+  const row = {};
+
+  /* pkCol (username) */
+  const pkEl = document.getElementById('add_' + pkCol);
+  row[pkCol] = pkEl ? pkEl.value.trim() : '';
+
+  /* Other visible columns */
+  for (const c of userCols) {
+    const el = document.getElementById('add_' + c);
+    row[c] = el ? el.value.trim() : '';
+  }
+
+  const pkVal    = row[pkCol];
+  const password = row['password'] || 'Aa1234';
+  const role     = document.getElementById('add_role').value;
+
+  if (!pkVal)            { showToast('Username is required', 'err'); return; }
+  if (password.length<6) { showToast('Password must be at least 6 characters', 'err'); return; }
+
+  const btn = document.getElementById('btnSaveAdd');
+  btn.disabled = true; btn.textContent = 'Creating...';
+
+  const authEmail = pkVal.toLowerCase().replace(/[^a-z0-9]/g,'_') + '@ssp.local';
+  row.auth_email  = authEmail;
+  row.role        = role;
+  row.is_active   = true;
+
+  if (!window._sbCreateClient) {
+    showToast('Supabase client not ready', 'err');
+    btn.disabled=false; btn.textContent='Create User'; return;
+  }
+
+  try {
+    const tmp = window._sbCreateClient(SUPABASE_URL, SUPABASE_KEY);
+    const { error: ae } = await tmp.auth.signUp({ email: authEmail, password });
+    if (ae && !ae.message.includes('already registered')) throw ae;
+  } catch(e) {
+    showToast('Auth: ' + e.message, 'err');
+    btn.disabled=false; btn.textContent='Create User'; return;
+  }
+
+  const { error } = await supabase.from(TABLE).upsert([row], { onConflict: pkCol });
+  btn.disabled=false; btn.textContent='Create User';
+  if (error) { showToast('DB: ' + error.message, 'err'); return; }
+
+  closeAdd();
+  showToast(`User "${pkVal}" created`);
+  loadData();
+}
+
+/* â”€â”€ INIT â”€â”€ */
+checkAuth();
+</script>
+</body>
+</html>
+

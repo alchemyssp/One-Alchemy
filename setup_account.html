@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSP — Create Auth Account</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js?v=3"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#111;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;border-radius:16px;padding:36px 32px;width:420px;max-width:100%;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+h2{font-size:18px;font-weight:800;color:#1A0000;margin-bottom:4px}
+p{font-size:13px;color:#888;margin-bottom:24px}
+label{font-size:11px;font-weight:700;color:#8B0000;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
+input{width:100%;padding:10px 12px;border:1.5px solid #FFD0D0;border-radius:9px;font-size:14px;margin-bottom:14px}
+input:focus{outline:none;border-color:#C00000}
+button{width:100%;padding:12px;background:linear-gradient(135deg,#D40000,#990000);color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px}
+button:hover{opacity:.9}
+button:disabled{opacity:.5;cursor:not-allowed}
+.msg{margin-top:14px;padding:12px 14px;border-radius:9px;font-size:13px;font-weight:600;display:none}
+.ok{background:#DCFCE7;color:#065F46;display:block}
+.err{background:#FFE4E4;color:#7B0000;display:block}
+.hint{background:#FFF5F5;border:1px solid #FFD0D0;border-radius:9px;padding:12px;margin-bottom:20px;font-size:12px;color:#7B0000;line-height:1.7}
+.hint b{color:#1A0000}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>Create Auth Account</h2>
+  <p>Use this page once to create a login account, then use <a href="index.html">the main login</a>.</p>
+
+  <div class="hint">
+    <b>How it works:</b><br>
+    • Username = what you type on the Login page<br>
+    • Password = what you use to sign in<br>
+    • This creates a Supabase Auth account for you
+  </div>
+
+  <label>Username (must match user_profile)</label>
+  <input type="text" id="uname" placeholder="e.g. Nida" autocapitalize="none">
+
+  <label>Password</label>
+  <input type="password" id="pw" placeholder="e.g. AA1234">
+
+  <label>Confirm Password</label>
+  <input type="password" id="pw2" placeholder="Same password again">
+
+  <button id="btn" onclick="createAccount()">Create Account</button>
+  <div class="msg" id="msg"></div>
+</div>
+
+<script>
+async function createAccount() {
+  const uname = document.getElementById('uname').value.trim();
+  const pw    = document.getElementById('pw').value;
+  const pw2   = document.getElementById('pw2').value;
+  const msg   = document.getElementById('msg');
+  const btn   = document.getElementById('btn');
+
+  msg.className = 'msg';
+  msg.textContent = '';
+
+  if (!uname) { show('err', 'Please enter a username'); return; }
+  if (pw.length < 6) { show('err', 'Password must be at least 6 characters'); return; }
+  if (pw !== pw2)    { show('err', 'Passwords do not match'); return; }
+
+  /* Build auth_email exactly as the system expects */
+  const authEmail = uname.toLowerCase().replace(/[^a-z0-9]/g,'_') + '@ssp.local';
+
+  btn.disabled = true;
+  btn.textContent = 'Creating…';
+
+  try {
+    /* Create Supabase Auth account via temp client */
+    const tmp = window._sbCreateClient(SUPABASE_URL, SUPABASE_KEY);
+    const { error: signUpErr } = await tmp.auth.signUp({ email: authEmail, password: pw });
+
+    if (signUpErr) {
+      const msg = signUpErr.message.toLowerCase();
+      if (msg.includes('already registered') || msg.includes('already been registered')) {
+        show('ok', `Account for "${uname}" already exists in Supabase Auth.\n\n→ Try logging in at the Login page.\nIf password is wrong, reset it via Supabase Dashboard → Auth → Users.`);
+      } else {
+        show('err', 'Supabase Error: ' + signUpErr.message);
+      }
+      return;
+    }
+
+    show('ok', `✓ Account created!\n\nUsername: ${uname}\nAuth Email: ${authEmail}\nPassword: the one you entered\n\n→ Now go to Login page and sign in.`);
+
+  } catch(e) {
+    show('err', 'Error: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+  }
+}
+
+function show(type, text) {
+  const msg = document.getElementById('msg');
+  msg.className = 'msg ' + type;
+  msg.style.whiteSpace = 'pre-line';
+  msg.textContent = text;
+}
+</script>
+</body>
+</html>

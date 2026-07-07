@@ -1,0 +1,1621 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outlet Master — SSP</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="js/config.js?v=3"></script>
+<script src="js/thai_geo.js"></script>
+<style>
+/* ============================================================
+   BAKED APPLE PALETTE
+   #7B0000 · #8B0000 · #990000 · #C00000 · #D40000 · #FF9090 · #FF7070
+   ============================================================ */
+
+/* 1. RESET & BASE */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%);background-attachment:fixed;color:#1E293B;display:flex;font-size:14px;line-height:1.55;min-height:100vh;font-weight:400}
+h1,h2,h3,h4,h5{font-weight:800;text-wrap:balance}
+button{cursor:pointer;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:600;transition:all .15s}
+input,select,textarea{font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:400}
+label{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:.35px;text-transform:uppercase;color:#475569}
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+.sidebar{
+  width:240px;height:100vh;
+  background:#12070A;
+  position:fixed;left:0;top:0;
+  display:flex;flex-direction:column;
+  z-index:100;
+  box-shadow:4px 0 32px rgba(0,0,0,.45);
+  overflow:hidden;
+}
+.sidebar::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#8B0000,#D40000,#FF7070,#D40000,#8B0000);
+  background-size:200% 100%;
+  animation:sbStripe 3s linear infinite;
+}
+@keyframes sbStripe{0%{background-position:0% 0}100%{background-position:200% 0}}
+.sb-logo{padding:28px 20px 20px;display:flex;align-items:center;gap:12px}
+.sb-logo-icon{width:38px;height:38px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#8B0000,#D40000);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(212,0,0,.4);}
+.sb-logo-text h3{font-size:14px;font-weight:800;color:#fff;letter-spacing:.3px}
+.sb-logo-text p{font-size:10.5px;color:rgba(255,255,255,.35);margin-top:1px;font-weight:400}
+.nav-links{flex:1;padding:8px 12px;overflow-y:auto;overflow-x:hidden}
+.nav-links::-webkit-scrollbar{width:3px}
+.nav-links::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
+.nav-section{padding:16px 8px 6px;font-size:9.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,.22);}
+.nav-section:first-child{padding-top:4px}
+.nav-links a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;font-weight:500;transition:background .18s,color .18s,transform .15s;position:relative;margin-bottom:2px;border:1px solid transparent;}
+.nav-links a .nav-ico{width:34px;height:34px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;background:rgba(255,255,255,.05);transition:background .18s,box-shadow .18s;}
+.nav-links a:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);transform:translateX(2px);}
+.nav-links a:hover .nav-ico{background:rgba(255,255,255,.1)}
+.nav-links a.active{background:linear-gradient(135deg,rgba(139,0,0,.55),rgba(212,0,0,.3));color:#fff;border-color:rgba(212,0,0,.35);box-shadow:0 4px 16px rgba(139,0,0,.25),inset 0 1px 0 rgba(255,255,255,.08);}
+.nav-links a.active .nav-ico{background:linear-gradient(135deg,#8B0000,#D40000);box-shadow:0 4px 12px rgba(212,0,0,.45);}
+.nav-links a.nav-sub{padding-left:24px;font-size:12px;color:rgba(255,255,255,.4);margin-left:8px;border-radius:8px;}
+.nav-links a.nav-sub .nav-ico{width:28px;height:28px;font-size:13px;background:transparent;}
+.nav-links a.nav-sub:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.05)}
+.nav-links a.nav-sub.active{color:#fff;background:rgba(212,0,0,.2);border-color:rgba(212,0,0,.25);}
+.nav-links a.nav-sub.active .nav-ico{background:rgba(212,0,0,.3)}
+.sidebar-user{padding:14px 16px 18px;border-top:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);}
+.sb-user-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sb-avatar{width:36px;height:36px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#8B0000,#D40000);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;box-shadow:0 3px 10px rgba(139,0,0,.4);}
+.sidebar-user .sname{font-size:12.5px;font-weight:700;color:#fff;line-height:1.2}
+.sidebar-user .semail{font-size:10.5px;color:rgba(255,255,255,.3);margin-top:1px}
+.btn-logout{width:100%;padding:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.09);border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .18s;}
+.btn-logout:hover{background:rgba(139,0,0,.35);color:#fff;border-color:rgba(212,0,0,.4)}
+
+/* 3. MAIN */
+.main{margin-left:240px;flex:1;padding:28px 32px;min-height:100vh}
+.page-title{font-size:26px;font-weight:800;color:#1A0000}
+.page-sub{font-size:13px;color:#A00000;margin-top:5px;font-weight:400}
+.dot-live{display:inline-block;width:8px;height:8px;background:#22C55E;border-radius:50%;animation:pulse 2s infinite;vertical-align:middle;margin-left:6px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* 4. STAT CARD */
+.stat-card{background:linear-gradient(145deg,#fff 0%,#FFF5F5 100%);border-radius:14px;padding:14px 22px;margin:14px 0 12px;box-shadow:0 6px 24px rgba(100,0,0,.14),0 1px 4px rgba(100,0,0,.07);display:inline-flex;align-items:center;gap:0;position:relative;overflow:hidden;width:fit-content}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#7B0000 0%,#C00000 40%,#D40000 70%,#FF7070 100%)}
+.stat-item{padding-right:24px;padding-left:4px}
+.stat-dot-row{display:flex;align-items:center;gap:7px;margin-bottom:3px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-green{background:#22C55E}
+.dot-rose{background:#D40000}
+.stat-lbl{font-size:11.5px;color:#A00000;font-weight:500}
+.stat-num{font-size:26px;font-weight:800;color:#7B0000;font-variant-numeric:tabular-nums;line-height:1.15;background:linear-gradient(135deg,#7B0000 0%,#990000 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-sep{width:1px;background:#FFD0D0;align-self:stretch;margin-right:24px}
+.stat-total-lbl{font-size:11.5px;color:#A00000;font-weight:500;margin-bottom:3px}
+
+/* CODE PREVIEW BANNER */
+.cpb{background:linear-gradient(135deg,#8B0000 0%,#990000 100%);border-radius:10px;padding:12px 18px;margin:0 0 12px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:10;box-shadow:0 4px 16px rgba(100,0,0,.25)}
+.cpb-lbl{font-size:9px;font-weight:700;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap}
+.cpb-code{font-size:16px;font-weight:800;color:#fff;letter-spacing:1.5px;font-family:'DM Sans',monospace;flex:1}
+.cpb-note{font-size:11px;color:rgba(255,255,255,.6);font-style:italic}
+
+/* 5. TOOLBAR */
+.toolbar{background:#fff;border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;box-shadow:0 1px 6px rgba(100,0,0,.08);margin-bottom:12px}
+.search-wrap{position:relative}
+.search-wrap input{padding:9px 12px 9px 34px;border:1.5px solid #FFD0D0;border-radius:10px;font-size:13px;background:#FFF7F7;color:#1E293B;font-weight:400;width:170px}
+.search-wrap input:focus{outline:none;border-color:#C00000;background:#fff;width:220px;transition:width .2s}
+.search-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#D40000;pointer-events:none;width:14px;height:14px}
+.flt{padding:9px 12px;border:1.5px solid #FFD0D0;border-radius:10px;font-size:13px;background:#FFF7F7;color:#1E293B;min-width:110px;font-weight:400}
+.flt:focus{outline:none;border-color:#C00000}
+.spacer{flex:1}
+
+/* 6. BUTTONS */
+.btn-add{padding:10px 18px;background:linear-gradient(135deg,#D40000 0%,#C00000 45%,#990000 100%);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 3px 10px rgba(155,0,0,.32),0 1px 2px rgba(0,0,0,.1)}
+.btn-add:hover{background:linear-gradient(135deg,#C00000 0%,#990000 100%);box-shadow:0 4px 14px rgba(155,0,0,.4);transform:translateY(-1px)}
+.btn-outline{padding:9px 14px;background:#fff;color:#8B0000;border:1.5px solid #FF9090;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.btn-outline:hover{background:#FBF0F0;border-color:#C00000}
+.btn-export-dark{padding:9px 14px;background:#1A1A1A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;transition:all .15s}
+.btn-export-dark:hover{background:#000;transform:translateY(-1px)}
+.btn-secondary{padding:9px 14px;background:linear-gradient(135deg,#990000 0%,#8B0000 100%);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(100,0,0,.25)}
+.btn-secondary:hover{background:linear-gradient(135deg,#8B0000 0%,#7B0000 100%);box-shadow:0 3px 10px rgba(100,0,0,.35)}
+.btn-col{padding:9px 12px;background:#fff;color:#8B0000;border:1.5px solid #FF9090;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px}
+.btn-col:hover{background:#FFF7F7;border-color:#D40000}
+.btn-import{padding:9px 14px;background:#1A1A1A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-import:hover{background:#000;transform:translateY(-1px)}
+.action-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+
+/* IMPORT MODAL */
+.imp-step{display:flex;gap:16px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #F5EDED}
+.imp-step:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.imp-step-num{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#C00000,#990000);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.imp-step-title{font-size:14px;font-weight:700;color:#1A0000;margin-bottom:3px}
+.imp-step-desc{font-size:12.5px;color:#A00000;line-height:1.6}
+.imp-dropzone{margin-top:12px;border:2px dashed #FF9090;border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#FFF7F7}
+.imp-dropzone:hover,.imp-dropzone.drag-over{border-color:#C00000;background:#F5EDED}
+.imp-dropzone.has-file{border-color:#22C55E;background:#F0FDF4;border-style:solid}
+.imp-dz-icon{font-size:32px;margin-bottom:8px}
+.imp-dz-text{font-size:13.5px;font-weight:600;color:#374151}
+.imp-dz-sub{font-size:11.5px;color:#9CA3AF;margin-top:4px}
+.imp-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700}
+.imp-badge-add{background:#D1FAE5;color:#065F46}
+.imp-badge-upd{background:#FEF3C7;color:#92400E}
+.imp-preview-hdr{display:flex;align-items:center;gap:10px;margin:16px 0 8px;flex-wrap:wrap}
+.imp-preview-hdr .imp-pc{font-size:13px;font-weight:700;color:#1A0000;flex:1}
+.imp-pwrap{overflow-x:auto;border:1px solid #F0E8E8;border-radius:10px;max-height:200px;overflow-y:auto}
+.imp-pwrap table{width:100%;border-collapse:collapse;min-width:400px}
+.imp-pwrap th{padding:8px 12px;font-size:11px;color:#fff;font-weight:700;white-space:nowrap;letter-spacing:.3px;text-transform:uppercase;position:sticky;top:0;background:linear-gradient(90deg,#780000,#A00000)}
+.imp-pwrap td{padding:8px 12px;font-size:12.5px;border-bottom:1px solid #F5EDED;white-space:nowrap;color:#374151;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.imp-pwrap tr:last-child td{border-bottom:none}
+.imp-prog{margin-top:12px;background:#F5EDED;border-radius:8px;height:6px;overflow:hidden;display:none}
+.imp-prog-bar{height:100%;background:linear-gradient(90deg,#C00000,#D40000);width:0%;transition:width .2s;border-radius:8px}
+.bte{padding:4px 10px;border-radius:7px;border:none;background:#EDF5FF;color:#2563EB;font-size:11.5px;font-weight:700;cursor:pointer}
+.btd{padding:4px 10px;border-radius:7px;border:none;background:#FFF2F2;color:#C00000;font-size:11.5px;font-weight:700;cursor:pointer}
+.btu{padding:4px 10px;border-radius:7px;border:none;background:#EDE9FE;color:#6D28D9;font-size:11.5px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.bte:hover{background:#DBEAFE}.btd:hover{background:#FEE2E2}.btu:hover{background:#DDD6FE}
+.rc-tag{font-size:12px;color:#D40000;white-space:nowrap;padding:0 4px;margin-left:auto;font-weight:400}
+
+/* 7. COLUMN PICKER */
+.col-picker-wrap{position:relative;display:inline-block}
+.col-picker-panel{position:absolute;top:calc(100% + 6px);left:0;background:#fff;border-radius:12px;border:1.5px solid #FFD0D0;box-shadow:0 8px 24px rgba(100,0,0,.14);width:230px;z-index:50;display:none}
+.col-picker-panel.open{display:block}
+.cp-hdr{padding:11px 14px 8px;border-bottom:1px solid #F5EDED;display:flex;align-items:center;justify-content:space-between}
+.cp-hdr-title{font-size:11px;font-weight:700;color:#7B0000;text-transform:uppercase;letter-spacing:.5px}
+.cp-reset{font-size:11px;font-weight:700;color:#C00000;background:none;border:none;padding:0;cursor:pointer}
+.cp-reset:hover{text-decoration:underline}
+.cp-list{padding:6px 0;max-height:300px;overflow-y:auto}
+.cp-item{display:flex;align-items:center;gap:10px;padding:6px 14px;cursor:pointer;transition:background .1s}
+.cp-item:hover{background:#FFF7F7}
+.cp-item input[type="checkbox"]{width:14px;height:14px;accent-color:#C00000;cursor:pointer;flex-shrink:0}
+.cp-item-lbl{font-size:12.5px;color:#374151;font-weight:400;cursor:pointer;user-select:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* 8. TABLE */
+.tcard{background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(100,0,0,.1),0 1px 4px rgba(100,0,0,.06);overflow:hidden}
+.tscroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:600px}
+thead th{text-align:left;padding:11px 14px;font-size:11px;color:#fff;font-weight:700;background:linear-gradient(90deg,#780000 0%,#A00000 100%);white-space:nowrap;cursor:pointer;user-select:none;letter-spacing:.4px;text-transform:uppercase;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+thead th:hover{background:linear-gradient(90deg,#5A2424 0%,#990000 100%)}
+thead th.sa::after{content:' ↑';opacity:.7}
+thead th.sd::after{content:' ↓';opacity:.7}
+tbody td{padding:10px 14px;font-size:13px;border-bottom:1px solid #FFF5F5;color:#374151;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;font-weight:400}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#FFF8F8}
+td.col-outletname{background:#FFF5F5}
+tbody tr:hover td.col-outletname{background:#FFF8F8}
+.td-act{display:flex;gap:6px}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.bb{background:#F5EDED;color:#8B0000}
+.ba{background:#D1FAE5;color:#065F46}
+.bi{background:#FEE2E2;color:#991B1B}
+.bc-yearly{background:#FFE4E4;color:#990000;border:1px solid #FF9090}
+.bc-marketing{background:#FDE8CC;color:#7C3D12;border:1px solid #F0B97D}
+.bc-both{background:#F0E4FF;color:#5B21B6;border:1px solid #C4B5FD}
+
+/* 9. PAGINATION */
+.pagi{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid #F5EDED;flex-wrap:wrap;gap:8px}
+.pg-info{font-size:12px;color:#D40000;font-weight:400}
+.pg-btns{display:flex;gap:4px}
+.pg-btn{min-width:32px;height:32px;border-radius:8px;border:1.5px solid #FFD0D0;background:#fff;font-size:13px;font-weight:700;color:#374151;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 6px;transition:all .15s}
+.pg-btn:hover:not([disabled]){border-color:#C00000;color:#C00000}
+.pg-btn.active{background:#C00000;border-color:#C00000;color:#fff}
+.pg-btn[disabled]{opacity:.35;cursor:not-allowed}
+
+/* 10. MODALS */
+.overlay{position:fixed;inset:0;background:rgba(100,0,0,.45);display:none;z-index:200;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px}
+.overlay.open{display:flex}
+.form-modal{background:#F7F3F3;border-radius:16px;width:720px;max-width:100%;box-shadow:0 24px 64px rgba(100,0,0,.28);display:flex;flex-direction:column;margin:auto;position:relative}
+
+/* DISCARD CONFIRM */
+.discard-shield{position:absolute;inset:0;background:rgba(100,0,0,.55);border-radius:16px;display:none;align-items:center;justify-content:center;z-index:20;backdrop-filter:blur(2px)}
+.discard-shield.show{display:flex}
+.discard-card{background:#fff;border-radius:16px;padding:32px 36px;text-align:center;max-width:340px;box-shadow:0 20px 50px rgba(100,0,0,.3);animation:popIn .18s ease}
+@keyframes popIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+.discard-icon{font-size:44px;margin-bottom:12px}
+.discard-title{font-size:17px;font-weight:800;color:#1A0000;margin-bottom:8px}
+.discard-msg{font-size:13px;color:#A00000;margin-bottom:24px;line-height:1.6}
+.discard-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.discard-stay{padding:10px 20px;background:#fff;color:#7B0000;border:1.5px solid #FF9090;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
+.discard-stay:hover{background:#FBF0F0;border-color:#C00000}
+.discard-go{padding:10px 20px;background:linear-gradient(135deg,#D40000,#C00000);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;box-shadow:0 2px 8px rgba(179,70,70,.3)}
+.discard-go:hover{background:linear-gradient(135deg,#C00000,#990000)}
+.fmhdr{padding:24px 28px 18px;background:#fff;border-radius:16px 16px 0 0;border-bottom:1px solid #FFD0D0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.fmtitle{font-size:22px;font-weight:800;color:#1A0000}
+.fmsub{font-size:12px;color:#D40000;margin-top:4px;font-weight:400}
+.fmsub span{color:#C00000;font-weight:600}
+.fmx{width:34px;height:34px;border-radius:8px;border:none;background:transparent;color:#D40000;font-size:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+.fmx:hover{background:#FFF2F2;color:#C00000}
+.fmbody{padding:16px 18px;overflow-y:auto;max-height:calc(90vh - 140px)}
+.fscard{background:#fff;border-radius:12px;border:1px solid #FFD0D0;padding:20px 22px;margin-bottom:12px}
+.fshdr{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.fsbadge{width:28px;height:28px;background:#C00000;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
+.fstitle{font-size:13px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#8B0000}
+.sub-hdr{font-size:10.5px;font-weight:700;color:#D40000;letter-spacing:.5px;text-transform:uppercase;display:flex;align-items:center;gap:10px;margin:16px 0 14px}
+.sub-hdr::after{content:'';flex:1;height:1px;background:#FFD0D0}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg.full{grid-column:1/-1}
+.flbl{font-size:11px;font-weight:700;color:#8B0000;letter-spacing:.35px;text-transform:uppercase}
+.flbl .req{color:#C00000;margin-left:2px}
+.finput{padding:10px 12px;border:1.5px solid #FFD0D0;border-radius:10px;font-size:13px;color:#1E293B;background:#fff;width:100%;font-weight:400}
+.finput:focus{outline:none;border-color:#C00000}
+.finput:disabled{background:#F5EDED;color:#D40000;cursor:not-allowed}
+select.finput{appearance:auto}
+.fmftr{padding:16px 28px;background:#fff;border-top:1px solid #FFD0D0;border-radius:0 0 16px 16px;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0}
+.btn-cancel{padding:10px 22px;background:#fff;color:#8B0000;border:1.5px solid #FF9090;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer}
+.btn-cancel:hover{background:#FFF5F5}
+.btn-save{padding:10px 24px;background:#C00000;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;cursor:pointer}
+.btn-save:hover{background:#990000}
+.confirm-modal{background:#fff;border-radius:16px;padding:28px;width:420px;max-width:95vw;box-shadow:0 20px 60px rgba(100,0,0,.25);margin:auto;text-align:center}
+
+/* 11. LOG DRAWER */
+.log-drawer{position:fixed;right:-440px;top:0;width:420px;height:100vh;background:#fff;box-shadow:-4px 0 28px rgba(100,0,0,.18);z-index:300;display:flex;flex-direction:column;transition:right .25s cubic-bezier(.4,0,.2,1)}
+.log-drawer.open{right:0}
+.lhdr{padding:20px;background:#7B0000;color:#fff;position:relative}
+.lhdr h3{font-size:15px;font-weight:800}
+.lhdr p{font-size:11px;color:rgba(255,255,255,.42);margin-top:3px;font-weight:400}
+.lhdr-x{position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:8px;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.lhdr-x:hover{background:rgba(255,255,255,.22)}
+.lbody{flex:1;overflow-y:auto;padding:14px}
+.litem{background:#FFF7F7;border-radius:10px;padding:12px 14px;margin-bottom:9px}
+.litem.li{border-left:3px solid #22C55E}.litem.lu{border-left:3px solid #D40000}.litem.ld{border-left:3px solid #C00000}
+.la{font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.li .la{color:#16A34A}.lu .la{color:#990000}.ld .la{color:#C00000}
+.ldesc{font-size:12.5px;color:#374151;margin-top:3px;font-weight:400}
+.lmeta{font-size:11px;color:#D40000;margin-top:5px;font-weight:400}
+.brst{margin-top:8px;padding:4px 12px;border-radius:7px;background:#F0E8E8;color:#8B0000;border:none;font-size:11.5px;font-weight:700;cursor:pointer}
+.brst:hover{background:#E4D0D0}
+
+/* 12. TOAST */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{padding:12px 18px;border-radius:10px;font-size:13px;font-weight:700;box-shadow:0 4px 20px rgba(100,0,0,.22);display:flex;align-items:center;gap:8px;animation:tin .25s ease}
+.tok{background:#065F46;color:#fff}.terr{background:#990000;color:#fff}.tinf{background:#7B0000;color:#fff}
+@keyframes tin{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+.empty-state{text-align:center;padding:60px 20px;color:#FF9090}
+.empty-state .ei{font-size:42px;margin-bottom:12px}
+.empty-state p{font-size:14px;font-weight:400}
+/* SKU rows in Add form */
+.sku-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px}
+.sku-table th{background:#FAF0F0;color:#8B0000;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:8px 10px;border:1px solid #FFD0D0;white-space:nowrap;text-align:left}
+.sku-table td{padding:4px 5px;border:1px solid #FFD0D0;vertical-align:top}
+.sku-table .finput{padding:6px 8px;font-size:12px;border-radius:7px}
+.btn-add-sku{padding:8px 18px;background:#FFF5F5;color:#8B0000;border:1.5px dashed #FFB0B0;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;width:100%;margin-top:4px;transition:all .15s}
+.btn-add-sku:hover{background:#FFF0F0;border-color:#C00000;color:#C00000}
+.btn-del-sku{width:26px;height:26px;border-radius:7px;border:none;background:#FFF2F2;color:#C00000;font-size:16px;cursor:pointer;line-height:1}
+.btn-del-sku:hover{background:#FFD0D0}
+.sku-auto{background:#FFFBF0 !important;color:#7B5E00 !important;font-size:11px;font-style:italic}
+</style>
+<link rel="stylesheet" href="css/ssp-theme.css?v=6">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">🏢</div>
+    <div class="sb-logo-text">
+      <h3>SSP</h3>
+      <p>Sales &amp; Promotion</p>
+    </div>
+  </div>
+  <div class="nav-links">
+    <div class="nav-section">Main Menu</div>
+    <a href="dashboard.html">Dashboard</a>
+    <div class="nav-section">Master Data</div>
+    <a href="outlets.html" class="active">Outlet Master</a>
+    <a href="data_u.html" class="nav-sub">Data Universe</a>
+    <a href="contracts.html">Contract Master</a>
+    <a href="promotions.html">Promotions</a>
+    <div class="nav-section">Analytics</div>
+    <a href="roi.html">ROI Analysis</a>
+    <a href="offtake.html">Off-take 2026</a>
+    <a href="sku.html">SKU</a>
+    <div class="nav-section">System</div>
+    <a href="users.html">User Management</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="sb-user-row">
+      <div class="sb-avatar" id="userAvatar">—</div>
+      <div>
+        <div class="sname" id="userName">—</div>
+        <div class="semail" id="userEmail">—</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="logout()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div>
+    <h2 class="page-title">Outlet Master <span class="dot-live"></span></h2>
+    <p class="page-sub">Manage outlet records — real-time sync with Supabase</p>
+  </div>
+
+  <!-- Stat card: With Contract (Yearly/Marketing) · No Contract · Total -->
+  <div class="stat-card">
+    <div class="stat-item">
+      <div class="stat-dot-row"><span class="dot dot-green"></span><span class="stat-lbl">With Contract</span></div>
+      <div class="stat-num" id="statWith">—</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-dot-row"><span class="dot dot-rose"></span><span class="stat-lbl">No Contract</span></div>
+      <div class="stat-num" id="statNo">—</div>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="stat-item">
+      <div class="stat-total-lbl">Total Outlets</div>
+      <div class="stat-num" id="statTotal">—</div>
+    </div>
+  </div>
+
+  <!-- Toolbar: [Add] [Filters...] — [Search] -->
+  <div class="toolbar">
+    <!-- LEFT: Search → Add → Filters -->
+    <div class="search-wrap">
+      <svg class="search-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="Search..." oninput="applyFilters()">
+    </div>
+    <button class="btn-add" onclick="openAdd()">＋ Add New Outlet</button>
+    <select class="flt" id="fltTeam"     onchange="applyFilters()"><option value="">All Teams</option></select>
+    <select class="flt" id="fltBde"      onchange="applyFilters()"><option value="">All BDEs</option></select>
+    <select class="flt" id="fltRegion"   onchange="applyFilters()"><option value="">All Regions</option></select>
+    <select class="flt" id="fltProvince" onchange="applyFilters()"><option value="">All Provinces</option></select>
+    <div class="spacer"></div>
+    <!-- RIGHT: Import → Export → Log → Count -->
+    <button class="btn-import" onclick="openImport()">⬆ Import</button>
+    <button class="btn-export-dark" onclick="exportExcel()">⬇ Export</button>
+    <button class="btn-secondary" onclick="openLog()">📜 Log History</button>
+    <span class="rc-tag" id="rowCount">Loading...</span>
+  </div>
+
+  <!-- Column picker row — below toolbar, left-aligned under Search -->
+  <div style="margin-bottom:10px;display:flex;align-items:center">
+    <div class="col-picker-wrap" id="colPickerWrap">
+      <button class="btn-col" onclick="toggleColPicker(event)">⊞ Columns <span id="colPickerCount"></span></button>
+      <div class="col-picker-panel" id="colPickerPanel">
+        <div class="cp-hdr">
+          <span class="cp-hdr-title">Show / Hide Columns</span>
+          <button class="cp-reset" onclick="resetCols()">Reset</button>
+        </div>
+        <div class="cp-list" id="colPickerList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="tcard">
+    <div class="tscroll"><div id="tableWrap"><div class="empty-state"><div class="ei">⏳</div><p>Loading...</p></div></div></div>
+    <div class="pagi" id="pagiWrap"></div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="overlay" id="importOverlay">
+  <div class="form-modal" style="max-width:660px">
+    <div class="fmhdr">
+      <div>
+        <div class="fmtitle">⬆ Import Outlets</div>
+        <div class="fmsub">Add or update outlets from Excel — <span>duplicate name = replace existing</span></div>
+      </div>
+      <button class="fmx" onclick="closeImport()">✕</button>
+    </div>
+    <div class="fmbody" style="padding:24px 28px">
+
+      <!-- Step 1 -->
+      <div class="imp-step">
+        <div class="imp-step-num">1</div>
+        <div style="flex:1">
+          <div class="imp-step-title">Download Template</div>
+          <div class="imp-step-desc">Download the Excel template with column headers matching your database.</div>
+          <button class="btn-outline" onclick="downloadTemplate()" style="margin-top:10px;font-size:12.5px">⬇️ Download Template (.xlsx)</button>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="imp-step">
+        <div class="imp-step-num">2</div>
+        <div style="flex:1">
+          <div class="imp-step-title">Upload Excel File</div>
+          <div class="imp-step-desc">Fill in the template then upload — if <strong>Outlet Name already exists</strong> it will <strong style="color:#C00000">Replace</strong> the existing record; new names will be <strong style="color:#22C55E">Added</strong>.</div>
+          <div class="imp-dropzone" id="impDropzone"
+               onclick="document.getElementById('impFileInput').click()"
+               ondragover="impDragOver(event)" ondragleave="impDragLeave(event)" ondrop="impDrop(event)">
+            <div class="imp-dz-icon">📂</div>
+            <div class="imp-dz-text" id="impDzText">Click or Drag & Drop Excel file here</div>
+            <div class="imp-dz-sub">.xlsx or .xls only</div>
+          </div>
+          <input type="file" id="impFileInput" accept=".xlsx,.xls" style="display:none" onchange="impFileChosen(event)">
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div id="impPreviewWrap" style="display:none">
+        <div class="imp-preview-hdr">
+          <span class="imp-pc" id="impPreviewCount"></span>
+          <span id="impPreviewBadges"></span>
+        </div>
+        <div class="imp-pwrap">
+          <table id="impPreviewTable"></table>
+        </div>
+        <div class="imp-prog" id="impProg"><div class="imp-prog-bar" id="impProgBar"></div></div>
+        <div style="font-size:12px;color:#9CA3AF;margin-top:8px" id="impProgText"></div>
+      </div>
+    </div>
+    <div class="fmftr">
+      <button class="btn-cancel" onclick="closeImport()">Cancel</button>
+      <button class="btn-save" id="impDoBtn" style="display:none;background:linear-gradient(135deg,#22C55E,#16A34A)" onclick="doImport()">⬆ Import Records</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOG DRAWER -->
+<div class="log-drawer" id="logDrawer">
+  <div class="lhdr">
+    <h3>📜 Log History</h3>
+    <p>Last 50 changes — Restore to revert</p>
+    <button class="lhdr-x" onclick="closeLog()">✕</button>
+  </div>
+  <div class="lbody" id="logBody"></div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="overlay" id="addOverlay">
+  <div class="form-modal">
+    <!-- Discard confirmation shield -->
+    <div class="discard-shield" id="addDiscardShield">
+      <div class="discard-card">
+        <div class="discard-icon">⚠️</div>
+        <div class="discard-title">Leave without saving?</div>
+        <div class="discard-msg">All entered data will be lost.<br>Are you sure you want to leave?</div>
+        <div class="discard-btns">
+          <button class="discard-stay" onclick="cancelDiscard()">← Stay — keep editing</button>
+          <button class="discard-go"   onclick="confirmDiscard()">Leave</button>
+        </div>
+      </div>
+    </div>
+    <div class="fmhdr">
+      <div>
+        <div class="fmtitle">Add Outlet</div>
+        <div class="fmsub">Fill in <span>outlet details</span>, location and supply</div>
+      </div>
+      <button class="fmx" onclick="safeCloseAdd()">✕</button>
+    </div>
+    <div class="cpb" style="border-radius:0;margin:0">
+      <span class="cpb-lbl">Outlet Code</span>
+      <span class="cpb-code" id="add_codePreview">Select New or Current first</span>
+      <span class="cpb-note" id="add_codeNote">Auto-generated from Team + Province + Region + Group</span>
+    </div>
+    <div class="fmbody" id="addFormBody"></div>
+    <div class="fmftr">
+      <button class="btn-cancel" onclick="safeCloseAdd()">Cancel</button>
+      <button class="btn-save"   onclick="saveAdd()">💾 Save Outlet</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="overlay" id="editOverlay">
+  <div class="form-modal">
+    <div class="fmhdr">
+      <div><div class="fmtitle">Edit Outlet</div><div class="fmsub">Update <span>outlet details</span>, location and supply</div></div>
+      <button class="fmx" onclick="closeEdit()">✕</button>
+    </div>
+    <div class="fmbody" id="editFormBody"></div>
+    <div class="fmftr">
+      <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
+      <button class="btn-save"   onclick="saveEdit()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PREVIEW CONFIRM -->
+<div class="overlay" id="addPreviewOverlay">
+  <div class="form-modal" style="max-width:500px;max-height:88vh;overflow-y:auto;padding:20px 20px 16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:15px;font-weight:800;color:#7B0000">Review before saving</div>
+        <div style="font-size:11px;color:#9CA3AF;margin-top:2px">Please confirm all details</div>
+      </div>
+      <button class="btn-cancel" style="padding:5px 12px;font-size:13px" onclick="closeAddPreview()">✕</button>
+    </div>
+    <div id="addPreviewBody" style="background:#fff;border-radius:12px;padding:0;font-size:13px;line-height:1.5;overflow:hidden;border:1px solid #FFD0D0;box-shadow:0 2px 12px rgba(100,0,0,.08)"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
+      <button class="btn-cancel" onclick="closeAddPreview()">← Edit</button>
+      <button class="btn-save" id="addPreviewSaveBtn" onclick="confirmAdd()">✅ Confirm & Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM -->
+<div class="overlay" id="delOverlay">
+  <div class="confirm-modal">
+    <div style="font-size:52px;margin-bottom:14px">🗑️</div>
+    <div style="font-size:16px;font-weight:800;color:#1A0000;margin-bottom:6px" id="delName">—</div>
+    <div style="font-size:13px;color:#D40000;font-weight:400">This outlet will be permanently deleted.<br>Restorable from Log History.</div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:24px">
+      <button class="btn-cancel" onclick="closeDel()">Cancel</button>
+      <button class="btn-save" style="background:#C00000" onclick="confirmDel()">Delete Outlet</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ============================================================
+   CONFIG
+   ============================================================ */
+const TABLE     = 'Outlet Master';
+const LOG_TABLE = 'outlet_change_log';
+const PAGE_SIZE = 100;
+const LS_KEY    = 'ssp_outlet_cols_v3';
+
+const DEFAULT_HIDDEN = [
+  /company.?name.?en/i, /company.?name.?th/i,
+  /group.?code/i, /group.?name/i, /area.?by.?bde/i,
+  /^soi$/i, /^road$/i, /alchemy/i, /contact.?person/i, /wholesell/i,
+];
+
+const FORM_SCHEMA = [
+  { num:1, title:'Outlet Identity', fields:[
+      {label:'Outlet Name',    type:'text',   required:true, full:true},
+      {label:'Outlet Code',    type:'text',   required:true},
+  ]},
+  { num:2, title:'Company Details', fields:[
+      {label:'Company Name EN', type:'text'},
+      {label:'Company Name TH', type:'text'},
+      {label:'Company Name',    type:'text'},
+      {label:'Group Name',      type:'combo'},
+      {label:'Group Code',      type:'text'},
+      {label:'Team',            type:'select', cascadeTo:'BDE'},
+      {label:'BDE',             type:'select', parentField:'Team'},
+      {label:'Area by BDE',     type:'text',   full:true},
+  ]},
+  { num:3, title:'Location', fields:[
+      {label:'Soi',      type:'text'}, {label:'Road',     type:'text'},
+      {label:'District', type:'text'},
+      {label:'Region',   type:'select', cascadeTo:'Province'},
+      {label:'Province', type:'select', parentField:'Region'},
+  ]},
+  { num:4, title:'Segmentation & Supply', subSections:[
+    { title:'Segmentation & Grading', fields:[
+        {label:'Alchemy Outlet Type',        type:'select'},
+        {label:'Alchemy Sub Type',           type:'select'},
+        {label:'Alchemy Image',              type:'select'},
+        {label:'Alchemy Volume',             type:'select'},
+        {label:'Alchemy Segmentation',       type:'select'},
+        {label:'Campari Segmentation (New)', type:'select'},
+        {label:'Campari Segmentation (Old)', type:'select'},
+        {label:'TEG Outlet Segmentation',    type:'select'},
+        {label:'TEG Grading',                type:'select'},
+        {label:'RC Sub Type',                type:'select'},
+        {label:'RC Image',                   type:'select'},
+        {label:'NEW OR CURRENT',             type:'select'},
+    ]},
+    { title:'Contact & Supply', fields:[
+        {label:'Contract',                    type:'select'},
+        {label:'Primary Contract',            type:'select'},
+        {label:'Contact Person Name',         type:'text'},
+        {label:'Contact Person Position',     type:'text'},
+        {label:'Contact Person Phone Number', type:'text'},
+        {label:'Wholeseller Supply',          type:'text'},
+    ]},
+  ]},
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let allData=[], cols=[], colMap={}, uniqueVals={};
+let teamBdeMap={}, regionProvMap={}, provDistMap={};
+let filtered=[], sortCol='', sortAsc=true, page=1;
+let editTarget=null, delTarget=null;
+let visibleCols=[], outletNameCol=null, contractCol=null;
+let pkCol='id'; /* actual primary key column name — detected after first load */
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const norm=s=>String(s).toLowerCase().replace(/[^a-z0-9]/g,'');
+
+/* Detect actual primary-key column from the first data row.
+   Priority: exact 'id' → ends with 'id' (int) → any int → UUID-like → first col */
+function detectPkCol(row){
+  const keys=Object.keys(row);
+  const uuidRx=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const exact=keys.find(k=>k.toLowerCase()==='id');
+  if(exact){console.log('[pkCol] exact id:',exact);return exact;}
+  const byIntId=keys.find(k=>k.toLowerCase().endsWith('id')&&Number.isInteger(row[k]));
+  if(byIntId){console.log('[pkCol] int id:',byIntId);return byIntId;}
+  const byInt=keys.find(k=>Number.isInteger(row[k]));
+  if(byInt){console.log('[pkCol] first int:',byInt);return byInt;}
+  const byUuid=keys.find(k=>typeof row[k]==='string'&&uuidRx.test(row[k]));
+  if(byUuid){console.log('[pkCol] uuid:',byUuid);return byUuid;}
+  console.log('[pkCol] fallback to first col:',keys[0],'row keys:',keys);
+  return keys[0];
+}
+function findCol(label){
+  const n=norm(label);
+  return cols.find(c=>norm(c)===n)
+      || cols.find(c=>norm(c).includes(n)&&n.length>3)
+      || cols.find(c=>n.includes(norm(c))&&norm(c).length>3)
+      || null;
+}
+function allFields(){const f=[];FORM_SCHEMA.forEach(s=>{if(s.fields)f.push(...s.fields);if(s.subSections)s.subSections.forEach(ss=>f.push(...ss.fields));});return f;}
+function showToast(msg,type='ok'){const w=document.getElementById('toastWrap');const t=document.createElement('div');t.className='toast '+(type==='err'?'terr':type==='inf'?'tinf':'tok');t.textContent=msg;w.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),350);},3800);}
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+async function checkAuth(){
+  const{data}=await supabase.auth.getSession();
+  if(!data.session){window.location.href='index.html';return;}
+  const u=data.session.user;
+  const{data:p}=await supabase.from('user_profile').select('username').eq('auth_email',u.email).maybeSingle();
+  document.getElementById('userEmail').textContent = u.email;
+  const displayName = (p && p.username) || u.email.split('@')[0];
+  document.getElementById('userName').textContent = displayName;
+  document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
+  loadData();
+}
+
+/* ============================================================
+   LOAD DATA
+   ============================================================ */
+async function loadData(){
+  const wrap=document.getElementById('tableWrap');
+  const cntEl=document.getElementById('rowCount');
+  wrap.innerHTML='<div class="empty-state"><div class="ei">⏳</div><p id="loadMsg">Loading records...</p></div>';
+
+  /* paginated fetch — bypass Supabase 1000-row PostgREST default limit */
+  const BATCH=1000;
+  let from=0, allRows=[];
+  while(true){
+    const{data,error}=await supabase.from(TABLE).select('*').range(from,from+BATCH-1);
+    if(error){
+      wrap.innerHTML=`<div class="empty-state"><div class="ei">⚠️</div><p>Load failed: ${esc(error.message)}<br><small style="color:#FF9090">Run setup_full.sql in Supabase SQL Editor</small></p></div>`;
+      cntEl.textContent='Load failed';return;
+    }
+    if(!data||!data.length) break;
+    allRows=allRows.concat(data);
+    const msg=document.getElementById('loadMsg');
+    if(msg) msg.textContent=`Loading... ${allRows.length.toLocaleString()} records`;
+    if(data.length<BATCH) break;
+    from+=BATCH;
+  }
+  if(!allRows.length){
+    wrap.innerHTML='<div class="empty-state"><div class="ei">📭</div><p>No outlets found</p></div>';
+    cntEl.textContent='0 records';
+    buildStats([]);return;
+  }
+  /* detect PK column (may not be named 'id' if table was recreated) */
+  pkCol=detectPkCol(allRows[0]);
+  /* sort newest first by PK */
+  allRows.sort((a,b)=>(b[pkCol]??0)-(a[pkCol]??0));
+  allData=allRows;
+  cols=Object.keys(allRows[0]).filter(c=>c!==pkCol);
+  colMap=buildColMap();
+  uniqueVals=buildUniqueVals();
+  teamBdeMap=buildCascadeMap(colMap['Team'],colMap['BDE']);
+  regionProvMap=buildCascadeMap(colMap['Region'],colMap['Province']);
+  provDistMap=buildCascadeMap(colMap['Province'],colMap['District']);
+  /* Identify key columns */
+  outletNameCol=cols.find(c=>/outlet.?name/i.test(c))||cols.find(c=>/company.?name$/i.test(c))||cols[0]||null;
+  contractCol=cols.find(c=>/^contract$/i.test(c.trim()))
+    ||cols.find(c=>/\bcontract\b/i.test(c)&&!/primary|person|campari|alchemy|teg|rc|wholesell/i.test(c))
+    ||null;
+  initVisibleCols();
+  buildStats(allRows);
+  buildToolbarFilters();
+  buildColPickerList();
+  applyFilters();
+  setupRealtime();
+}
+
+/* ============================================================
+   COL MAP & LOOKUPS
+   ============================================================ */
+function buildColMap(){const m={};allFields().forEach(f=>{const c=findCol(f.label);if(c)m[f.label]=c;});return m;}
+function buildUniqueVals(){const uv={};cols.forEach(c=>{uv[c]=[...new Set(allData.map(r=>r[c]).filter(v=>v!=null&&v!==''))].sort();});return uv;}
+function buildCascadeMap(pCol,cCol){if(!pCol||!cCol)return{};const m={};allData.forEach(r=>{const p=r[pCol],ch=r[cCol];if(p&&ch){if(!m[p])m[p]=new Set();m[p].add(ch);}});Object.keys(m).forEach(k=>{m[k]=[...m[k]].sort();});return m;}
+
+/* ============================================================
+   STATS
+   Total   = count rows where outletNameCol is non-empty
+   WithC   = Contract column contains "Yearly" OR "Marketing"
+   NoC     = Total - WithC
+   ============================================================ */
+function buildStats(data){
+  const total=outletNameCol
+    ?data.filter(r=>r[outletNameCol]!=null&&String(r[outletNameCol]).trim()!=='').length
+    :data.length;
+  let withC=0;
+  if(contractCol){
+    withC=data.filter(r=>{
+      const v=String(r[contractCol]??'').toLowerCase();
+      return v.includes('yearly')||v.includes('marketing');
+    }).length;
+  }
+  document.getElementById('statTotal').textContent=total.toLocaleString();
+  document.getElementById('statWith').textContent=withC.toLocaleString();
+  document.getElementById('statNo').textContent=(total-withC).toLocaleString();
+}
+
+/* ============================================================
+   TOOLBAR FILTERS
+   ============================================================ */
+function buildToolbarFilters(){
+  const fill=(elId,lbl)=>{const c=colMap[lbl];if(!c)return;const el=document.getElementById(elId);const cur=el.value;el.innerHTML=`<option value="">All ${lbl}s</option>`+(uniqueVals[c]||[]).map(v=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(v)}</option>`).join('');};
+  fill('fltTeam','Team');fill('fltBde','BDE');fill('fltRegion','Region');fill('fltProvince','Province');
+}
+
+/* ============================================================
+   FILTER + SORT
+   ============================================================ */
+function applyFilters(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const team=document.getElementById('fltTeam').value;
+  const bde=document.getElementById('fltBde').value;
+  const reg=document.getElementById('fltRegion').value;
+  const prov=document.getElementById('fltProvince').value;
+  filtered=allData.filter(r=>{
+    if(team&&r[colMap['Team']]!==team)return false;
+    if(bde&&r[colMap['BDE']]!==bde)return false;
+    if(reg&&r[colMap['Region']]!==reg)return false;
+    if(prov&&r[colMap['Province']]!==prov)return false;
+    if(q&&!cols.some(c=>String(r[c]??'').toLowerCase().includes(q)))return false;
+    return true;
+  });
+  if(sortCol)filtered.sort((a,b)=>{const av=a[sortCol],bv=b[sortCol];if(av==null)return 1;if(bv==null)return -1;return sortAsc?(av>bv?1:-1):(av<bv?1:-1);});
+  page=1;
+  document.getElementById('rowCount').textContent=filtered.length.toLocaleString()+' records';
+  renderTable();
+}
+function sortBy(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=true;}applyFilters();}
+
+/* ============================================================
+   COLUMN VISIBILITY
+   ============================================================ */
+function initVisibleCols(){
+  const saved=localStorage.getItem(LS_KEY);
+  if(saved){try{const arr=JSON.parse(saved);const v=arr.filter(c=>cols.includes(c));if(v.length){visibleCols=v;updateColCount();return;}}catch(e){}}
+  visibleCols=cols.filter(c=>!DEFAULT_HIDDEN.some(p=>p.test(c)));
+  if(!visibleCols.length)visibleCols=cols.slice(0,8);
+  saveVisibleCols();
+}
+function saveVisibleCols(){localStorage.setItem(LS_KEY,JSON.stringify(visibleCols));updateColCount();}
+function updateColCount(){const el=document.getElementById('colPickerCount');const h=cols.length-visibleCols.length;el.textContent=h>0?' ('+h+' hidden)':'';}
+function toggleColPicker(e){e.stopPropagation();document.getElementById('colPickerPanel').classList.toggle('open');}
+function buildColPickerList(){document.getElementById('colPickerList').innerHTML=cols.map(c=>{const cid='cp_'+norm(c);return`<label class="cp-item" for="${cid}"><input type="checkbox" id="${cid}" ${visibleCols.includes(c)?'checked':''} onchange="toggleCol('${esc(c)}',this.checked)"><span class="cp-item-lbl" title="${esc(c)}">${esc(c)}</span></label>`;}).join('');}
+function toggleCol(col,show){
+  if(show){if(!visibleCols.includes(col))visibleCols.push(col);}
+  else{if(visibleCols.length<=1){showToast('At least 1 column must be visible','err');document.querySelector('#cp_'+norm(col)).checked=true;return;}visibleCols=visibleCols.filter(c=>c!==col);}
+  visibleCols=cols.filter(c=>visibleCols.includes(c));saveVisibleCols();renderTable();
+}
+function resetCols(){localStorage.removeItem(LS_KEY);initVisibleCols();buildColPickerList();renderTable();showToast('Columns reset to default');}
+document.addEventListener('click',e=>{const w=document.getElementById('colPickerWrap');if(w&&!w.contains(e.target))document.getElementById('colPickerPanel').classList.remove('open');});
+
+/* ============================================================
+   RENDER TABLE
+   ============================================================ */
+function contractBadge(v){
+  const s=String(v??'').toLowerCase();
+  if(!s)return'<span style="color:#FF9090">—</span>';
+  const y=s.includes('yearly'),m=s.includes('marketing');
+  if(y&&m)return`<span class="badge bc-both">${esc(v)}</span>`;
+  if(y) return`<span class="badge bc-yearly">${esc(v)}</span>`;
+  if(m) return`<span class="badge bc-marketing">${esc(v)}</span>`;
+  return`<span class="badge bb">${esc(v)}</span>`;
+}
+function fv(v,col){
+  if(v==null||v==='')return'<span style="color:#FF9090">—</span>';
+  if(col===contractCol)return contractBadge(v);
+  if(typeof v==='boolean')return v?'<span class="badge ba">Yes</span>':'<span class="badge bi">No</span>';
+  if(typeof v==='number')return`<span style="font-variant-numeric:tabular-nums">${Number(v).toLocaleString('th-TH')}</span>`;
+  const s=String(v);
+  if(/^\d{4}-\d{2}-\d{2}/.test(s))return new Date(s).toLocaleDateString('th-TH');
+  return esc(s.length>50?s.slice(0,48)+'…':s);
+}
+function renderTable(){
+  const start=(page-1)*PAGE_SIZE,rows=filtered.slice(start,start+PAGE_SIZE);
+  const wrap=document.getElementById('tableWrap');
+  if(!filtered.length){wrap.innerHTML='<div class="empty-state"><div class="ei">🔍</div><p>No outlets match the current filters.</p></div>';document.getElementById('pagiWrap').innerHTML='';return;}
+  if(!visibleCols.length){wrap.innerHTML='<div class="empty-state"><div class="ei">👁️</div><p>No columns selected — click ⊞ Columns to show columns.</p></div>';document.getElementById('pagiWrap').innerHTML='';return;}
+  const arrow=c=>sortCol===c?(sortAsc?' sa':' sd'):'';
+  const lbl=c=>c.replace(/_/g,' ');
+  const codeColName=colMap['Outlet Code'];
+  wrap.innerHTML=`<table><thead><tr><th style="width:36px">#</th>${visibleCols.map(c=>`<th class="${arrow(c)}" onclick="sortBy('${esc(c)}')">${esc(lbl(c))}</th>`).join('')}<th>Actions</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td style="color:#FF9090;font-size:12px">${start+i+1}</td>${visibleCols.map(c=>`<td class="${c===outletNameCol?'col-outletname':''}" title="${esc(String(r[c]??''))}">${fv(r[c],c)}</td>`).join('')}<td><div class="td-act"><button class="bte" onclick="openEdit(${r[pkCol]})">✏️ Edit</button>${codeColName&&r[codeColName]?`<a class="btu" href="data_u.html?code=${encodeURIComponent(String(r[codeColName]??''))}" title="View Data U for this outlet">📂</a>`:''}<button class="btd" onclick="openDel(${r[pkCol]})">🗑️</button></div></td></tr>`).join('')}</tbody></table>`;
+  renderPagi();
+}
+
+/* ============================================================
+   PAGINATION
+   ============================================================ */
+function renderPagi(){
+  const total=filtered.length,pages=Math.ceil(total/PAGE_SIZE);
+  const start=(page-1)*PAGE_SIZE+1,end=Math.min(page*PAGE_SIZE,total);
+  let btns=`<button class="pg-btn" onclick="goPage(${page-1})" ${page<=1?'disabled':''}>‹</button>`;
+  const show=new Set([1,pages,page-1,page,page+1].filter(p=>p>=1&&p<=pages));
+  let prev=0;[...show].sort((a,b)=>a-b).forEach(p=>{if(prev&&p-prev>1)btns+=`<span style="padding:0 4px;color:#FF9090;font-size:13px">…</span>`;btns+=`<button class="pg-btn${p===page?' active':''}" onclick="goPage(${p})">${p}</button>`;prev=p;});
+  btns+=`<button class="pg-btn" onclick="goPage(${page+1})" ${page>=pages?'disabled':''}>›</button>`;
+  document.getElementById('pagiWrap').innerHTML=`<span class="pg-info">Showing ${start.toLocaleString()}–${end.toLocaleString()} of ${total.toLocaleString()}</span><div class="pg-btns">${btns}</div>`;
+}
+function goPage(p){const pages=Math.ceil(filtered.length/PAGE_SIZE);if(p<1||p>pages)return;page=p;renderTable();}
+
+/* ============================================================
+   FORM BUILDER
+   ============================================================ */
+function buildFormSections(prefix,rowData){
+  let html='';
+  FORM_SCHEMA.forEach(sec=>{
+    html+=`<div class="fscard"><div class="fshdr"><div class="fsbadge">${sec.num}</div><div class="fstitle">${sec.title}</div></div>`;
+    const renderFields=fields=>{
+      let fh='<div class="fgrid">';
+      fields.forEach(f=>{
+        const col=colMap[f.label];if(!col&&rowData!=null)return;
+        const fid=`${prefix}_${norm(f.label)}`,val=rowData&&col?esc(rowData[col]??''):'';
+        const reqMark=f.required?'<span class="req">*</span>':'',fullCls=f.full?' full':'';
+        let input='';
+        if(f.type==='combo'){
+          const opts=col?(uniqueVals[col]||[]):[];const lid=fid+'_l';
+          input=`<input class="finput" id="${fid}" list="${lid}" value="${val}" placeholder="Type or select…"><datalist id="${lid}">${opts.map(o=>`<option value="${esc(o)}">`).join('')}</datalist>`;
+        }else if(f.type==='select'){
+          const opts=col?(uniqueVals[col]||[]):[];const isChild=!!f.parentField;
+          const pVal=rowData&&colMap[f.parentField]?rowData[colMap[f.parentField]]:null;
+          const filtOpts=isChild&&pVal?filterChildOpts(f.label,pVal):opts;
+          input=`<select class="finput" id="${fid}"${isChild&&!pVal?' disabled':''}><option value="">${isChild&&!pVal?'Select '+f.parentField+' first':'Select'}</option>${filtOpts.map(o=>`<option value="${esc(o)}"${o===(rowData&&col?rowData[col]:'')?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
+        }else{input=`<input class="finput" id="${fid}" type="text" value="${val}" placeholder="${esc(f.label)}">`;}
+        fh+=`<div class="fg${fullCls}"><label class="flbl">${esc(f.label)}${reqMark}</label>${input}</div>`;
+      });
+      fh+='</div>';return fh;
+    };
+    if(sec.fields)html+=renderFields(sec.fields);
+    else if(sec.subSections)sec.subSections.forEach(ss=>{html+=`<div class="sub-hdr">${ss.title}</div>`;html+=renderFields(ss.fields);});
+    html+='</div>';
+  });
+  setTimeout(()=>attachCascade(prefix),50);return html;
+}
+function filterChildOpts(lbl,pVal){if(lbl==='BDE')return teamBdeMap[pVal]||[];if(lbl==='Province')return regionProvMap[pVal]||[];return[];}
+function attachCascade(prefix){
+  const t=document.getElementById(`${prefix}_${norm('Team')}`),b=document.getElementById(`${prefix}_${norm('BDE')}`);
+  if(t&&b){t.addEventListener('change',()=>{const opts=teamBdeMap[t.value]||[];b.innerHTML=`<option value="">${t.value?'Select BDE':'Select Team first'}</option>`+opts.map(o=>`<option>${esc(o)}</option>`).join('');b.disabled=!t.value;});}
+  const rg=document.getElementById(`${prefix}_${norm('Region')}`),pv=document.getElementById(`${prefix}_${norm('Province')}`);
+  if(rg&&pv){rg.addEventListener('change',()=>{const opts=regionProvMap[rg.value]||[];pv.innerHTML=`<option value="">${rg.value?'Select Province':'Select Region first'}</option>`+opts.map(o=>`<option>${esc(o)}</option>`).join('');pv.disabled=!rg.value;});}
+}
+function readForm(prefix){const out={};allFields().forEach(f=>{const col=colMap[f.label];if(!col)return;const el=document.getElementById(`${prefix}_${norm(f.label)}`);if(!el)return;out[col]=el.value.trim();});return out;}
+
+/* ============================================================
+   ADD / EDIT / DELETE
+   ============================================================ */
+/* ============================================================
+   ADD FORM — custom build (BDE-first, auto code, cascades)
+   ============================================================ */
+let addFormDirty=false;
+
+function openAdd(){
+  addFormDirty=false;
+  skuRowCount=0;
+  document.getElementById('addFormBody').innerHTML=buildAddForm();
+  document.getElementById('addOverlay').classList.add('open');
+  refreshCodePreview();
+  ensureSkuData();
+  document.getElementById('addFormBody').addEventListener('input',()=>{addFormDirty=true;},{once:false});
+  document.getElementById('addFormBody').addEventListener('change',()=>{addFormDirty=true;},{once:false});
+}
+function closeAdd(){
+  document.getElementById('addOverlay').classList.remove('open');
+  document.getElementById('addDiscardShield').classList.remove('show');
+  addFormDirty=false;
+}
+function safeCloseAdd(){
+  if(addFormDirty){
+    document.getElementById('addDiscardShield').classList.add('show');
+  } else {
+    closeAdd();
+  }
+}
+function cancelDiscard(){
+  document.getElementById('addDiscardShield').classList.remove('show');
+}
+function confirmDiscard(){
+  closeAdd();
+}
+
+function buildComboField(prefix,lbl){
+  const col=colMap[lbl];if(!col)return'';
+  const opts=uniqueVals[col]||[];
+  const lid=`${prefix}_${norm(lbl)}_dl`;
+  return`<div class="fg"><label class="flbl">${esc(lbl)}</label><input class="finput" id="${prefix}_${norm(lbl)}" list="${lid}" placeholder="Select or type…"><datalist id="${lid}">${opts.map(o=>`<option value="${esc(o)}">`).join('')}</datalist></div>`;
+}
+
+function buildAddForm(){
+  const bdeOpts  =colMap['BDE']?        (uniqueVals[colMap['BDE']]||[])        :[];
+  const teamOpts =colMap['Team']?       (uniqueVals[colMap['Team']]||[])       :[];
+  const regOpts  =colMap['Region']?     (uniqueVals[colMap['Region']]||[])     :[];
+  const grpOpts  =colMap['Group Name']? (uniqueVals[colMap['Group Name']]||[]) :[];
+  const nowOpts  =colMap['NEW OR CURRENT']?(uniqueVals[colMap['NEW OR CURRENT']]||[]):['New','Current'];
+  const seg3=['Alchemy Outlet Type','Alchemy Sub Type','Alchemy Image','Alchemy Volume','Alchemy Segmentation',
+    'Campari Segmentation (New)','Campari Segmentation (Old)','TEG Outlet Segmentation','TEG Grading','RC Sub Type','RC Image'];
+  return`
+<!-- Section 1: Outlet Information -->
+<div class="fscard">
+  <div class="fshdr"><div class="fsbadge">1</div><div class="fstitle">Outlet Information</div></div>
+  <div class="fgrid">
+    <div class="fg"><label class="flbl">New or Current</label>
+      <select class="finput" id="add_neworCurrent" onchange="refreshCodePreview()"><option value="">Select</option>${nowOpts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flbl">Outlet Code <span style="font-size:10px;color:#999;font-weight:400">(auto)</span></label>
+      <input class="finput" id="add_outletCodeField" type="text" placeholder="Select Region to generate" readonly style="background:#F5F3F3;color:#8B0000;font-weight:700"></div>
+    <div class="fg full"><label class="flbl">Outlet Name <span class="req">*</span></label>
+      <input class="finput" id="add_outletname" type="text" placeholder="Outlet Name"></div>
+    <div class="fg full"><label class="flbl">Company Name</label>
+      <input class="finput" id="add_companyname" type="text" placeholder="Company Name"></div>
+    <div class="fg"><label class="flbl">Group Name</label>
+      <input class="finput" id="add_groupname" list="add_grp_dl" placeholder="Type or select…" oninput="addGroupChanged(this.value)" onchange="addGroupChanged(this.value)">
+      <datalist id="add_grp_dl">${grpOpts.map(o=>`<option value="${esc(o)}">`).join('')}</datalist></div>
+    <div class="fg"><label class="flbl">Group Code <span style="font-size:10px;color:#D40000;font-weight:400">(auto)</span></label>
+      <input class="finput" id="add_groupcode" type="text" placeholder="Auto" readonly style="background:#F5F3F3;color:#8B0000;font-weight:600"></div>
+    <div class="fg"><label class="flbl">Team</label>
+      <select class="finput" id="add_team" onchange="addTeamChanged()"><option value="">Select Team</option>${teamOpts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flbl">BDE</label>
+      <select class="finput" id="add_bde" onchange="addBdeChanged()"><option value="">Select BDE</option>${bdeOpts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select></div>
+    <div class="fg full"><label class="flbl">Area of BDE</label>
+      <input class="finput" id="add_areabybde" type="text" placeholder="Area of BDE"></div>
+    ${buildComboField('add','Contract')}
+    ${buildComboField('add','Primary Contract')}
+    <div class="fg"><label class="flbl">Wholeseller Supply</label>
+      <input class="finput" id="add_wholesellersupply" type="text" placeholder="Wholeseller Supply"></div>
+  </div>
+</div>
+<!-- Section 2: Address of Outlet -->
+<div class="fscard">
+  <div class="fshdr"><div class="fsbadge">2</div><div class="fstitle">Address of Outlet</div></div>
+  <div class="fgrid">
+    <div class="fg"><label class="flbl">Region <span class="req">*</span></label>
+      <select class="finput" id="add_region" onchange="addRegionChanged()"><option value="">Select Region</option>${regOpts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flbl">Province</label>
+      <select class="finput" id="add_province" disabled onchange="addProvinceChanged()"><option value="">Select Region first</option></select></div>
+    <div class="fg"><label class="flbl">District</label>
+      <input class="finput" id="add_district" list="add_district_opts" placeholder="Select Province first" disabled autocomplete="off">
+      <datalist id="add_district_opts"></datalist></div>
+    <div class="fg"><label class="flbl">Soi</label>
+      <input class="finput" id="add_soi" type="text" placeholder="Soi / Alley"></div>
+    <div class="fg"><label class="flbl">Road</label>
+      <input class="finput" id="add_road" type="text" placeholder="Road"></div>
+    <div class="fg"><label class="flbl">Contact Person Name</label>
+      <input class="finput" id="add_contactpersonname" type="text" placeholder="Contact Person Name"></div>
+    <div class="fg"><label class="flbl">Position</label>
+      <input class="finput" id="add_contactpersonposition" type="text" placeholder="Position"></div>
+    <div class="fg"><label class="flbl">Phone Number</label>
+      <input class="finput" id="add_contactpersonphonenumber" type="text" placeholder="Phone Number"></div>
+  </div>
+</div>
+<!-- Section 3: Outlet Type -->
+<div class="fscard">
+  <div class="fshdr"><div class="fsbadge">3</div><div class="fstitle">Outlet Type</div></div>
+  <div class="fgrid">${seg3.map(l=>buildComboField('add',l)).join('')}</div>
+</div>
+<!-- Section 4: SKU Selling -->
+<div class="fscard">
+  <div class="fshdr"><div class="fsbadge">4</div><div class="fstitle">SKU Selling</div></div>
+  <div style="overflow-x:auto">
+    <table class="sku-table" id="add_skuTable">
+      <thead><tr>
+        <th style="width:105px">SKU Code</th>
+        <th style="min-width:120px">SKU</th>
+        <th style="min-width:90px">Principle<br><span style="font-size:9px;font-weight:400;color:#bbb;text-transform:none">auto fill</span></th>
+        <th style="min-width:80px">Category<br><span style="font-size:9px;font-weight:400;color:#bbb;text-transform:none">auto fill</span></th>
+        <th style="min-width:80px">Brand<br><span style="font-size:9px;font-weight:400;color:#bbb;text-transform:none">auto fill</span></th>
+        <th style="min-width:80px">Product<br><span style="font-size:9px;font-weight:400;color:#bbb;text-transform:none">auto fill</span></th>
+        <th style="min-width:90px">Size</th>
+        <th style="min-width:80px">Pack</th>
+        <th style="min-width:90px">SKU Status</th>
+        <th style="min-width:100px">Date Register<br><span style="font-size:9px;font-weight:400;color:#bbb;text-transform:none">auto today</span></th>
+        <th style="min-width:100px">Update Date<br><span style="font-size:9px;font-weight:400;color:#bbb;text-transform:none">auto today</span></th>
+        <th style="width:30px"></th>
+      </tr></thead>
+      <tbody id="add_skuBody"></tbody>
+    </table>
+  </div>
+  <button type="button" class="btn-add-sku" onclick="addSkuRow()">+ Add SKU</button>
+</div>`;
+}
+
+/* Team → fill BDE dropdown + refresh code */
+function addTeamChanged(){
+  const teamVal=document.getElementById('add_team').value;
+  const bdeEl=document.getElementById('add_bde');
+  if(bdeEl){
+    const bdeOpts=teamBdeMap[teamVal]||[];
+    bdeEl.innerHTML=`<option value="">Select BDE</option>`+bdeOpts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('');
+  }
+  refreshCodePreview();
+}
+/* BDE → auto-fill Team */
+function addBdeChanged(){
+  const bdeVal=document.getElementById('add_bde').value;
+  const bdeCol=colMap['BDE'],teamCol=colMap['Team'];
+  if(bdeVal&&bdeCol&&teamCol){
+    const m=allData.find(r=>r[bdeCol]===bdeVal);
+    if(m&&m[teamCol])document.getElementById('add_team').value=m[teamCol];
+  }
+}
+
+/* Group Name → auto-fill Group Code */
+function addGroupChanged(val){
+  const gnCol=colMap['Group Name'],gcCol=colMap['Group Code'];
+  const inp=document.getElementById('add_groupcode');if(!inp)return;
+  if(gnCol&&gcCol&&val.trim()){
+    const m=allData.find(r=>String(r[gnCol]??'').toLowerCase()===val.trim().toLowerCase());
+    inp.value=m&&m[gcCol]?m[gcCol]:val.trim().slice(0,3).toUpperCase();
+  } else {inp.value='';}
+  refreshCodePreview();
+}
+
+/* Region → fill Province options */
+function addRegionChanged(){
+  const rg=document.getElementById('add_region');
+  const pv=document.getElementById('add_province');
+  const opts=regionProvMap[rg.value]||[];
+  pv.innerHTML=`<option value="">${rg.value?'Select Province':'Select Region first'}</option>`+opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('');
+  pv.disabled=!rg.value;
+  /* reset district when region changes */
+  const dt=document.getElementById('add_district');
+  if(dt){dt.value='';dt.placeholder='Select Province first';dt.disabled=true;document.getElementById('add_district_opts').innerHTML='';}
+  refreshCodePreview();
+}
+
+/* Province → fill District datalist (Thai official data + DB data merged) */
+function addProvinceChanged(){
+  refreshCodePreview();
+  const pv=document.getElementById('add_province');
+  const dt=document.getElementById('add_district');
+  const dl=document.getElementById('add_district_opts');
+  if(!dt||!dl)return;
+  const province=pv.value;
+  /* merge: official Thai districts + any extra from DB */
+  const official=getThaiDistricts(province);
+  const fromDb=provDistMap[province]||[];
+  const merged=[...new Set([...official,...fromDb])].sort((a,b)=>a.localeCompare(b,'en'));
+  dl.innerHTML=merged.map(d=>`<option value="${esc(d)}">`).join('');
+  dt.value='';
+  dt.disabled=!province;
+  dt.placeholder=province?(merged.length?`${merged.length} districts available`:'Type district name'):'Select Province first';
+}
+
+/* Generate outlet code: {TeamCode}-{ProvinceNum}-{RegionNum}-{RunNum}-{GroupCode}
+   e.g.  O-5-84-1093-UNC  (O=On-premise, 5th province, 84th region, running#, group) */
+const TEAM_CODE_MAP={
+  horeca:'H','on-premise':'O','on premise':'O',onpremise:'O',
+  'off-premise':'F','off premise':'F',offpremise:'F',
+  'modern trade':'M',moderntrade:'M','food service':'FS',
+  foodservice:'FS',national:'N'
+};
+
+function generateOutletCode(teamVal,provVal,regVal,grpVal){
+  const tc=teamVal?(TEAM_CODE_MAP[teamVal.toLowerCase()]||teamVal.slice(0,1).toUpperCase()):'?';
+  const provCol=colMap['Province'];
+  const sortedProvs=provCol?[...new Set(allData.map(r=>r[provCol]).filter(Boolean))].sort():[];
+  const provNum=provVal?(sortedProvs.indexOf(provVal)+1||'?'):'?';
+  const regCol=colMap['Region'];
+  const sortedRegs=regCol?[...new Set(allData.map(r=>r[regCol]).filter(Boolean))].sort():[];
+  const regNum=regVal?(sortedRegs.indexOf(regVal)+1||'?'):'?';
+  const runNum=regVal&&regCol?(1000+allData.filter(r=>r[regCol]===regVal).length+1):1001;
+  const grpCode=grpVal&&grpVal.trim()?grpVal.trim().slice(0,3).toUpperCase():'UNC';
+  return`${tc}-${provNum}-${regNum}-${runNum}-${grpCode}`;
+}
+
+function refreshCodePreview(){
+  const newOrCur=(document.getElementById('add_neworCurrent')?.value||'').toLowerCase().trim();
+  const previewEl=document.getElementById('add_codePreview');
+  const codeField=document.getElementById('add_outletCodeField');
+  if(!previewEl)return;
+  const setHint=(msg)=>{
+    previewEl.textContent=msg;previewEl.style.color='rgba(255,255,255,.55)';
+    previewEl.style.fontStyle='italic';previewEl.style.fontWeight='400';previewEl.style.fontSize='13px';
+    if(codeField){codeField.value='';codeField.placeholder=msg;}
+  };
+  if(!newOrCur){return setHint('Select New or Current first (Section 1)');}
+  if(newOrCur!=='new'){return setHint('Code only generated for New outlets');}
+  const prov=document.getElementById('add_province')?.value||'';
+  if(!prov){return setHint('Select Province first (Section 2)');}
+  const team=document.getElementById('add_team')?.value||'';
+  const reg=document.getElementById('add_region')?.value||'';
+  const grp=document.getElementById('add_groupname')?.value||'';
+  const code=generateOutletCode(team,prov,reg,grp);
+  previewEl.textContent=code;
+  previewEl.style.color='#fff';previewEl.style.fontStyle='normal';previewEl.style.fontWeight='800';previewEl.style.fontSize='18px';
+  if(codeField)codeField.value=code;
+}
+
+let addPendingVals=null;
+let addPendingSkuRows=null;
+let skuRowCount=0;
+let skuMasterData=[];
+
+async function ensureSkuData(){
+  if(skuMasterData.length)return;
+  try{const{data}=await supabase.from('SKU').select('*').limit(2000);if(data)skuMasterData=data;}catch(e){}
+}
+
+function addSkuRow(){
+  const today=new Date().toISOString().slice(0,10);
+  const idx=++skuRowCount;
+  const skuCodes=skuMasterData.map(r=>String(r['SKU Code']||r['sku_code']||'')).filter(Boolean);
+  const sizeOpts=[...new Set(skuMasterData.map(r=>String(r['Size']||r['size']||'')).filter(Boolean))].sort();
+  const packOpts=[...new Set(skuMasterData.map(r=>String(r['Pack']||r['pack']||'')).filter(Boolean))].sort();
+  const statusOpts=[...new Set(skuMasterData.map(r=>String(r['SKU Status']||r['sku_status']||r['Status']||'')).filter(Boolean))].sort();
+  if(!statusOpts.includes('Active'))statusOpts.unshift('Active');
+  if(!statusOpts.includes('Inactive'))statusOpts.push('Inactive');
+  const tr=document.createElement('tr');
+  tr.id=`sku_row_${idx}`;
+  tr.innerHTML=`
+    <td><input class="finput" id="sku_${idx}_code" list="sku_${idx}_codedl" placeholder="SKU Code" style="min-width:95px" oninput="lookupSku(${idx})" onchange="lookupSku(${idx})">
+      <datalist id="sku_${idx}_codedl">${skuCodes.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></td>
+    <td><input class="finput sku-auto" id="sku_${idx}_name" type="text" placeholder="Auto" readonly style="min-width:110px"></td>
+    <td><input class="finput sku-auto" id="sku_${idx}_principle" type="text" placeholder="Auto" readonly style="min-width:80px"></td>
+    <td><input class="finput sku-auto" id="sku_${idx}_category" type="text" placeholder="Auto" readonly style="min-width:75px"></td>
+    <td><input class="finput sku-auto" id="sku_${idx}_brand" type="text" placeholder="Auto" readonly style="min-width:75px"></td>
+    <td><input class="finput sku-auto" id="sku_${idx}_product" type="text" placeholder="Auto" readonly style="min-width:75px"></td>
+    <td><input class="finput" id="sku_${idx}_size" list="sku_${idx}_sizedl" placeholder="เลือก/พิมพ์" style="min-width:80px">
+      <datalist id="sku_${idx}_sizedl">${sizeOpts.map(s=>`<option value="${esc(s)}">`).join('')}</datalist></td>
+    <td><input class="finput" id="sku_${idx}_pack" list="sku_${idx}_packdl" placeholder="เลือก/พิมพ์" style="min-width:70px">
+      <datalist id="sku_${idx}_packdl">${packOpts.map(p=>`<option value="${esc(p)}">`).join('')}</datalist></td>
+    <td><select class="finput" id="sku_${idx}_status" style="min-width:80px">
+      <option value="">Status</option>${statusOpts.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('')}
+    </select></td>
+    <td><input class="finput" id="sku_${idx}_dateregister" type="date" value="${today}" style="min-width:90px"></td>
+    <td><input class="finput" id="sku_${idx}_updatedate" type="date" value="${today}" style="min-width:90px"></td>
+    <td><button class="btn-del-sku" onclick="removeSkuRow(${idx})" title="Remove row">×</button></td>`;
+  document.getElementById('add_skuBody').appendChild(tr);
+}
+
+function removeSkuRow(idx){
+  const el=document.getElementById(`sku_row_${idx}`);if(el)el.remove();
+}
+
+async function lookupSku(idx){
+  await ensureSkuData();
+  const codeEl=document.getElementById(`sku_${idx}_code`);if(!codeEl)return;
+  const code=codeEl.value.trim();if(!code)return;
+  const match=skuMasterData.find(r=>String(r['SKU Code']||r['sku_code']||'').trim().toLowerCase()===code.toLowerCase());
+  const setR=(id,val)=>{const e=document.getElementById(id);if(e)e.value=val||'';};
+  if(match){
+    setR(`sku_${idx}_name`,match['SKU']||match['sku']||match['SKU Name']||match['sku_name']||'');
+    setR(`sku_${idx}_principle`,match['Principle']||match['principle']||match['PRINCIPLE']||'');
+    setR(`sku_${idx}_category`,match['Category']||match['category']||match['CATEGORY']||'');
+    setR(`sku_${idx}_brand`,match['Brand']||match['brand']||match['BRAND']||'');
+    setR(`sku_${idx}_product`,match['Product']||match['product']||match['PRODUCT']||'');
+    const sizeEl=document.getElementById(`sku_${idx}_size`);
+    if(sizeEl&&!sizeEl.value)sizeEl.value=match['Size']||match['size']||'';
+    const packEl=document.getElementById(`sku_${idx}_pack`);
+    if(packEl&&!packEl.value)packEl.value=match['Pack']||match['pack']||'';
+  }
+}
+
+function collectSkuRows(){
+  const rows=[];
+  document.querySelectorAll('#add_skuBody tr').forEach(tr=>{
+    const idx=tr.id.replace('sku_row_','');
+    const code=document.getElementById(`sku_${idx}_code`)?.value.trim();
+    if(!code)return;
+    rows.push({
+      'SKU Code':code,
+      'SKU':document.getElementById(`sku_${idx}_name`)?.value.trim()||null,
+      'Principle':document.getElementById(`sku_${idx}_principle`)?.value.trim()||null,
+      'Category':document.getElementById(`sku_${idx}_category`)?.value.trim()||null,
+      'Brand':document.getElementById(`sku_${idx}_brand`)?.value.trim()||null,
+      'Product':document.getElementById(`sku_${idx}_product`)?.value.trim()||null,
+      'Size':document.getElementById(`sku_${idx}_size`)?.value.trim()||null,
+      'Pack':document.getElementById(`sku_${idx}_pack`)?.value.trim()||null,
+      'SKU Status':document.getElementById(`sku_${idx}_status`)?.value.trim()||null,
+      'Date_Register':document.getElementById(`sku_${idx}_dateregister`)?.value||null,
+      'Update_Date':document.getElementById(`sku_${idx}_updatedate`)?.value||null,
+    });
+  });
+  return rows;
+}
+
+function buildAddVals(){
+  const outletName=document.getElementById('add_outletname')?.value.trim();
+  if(!outletName){showToast('Please enter Outlet Name first','err');return null;}
+  const vals={};
+  const setC=(lbl,val)=>{const c=colMap[lbl];if(c)vals[c]=val||null;};
+  /* Section 1: Outlet Information */
+  setC('NEW OR CURRENT',document.getElementById('add_neworCurrent')?.value.trim());
+  setC('Outlet Name',outletName);setC('Outlet Name ATT',outletName);
+  const coName=document.getElementById('add_companyname')?.value.trim();
+  setC('Company Name EN',coName);setC('Company Name TH',coName);setC('Company Name',coName);
+  setC('Group Name',document.getElementById('add_groupname')?.value.trim());
+  setC('Group Code',document.getElementById('add_groupcode')?.value.trim());
+  setC('Team',document.getElementById('add_team')?.value.trim());
+  setC('BDE',document.getElementById('add_bde')?.value.trim());
+  setC('Area by BDE',document.getElementById('add_areabybde')?.value.trim());
+  ['Contract','Primary Contract'].forEach(lbl=>{const el=document.getElementById(`add_${norm(lbl)}`);if(el)setC(lbl,el.value.trim());});
+  setC('Wholeseller Supply',document.getElementById('add_wholesellersupply')?.value.trim());
+  /* Outlet Code from auto-generated field */
+  const codeField=document.getElementById('add_outletCodeField');
+  setC('Outlet Code',codeField&&codeField.value.trim()?codeField.value.trim():null);
+  /* Section 2: Address */
+  setC('Region',document.getElementById('add_region')?.value.trim());
+  setC('Province',document.getElementById('add_province')?.value.trim());
+  setC('District',document.getElementById('add_district')?.value.trim());
+  setC('Soi',document.getElementById('add_soi')?.value.trim());
+  setC('Road',document.getElementById('add_road')?.value.trim());
+  setC('Contact Person Name',document.getElementById('add_contactpersonname')?.value.trim());
+  setC('Contact Person Position',document.getElementById('add_contactpersonposition')?.value.trim());
+  setC('Contact Person Phone Number',document.getElementById('add_contactpersonphonenumber')?.value.trim());
+  /* Section 3: Outlet Type */
+  ['Alchemy Outlet Type','Alchemy Sub Type','Alchemy Image','Alchemy Volume','Alchemy Segmentation',
+   'Campari Segmentation (New)','Campari Segmentation (Old)','TEG Outlet Segmentation','TEG Grading','RC Sub Type','RC Image'].forEach(lbl=>{
+    const el=document.getElementById(`add_${norm(lbl)}`);if(el)setC(lbl,el.value.trim());
+  });
+  return vals;
+}
+
+function saveAdd(){
+  const vals=buildAddVals();
+  if(!vals) return;
+  /* check outlet code duplicate */
+  const codeCol=colMap['Outlet Code'];
+  if(codeCol&&vals[codeCol]){
+    const dup=allData.find(r=>r[codeCol]&&String(r[codeCol]).trim().toLowerCase()===vals[codeCol].toLowerCase());
+    if(dup){showToast(`Outlet Code "${vals[codeCol]}" already exists`,'err');return;}
+  }
+  /* collect SKU rows */
+  addPendingSkuRows=collectSkuRows();
+  /* show preview */
+  addPendingVals=vals;
+  const body=document.getElementById('addPreviewBody');
+  const get=(lbl)=>{const c=colMap[lbl];return c&&vals[c]?String(vals[c]).trim():''};
+  const row=(icon,lbl,val)=>{
+    if(!val) return '';
+    return `<div style="display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid #F5F0F0;gap:10px">
+      <span style="font-size:14px;flex-shrink:0;width:20px;text-align:center">${icon}</span>
+      <span style="color:#9CA3AF;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;width:110px;flex-shrink:0">${lbl}</span>
+      <span style="color:#1A0000;font-weight:600;font-size:13px;flex:1">${esc(val)}</span>
+    </div>`;
+  };
+  const divider=(title)=>`<div style="background:#990000;color:#fff;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;padding:5px 16px">${title}</div>`;
+
+  const code=get('Outlet Code');
+  const name=get('Outlet Name');
+  const bde=get('BDE');
+  const team=get('Team');
+  const contract=get('Contract');
+  const primaryContract=get('Primary Contract');
+  const region=get('Region');
+  const province=get('Province');
+  const district=get('District');
+  const road=get('Road');
+  const soi=get('Soi');
+  const alchType=get('Alchemy Outlet Type');
+  const alchSub=get('Alchemy Sub Type');
+  const alchImg=get('Alchemy Image');
+  const alchVol=get('Alchemy Volume');
+  const status=get('NEW OR CURRENT');
+  const company=get('Company Name');
+  const group=get('Group Name');
+
+  const locationParts=[district,province,region].filter(Boolean);
+  const locationLine=locationParts.join(', ');
+  const roadLine=[soi?`Soi ${soi}`:'',road?`${road} Rd.`:''].filter(Boolean).join(' · ');
+
+  body.innerHTML=`
+    <div style="background:linear-gradient(135deg,#5C1F1F 0%,#990000 100%);color:#fff;padding:20px 20px 16px;text-align:center">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2.5px;opacity:.65;margin-bottom:5px">Outlet Code</div>
+      <div style="font-size:24px;font-weight:800;letter-spacing:2px;font-variant-numeric:tabular-nums;line-height:1.1">${esc(code)||'—'}</div>
+      ${name?`<div style="font-size:13px;font-weight:500;opacity:.9;margin-top:8px">${esc(name)}</div>`:''}
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap">
+        ${contract?`<span style="background:rgba(255,255,255,.18);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700">${esc(contract)}</span>`:''}
+        ${status?`<span style="background:rgba(255,255,255,.18);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700">${esc(status)}</span>`:''}
+      </div>
+    </div>
+    ${divider('Outlet & Company')}
+    ${row('🏪','Outlet Name',name)}
+    ${row('📋','Contract',contract)}
+    ${primaryContract?row('📋','Primary',primaryContract):''}
+    ${row('🏢','Company',company)}
+    ${row('👥','Group',group)}
+    ${divider('Responsible')}
+    ${row('👤','BDE',bde)}
+    ${row('🗂️','Team',team)}
+    ${divider('Location')}
+    ${locationLine?row('📍','Area',locationLine):''}
+    ${roadLine?row('🛣️','Road / Soi',roadLine):''}
+    ${divider('Alchemy Type')}
+    ${row('🍷','Outlet Type',alchType)}
+    ${alchSub?row('↳','Sub Type',alchSub):''}
+    ${alchImg?row('🖼️','Image',alchImg):''}
+    ${alchVol?row('📊','Volume',alchVol):''}
+  `.replace(/\n\s*\n/g,'\n');
+
+  document.getElementById('addPreviewOverlay').classList.add('open');
+}
+
+function closeAddPreview(){document.getElementById('addPreviewOverlay').classList.remove('open');}
+
+async function confirmAdd(){
+  if(!addPendingVals){closeAddPreview();return;}
+  const btn=document.getElementById('addPreviewSaveBtn');
+  btn.disabled=true;btn.textContent='⏳ Saving...';
+  const{error}=await supabase.from(TABLE).insert([addPendingVals]);
+  btn.disabled=false;btn.textContent='✅ Confirm & Save';
+  if(error){showToast('Error: '+error.message,'err');return;}
+  await writeLog('INSERT',null,null,addPendingVals);
+  /* Auto link-save to Data U: insert outlet code + name + company name */
+  const _cc=colMap['Outlet Code'];
+  if(_cc&&addPendingVals[_cc]){
+    const _duRec={'Outlet Code':addPendingVals[_cc]};
+    if(outletNameCol&&addPendingVals[outletNameCol])_duRec['Outlet Name']=addPendingVals[outletNameCol];
+    const _comp=((colMap['COMPANY NAME EN']&&addPendingVals[colMap['COMPANY NAME EN']])||(colMap['COMPANY NAME TH']&&addPendingVals[colMap['COMPANY NAME TH']])||(colMap['COMPANY NAME']&&addPendingVals[colMap['COMPANY NAME']])||'').trim();
+    if(_comp)_duRec['Company Name']=_comp;
+    supabase.from('Data Universe').insert([_duRec]); /* fire-and-forget */
+    /* Save SKU rows to Outlet SKU table */
+    if(addPendingSkuRows&&addPendingSkuRows.length){
+      const skuInserts=addPendingSkuRows.map(r=>({...r,'Outlet Code':addPendingVals[_cc]}));
+      supabase.from('Outlet SKU').insert(skuInserts); /* fire-and-forget */
+    }
+  }
+  const _skuCount=addPendingSkuRows?.length||0;
+  addPendingVals=null;addPendingSkuRows=null;
+  closeAddPreview();closeAdd();
+  showToast(`✅ Outlet added${_skuCount?` + ${_skuCount} SKU(s) recorded`:''}`);
+  loadData();
+}
+function openEdit(id){
+  editTarget=allData.find(r=>r[pkCol]==id);  /* == handles number/string */
+  if(!editTarget)return;
+  document.getElementById('editFormBody').innerHTML=buildFormSections('edit',editTarget);
+  document.getElementById('editOverlay').classList.add('open');
+}
+function closeEdit(){document.getElementById('editOverlay').classList.remove('open');editTarget=null;}
+async function saveEdit(){
+  if(!editTarget)return;
+  const oldData={...editTarget};const vals=readForm('edit');
+  const{error}=await supabase.from(TABLE).update(vals).eq(pkCol,editTarget[pkCol]);
+  if(error){showToast('Error: '+error.message,'err');return;}
+  await writeLog('UPDATE',editTarget[pkCol],oldData,vals);
+  /* Sync Company Name + Group Name + Group Code change to Data Universe */
+  const _codeCol=colMap['Outlet Code'];
+  const _comp=((colMap['Company Name EN']&&vals[colMap['Company Name EN']])||(colMap['Company Name TH']&&vals[colMap['Company Name TH']])||(colMap['Company Name']&&vals[colMap['Company Name']])||'').trim();
+  const _grpName=(colMap['Group Name']&&vals[colMap['Group Name']]||'').trim();
+  const _grpCode=(colMap['Group Code']&&vals[colMap['Group Code']]||'').trim();
+  if(_codeCol&&editTarget[_codeCol]){
+    const _sync={};
+    if(_comp)    _sync['Company Name']=_comp;
+    if(_grpName) _sync['Group Name']=_grpName;
+    if(_grpCode) _sync['Group Code']=_grpCode;
+    if(Object.keys(_sync).length)
+      supabase.from('Data Universe').update(_sync).eq('Outlet Code',editTarget[_codeCol]); /* fire-and-forget */
+  }
+  closeEdit();showToast('✅ Changes saved');loadData();
+}
+function openDel(id){
+  delTarget=allData.find(r=>r[pkCol]==id);  /* == (not ===) handles number/string mismatch */
+  if(!delTarget){showToast('Record not found','err');return;}
+  document.getElementById('delName').textContent=delTarget[outletNameCol||cols[0]]||'PK: '+id;
+  document.getElementById('delOverlay').classList.add('open');
+}
+function closeDel(){document.getElementById('delOverlay').classList.remove('open');delTarget=null;}
+async function confirmDel(){
+  if(!delTarget){showToast('No record selected for deletion','err');return;}
+  const old={...delTarget};
+  const delId=delTarget[pkCol];
+
+  const{data:deleted,error}=await supabase
+    .from(TABLE).delete().eq(pkCol,delId).select();
+
+  if(error){showToast(`Delete failed [pk=${pkCol}]: ${error.message}`,'err');console.error('Delete error',{pkCol,delId,error});return;}
+  if(!deleted||!deleted.length){
+    showToast('Delete blocked — RLS DELETE policy missing (run setup_full.sql)','err');
+    console.warn('Delete 0 rows. pkCol=',pkCol,'id=',delId);
+    return;
+  }
+  await writeLog('DELETE',delId,old,null);
+  closeDel();showToast('🗑️ Outlet deleted','inf');loadData();
+}
+
+/* ============================================================
+   LOG HISTORY
+   ============================================================ */
+async function writeLog(action,recordId,oldData,newData){try{const{data:{session}}=await supabase.auth.getSession();await supabase.from(LOG_TABLE).insert([{action,record_id:recordId?String(recordId):null,old_data:oldData||null,new_data:newData||null,changed_by:session?.user?.email||'unknown'}]);}catch(e){}}
+async function openLog(){
+  document.getElementById('logDrawer').classList.add('open');
+  const{data}=await supabase.from(LOG_TABLE).select('*').order('changed_at',{ascending:false}).limit(50);
+  const body=document.getElementById('logBody');
+  if(!data||!data.length){body.innerHTML='<div style="text-align:center;padding:40px 20px;color:#FF9090"><div style="font-size:36px;margin-bottom:10px">📭</div><p style="font-size:13px">No changes yet</p></div>';return;}
+  body.innerHTML=data.map(l=>{const cls=l.action==='INSERT'?'li':l.action==='UPDATE'?'lu':'ld';const nm=outletNameCol&&(l.new_data||l.old_data)?((l.new_data||l.old_data)[outletNameCol]||'Record #'+l.record_id):'Record #'+l.record_id;const ts=new Date(l.changed_at).toLocaleString('th-TH');return`<div class="litem ${cls}"><div class="la">${l.action}</div><div class="ldesc">${esc(nm)}</div><div class="lmeta">by ${esc(l.changed_by)} · ${ts}</div>${l.action!=='INSERT'?`<button class="brst" onclick="restoreLog('${l.id}','${l.action}')">↩ Restore</button>`:''}</div>`;}).join('');
+}
+function closeLog(){document.getElementById('logDrawer').classList.remove('open');}
+async function restoreLog(logId,action){
+  const{data}=await supabase.from(LOG_TABLE).select('*').eq('id',logId).single();
+  if(!data){showToast('Log entry not found','err');return;}
+  if(action==='DELETE'){const r={...data.old_data};delete r[pkCol];const{error}=await supabase.from(TABLE).insert([r]);if(error){showToast('Restore failed: '+error.message,'err');return;}await writeLog('INSERT',null,null,r);showToast('↩ Record restored');}
+  else if(action==='UPDATE'){const{error}=await supabase.from(TABLE).update(data.old_data).eq(pkCol,data.record_id);if(error){showToast('Restore failed: '+error.message,'err');return;}await writeLog('UPDATE',data.record_id,data.new_data,data.old_data);showToast('↩ Record reverted');}
+  loadData();openLog();
+}
+
+/* ============================================================
+   EXPORT · REALTIME · EVENTS
+   ============================================================ */
+function exportExcel(){if(!filtered.length){showToast('No data to export','err');return;}const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(filtered),'Outlet Master');XLSX.writeFile(wb,`Outlet_Master_${new Date().toISOString().slice(0,10)}.xlsx`);showToast('⬇️ Export downloaded');}
+function setupRealtime(){supabase.channel('outlet-rt').on('postgres_changes',{event:'*',schema:'public',table:TABLE},loadData).subscribe();}
+async function logout(){await supabase.auth.signOut();window.location.href='index.html';}
+/* ============================================================
+   IMPORT
+   ============================================================ */
+let importRows=[];
+
+function openImport(){
+  document.getElementById('importOverlay').classList.add('open');
+  resetImportUI();
+}
+function closeImport(){
+  document.getElementById('importOverlay').classList.remove('open');
+  resetImportUI();
+}
+function resetImportUI(){
+  importRows=[];
+  document.getElementById('impPreviewWrap').style.display='none';
+  document.getElementById('impDoBtn').style.display='none';
+  document.getElementById('impDzText').textContent='Click or Drag & Drop Excel file here';
+  document.getElementById('impDropzone').className='imp-dropzone';
+  document.getElementById('impFileInput').value='';
+  document.getElementById('impProgText').textContent='';
+  document.getElementById('impProg').style.display='none';
+}
+
+function downloadTemplate(){
+  if(!cols.length){showToast('Load data first','err');return;}
+  const header={};
+  cols.forEach(c=>{header[c]='';});
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([header]),'Outlet Master');
+  XLSX.writeFile(wb,'Outlet_Import_Template.xlsx');
+  showToast('⬇️ Template downloaded');
+}
+
+function impDragOver(e){e.preventDefault();document.getElementById('impDropzone').classList.add('drag-over');}
+function impDragLeave(e){document.getElementById('impDropzone').classList.remove('drag-over');}
+function impDrop(e){
+  e.preventDefault();
+  document.getElementById('impDropzone').classList.remove('drag-over');
+  const f=e.dataTransfer.files[0];
+  if(f) processImportFile(f);
+}
+function impFileChosen(e){
+  const f=e.target.files[0];
+  if(f) processImportFile(f);
+}
+
+function processImportFile(file){
+  if(!/\.(xlsx|xls)$/i.test(file.name)){showToast('Please upload .xlsx or .xls file only','err');return;}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const wb=XLSX.read(ev.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!rows.length){showToast('File is empty or could not be read','err');return;}
+      document.getElementById('impDzText').textContent=`✅ ${file.name}  (${rows.length.toLocaleString()} rows)`;
+      document.getElementById('impDropzone').className='imp-dropzone has-file';
+      buildImportPreview(rows);
+    }catch(err){showToast('Cannot read file: '+err.message,'err');}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function buildImportPreview(rows){
+  /* match by Outlet Name (case-insensitive) */
+  const nameMap={};
+  if(outletNameCol){
+    allData.forEach(r=>{
+      const n=String(r[outletNameCol]??'').trim().toLowerCase();
+      if(n) nameMap[n]=r[pkCol];
+    });
+  }
+  let addCnt=0,updCnt=0;
+  importRows=rows.map(row=>{
+    const n=outletNameCol?String(row[outletNameCol]??'').trim().toLowerCase():'';
+    const existId=n?nameMap[n]:null;
+    if(existId){updCnt++;return{...row,_action:'UPDATE',_id:existId};}
+    else{addCnt++;return{...row,_action:'INSERT',_id:null};}
+  });
+
+  document.getElementById('impPreviewCount').textContent=`${rows.length.toLocaleString()} rows ready to import`;
+  document.getElementById('impPreviewBadges').innerHTML=
+    `<span class="imp-badge imp-badge-add">＋${addCnt} New</span> `+
+    `<span class="imp-badge imp-badge-upd">↺ ${updCnt} Update</span>`;
+
+  /* preview table: first 8 rows, max 5 cols */
+  const previewCols=Object.keys(rows[0]).filter(c=>c!=='_action'&&c!=='_id').slice(0,5);
+  const previewRows=importRows.slice(0,8);
+  const tbl=document.getElementById('impPreviewTable');
+  tbl.innerHTML=`<thead><tr>
+    <th>Status</th>
+    ${previewCols.map(c=>`<th>${esc(c)}</th>`).join('')}
+  </tr></thead><tbody>
+    ${previewRows.map(r=>`<tr>
+      <td>${r._action==='UPDATE'
+        ?'<span class="imp-badge imp-badge-upd">↺ Replace</span>'
+        :'<span class="imp-badge imp-badge-add">＋ New</span>'}</td>
+      ${previewCols.map(c=>`<td title="${esc(String(r[c]??''))}">${esc(String(r[c]??'').slice(0,35))}</td>`).join('')}
+    </tr>`).join('')}
+    ${rows.length>8?`<tr><td colspan="${previewCols.length+1}" style="text-align:center;color:#D40000;font-style:italic;padding:10px">... and ${rows.length-8} more rows</td></tr>`:''}
+  </tbody>`;
+
+  document.getElementById('impPreviewWrap').style.display='block';
+  const btn=document.getElementById('impDoBtn');
+  btn.style.display='';
+  btn.textContent=`⬆ Import ${rows.length.toLocaleString()} Records`;
+  btn.disabled=false;
+}
+
+async function doImport(){
+  if(!importRows.length){showToast('No data to import','err');return;}
+  const btn=document.getElementById('impDoBtn');
+  const prog=document.getElementById('impProg');
+  const progBar=document.getElementById('impProgBar');
+  const progText=document.getElementById('impProgText');
+
+  btn.disabled=true;
+  prog.style.display='block';
+
+  let added=0,updated=0,errors=0;
+  const total=importRows.length;
+
+  for(let i=0;i<total;i++){
+    const row=importRows[i];
+    const action=row._action;
+    const existId=row._id;
+
+    /* strip meta fields & convert empty string → null */
+    const clean={};
+    Object.entries(row).forEach(([k,v])=>{
+      if(k!=='_action'&&k!=='_id') clean[k]=v===''?null:v;
+    });
+
+    if(action==='UPDATE'&&existId){
+      const{error}=await supabase.from(TABLE).update(clean).eq(pkCol,existId);
+      if(error){errors++;}
+      else{updated++;await writeLog('UPDATE',existId,null,clean);}
+    } else {
+      const{error}=await supabase.from(TABLE).insert([clean]);
+      if(error){errors++;}
+      else{added++;await writeLog('INSERT',null,null,clean);}
+    }
+
+    const pct=Math.round(((i+1)/total)*100);
+    progBar.style.width=pct+'%';
+    progText.textContent=`Importing... ${i+1}/${total}`;
+  }
+
+  btn.disabled=false;
+  closeImport();
+  const msg=`✅ Import complete: Added ${added} | Updated ${updated}${errors?` | Errors ${errors}`:''}`;
+  showToast(msg,errors?'inf':'ok');
+  loadData();
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    /* Add modal: show discard confirm if dirty */
+    if(document.getElementById('addOverlay').classList.contains('open')){
+      safeCloseAdd();return;
+    }
+    closeEdit();closeDel();closeImport();
+    if(document.getElementById('logDrawer').classList.contains('open'))closeLog();
+  }
+});
+/* Overlay backdrop click */
+document.getElementById('addOverlay').addEventListener('click',function(e){
+  if(e.target===this) safeCloseAdd();   /* dirty check for Add */
+});
+['editOverlay','delOverlay'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){
+    if(e.target===this)this.classList.remove('open');
+  });
+});
+checkAuth();
+</script>
+</body>
+</html>
+
