@@ -88,18 +88,14 @@ input:focus { outline: none; border-color: #8B1A1A; background: #fff; box-shadow
 
   <div id="loginForm">
     <div class="form-group">
-      <label>Username</label>
-      <input type="text" id="username" placeholder="Enter your username" autocomplete="username" autocapitalize="none" spellcheck="false">
-    </div>
-    <div class="form-group">
-      <label>Password</label>
+      <label>Passcode</label>
       <div style="position:relative">
-        <input type="password" id="password" placeholder="••••••••" onkeydown="if(event.key==='Enter') login()" autocomplete="current-password" style="padding-right:44px">
+        <input type="password" id="passcode" placeholder="••••••••" onkeydown="if(event.key==='Enter') login()" autocomplete="off" autocapitalize="none" spellcheck="false" style="padding-right:44px">
         <button type="button" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#999;font-size:16px;padding:0;line-height:1" id="eyeBtn">👁</button>
       </div>
     </div>
     <button class="btn" id="loginBtn" onclick="login()">Sign In</button>
-    <div class="link-text" style="margin-top:16px;font-size:12px;color:#bbb">Accounts are managed in <strong style="color:#8B1A1A">User Management</strong><br>Contact your administrator for access</div>
+    <div class="link-text" style="margin-top:16px;font-size:12px;color:#bbb">Contact your administrator for the passcode</div>
   </div>
 </div>
 
@@ -116,7 +112,7 @@ async function checkSession() {
 }
 
 function togglePw() {
-  const inp = document.getElementById('password');
+  const inp = document.getElementById('passcode');
   const btn = document.getElementById('eyeBtn');
   inp.type = inp.type === 'password' ? 'text' : 'password';
   btn.textContent = inp.type === 'password' ? '👁' : '🙈';
@@ -136,34 +132,20 @@ function setLoading(on) {
   b.textContent = on ? 'Signing in…' : 'Sign In';
 }
 
+const SHARED_ACCOUNT_EMAIL = 'sales_admin1@alchemy-asia.com';
+
 async function login() {
   hideAlert();
-  const username = document.getElementById('username').value.trim();
-  const password  = document.getElementById('password').value;
-  if (!username) { showAlert('Please enter your Username'); return; }
-  if (!password)  { showAlert('Please enter your Password'); return; }
+  const passcode = document.getElementById('passcode').value;
+  if (!passcode) { showAlert('Please enter the passcode'); return; }
 
   setLoading(true);
   try {
-    /* Step 1: ค้นหา auth_email จาก id ผ่าน RPC */
-    const { data: authEmail, error: rpcErr } = await withTimeout(
-      supabase.rpc('get_auth_email', { p_id: username })
-    );
-
-    if (rpcErr) {
-      showAlert('RPC Error: ' + rpcErr.message);
-      return;
-    }
-    if (!authEmail) {
-      showAlert('Username "' + username + '" not found in user_profile (RPC returned null)');
-      return;
-    }
-
     const { error } = await withTimeout(
-      supabase.auth.signInWithPassword({ email: authEmail, password })
+      supabase.auth.signInWithPassword({ email: SHARED_ACCOUNT_EMAIL, password: passcode })
     );
     if (error) {
-      showAlert('Auth email used: ' + authEmail + '\nError: ' + error.message);
+      showAlert('Incorrect passcode');
       return;
     }
 
