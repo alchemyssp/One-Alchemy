@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Data Universe — SSP</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -32,7 +35,7 @@ label{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:700;
 /* glow stripe */
 .sidebar::before{
   content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,#dddddd,#ececec,#ffffff,#D40000,#8B0000);
+  background:linear-gradient(90deg,#dddddd,#ececec,#ffffff,#EC4899,#BE185D);
   background-size:200% 100%;
   animation:sbStripe 3s linear infinite;
 }
@@ -91,7 +94,7 @@ label{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:700;
   box-shadow:0 4px 16px rgba(139,0,0,.25),inset 0 1px 0 rgba(255,255,255,.08);
 }
 .nav-links a.active .nav-ico{
-  background:linear-gradient(135deg,#8B0000,#D40000);
+  background:linear-gradient(135deg,#BE185D,#EC4899);
   box-shadow:0 4px 12px rgba(212,0,0,.45);
 }
 
@@ -123,7 +126,7 @@ label{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:700;
 .sb-user-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .sb-avatar{
   width:36px;height:36px;border-radius:10px;flex-shrink:0;
-  background:linear-gradient(135deg,#8B0000,#D40000);
+  background:linear-gradient(135deg,#BE185D,#EC4899);
   display:flex;align-items:center;justify-content:center;
   font-size:15px;font-weight:800;color:#fff;
   box-shadow:0 3px 10px rgba(139,0,0,.4);
@@ -144,106 +147,207 @@ label{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:700;
 /* MAIN */
 .main{margin-left:240px;flex:1;padding:28px 32px;min-height:100vh}
 .page-title{font-size:26px;font-weight:800;color:#1A0000}
-.page-sub{font-size:13px;color:#A00000;margin-top:5px;font-weight:400}
+.page-sub{font-size:13px;color:#EC4899;margin-top:5px;font-weight:400}
 .dot-live{display:inline-block;width:8px;height:8px;background:#22C55E;border-radius:50%;animation:pulse 2s infinite;vertical-align:middle;margin-left:6px}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* KPI CARDS — fluid responsive via clamp() */
-.kpi-row{display:flex;gap:clamp(8px,1.4vw,16px);margin-bottom:16px;flex-wrap:wrap}
-.kpi-card{background:#fff;border-radius:clamp(14px,1.6vw,20px);padding:clamp(12px,1.5vw,18px) clamp(14px,1.8vw,22px) 0;box-shadow:0 4px 20px rgba(0,0,0,.07),0 1px 4px rgba(0,0,0,.04);flex:1 1 170px;min-width:0;position:relative;overflow:hidden;display:flex;flex-direction:column}
-.kpi-top{display:flex;align-items:center;gap:clamp(8px,1.1vw,12px);margin-bottom:clamp(6px,0.9vw,10px)}
-.kpi-icon{width:clamp(34px,3.4vw,46px);height:clamp(34px,3.4vw,46px);border-radius:clamp(10px,1.2vw,13px);display:flex;align-items:center;justify-content:center;font-size:clamp(17px,2vw,24px);flex-shrink:0}
-.kpi-title{font-size:clamp(11px,1.15vw,14px);font-weight:700;color:#1F2937;line-height:1.3;letter-spacing:-.1px}
-.kpi-num{font-size:clamp(28px,4vw,60px);font-weight:800;color:#111827;font-variant-numeric:tabular-nums;line-height:1;margin-bottom:clamp(4px,0.7vw,8px)}
-.kpi-num span:last-child{font-size:clamp(11px,1.25vw,17px);font-weight:500;color:#9CA3AF;margin-left:clamp(5px,0.7vw,10px);vertical-align:middle}
-.kpi-badge{display:inline-flex;align-items:center;padding:clamp(3px,0.4vw,5px) clamp(8px,1vw,12px);border-radius:20px;font-size:clamp(10px,1vw,12px);font-weight:700;letter-spacing:.15px;margin-bottom:0;width:fit-content}
-.kpi-wave{margin:clamp(4px,0.6vw,6px) clamp(-14px,-1.8vw,-22px) 0;line-height:0;display:flex;align-items:flex-end}
-.kpi-wave svg{display:block;width:100%;height:clamp(26px,3.2vw,44px)}
-@media(max-width:640px){.kpi-card{flex-basis:calc(50% - 5px);max-width:calc(50% - 5px)}}
-@media(max-width:420px){.kpi-card{flex-basis:100%;max-width:100%}}
+/* =====================================================
+   KPI CARDS — แถวสรุปตัวเลขด้านบน Data Universe
+   Layout: ไอคอน (ซ้าย) + label / ตัวเลข / badge (ขวา)
+   ===================================================== */
+
+/* [1] แถว KPI — ชิดซ้าย การ์ดกว้างตามเนื้อหา */
+.kpi-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+/* [2] การ์ดแต่ละใบ — ไม่ยืด กว้างพอดีเนื้อหา */
+.kpi-card {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 200px;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
+}
+
+/* [3] ส่วนข้อมูล: ไอคอน (ซ้าย) + คอลัมน์ข้อมูล (ขวา) */
+.kpi-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;               /* ดันให้ wave อยู่ล่างเสมอ */
+  padding-bottom: 12px;
+}
+
+/* [4] ไอคอน — แก้ width/height เพื่อปรับขนาด */
+.kpi-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* [5] คอลัมน์ข้อมูลด้านขวา */
+.kpi-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* [6] ชื่อ label เช่น "TOTAL OUTLET" */
+.kpi-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+}
+
+/* [7] ตัวเลขหลัก — แก้ clamp(min, viewport, max) เพื่อปรับขนาด */
+.kpi-num {
+  font-size: clamp(20px, 2vw, 30px);
+  font-weight: 800;
+  color: #111827;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* [8] หน่วยท้ายตัวเลข เช่น "outlets" */
+.kpi-unit {
+  font-size: 11px;
+  font-weight: 400;
+  color: #9CA3AF;
+  margin-left: 4px;
+}
+
+/* [9] Badge สถานะ เช่น "All Records" / "New" / "Current" */
+.kpi-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+/* [10] Wave ชิดขอบล่างการ์ด */
+.kpi-wave {
+  margin: 0 -16px;
+  line-height: 0;
+}
+.kpi-wave svg {
+  display: block;
+  width: 100%;
+  height: 40px;          /* ← แก้ตรงนี้เพื่อปรับความสูง wave */
+}
+
+/* [11] Responsive */
+@media (max-width: 640px) {
+  .kpi-card { flex-basis: calc(50% - 5px); max-width: calc(50% - 5px); }
+}
+@media (max-width: 420px) {
+  .kpi-card { flex-basis: 100%; max-width: 100%; }
+}
 /* legacy dot kept for other uses */
 .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
 .dot-green{background:#22C55E}
 
 /* TOOLBAR */
-.toolbar{background:#fff;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(100,0,0,.10);margin-bottom:12px;border:1px solid #F5E8E8}
+.toolbar{background:#fff;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(219,39,119,.10);margin-bottom:12px}
 .search-wrap{position:relative}
-.search-wrap input{padding:10px 14px 10px 36px;border:1.5px solid #FFD0D0;border-radius:10px;font-size:14px;background:#FFF7F7;color:#1E293B;font-weight:400;width:200px;transition:width .2s,border-color .15s,background .15s}
-.search-wrap input:focus{outline:none;border-color:#C00000;background:#fff;width:260px}
-.search-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#D40000;pointer-events:none;width:15px;height:15px}
-.flt{padding:10px 13px;border:1.5px solid #FFD0D0;border-radius:10px;font-size:14px;background:#FFF7F7;color:#1E293B;min-width:120px;font-weight:500}
-.flt:focus{outline:none;border-color:#C00000}
+.search-wrap input{padding:10px 14px 10px 36px;border:none;border-radius:10px;font-size:14px;background:#FDF2F8;color:#1E293B;font-weight:400;width:200px;transition:width .2s,box-shadow .15s,background .15s,transform .15s}
+.search-wrap input:focus{outline:none;border:none;background:#fff;width:260px;box-shadow:0 4px 16px rgba(219,39,119,.18);transform:translateY(-1px)}
+.search-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#EC4899;pointer-events:none;width:15px;height:15px}
+.flt{padding:10px 13px;border:none;border-radius:10px;font-size:14px;background:#FDF2F8;color:#1E293B;min-width:120px;font-weight:500;transition:box-shadow .15s,transform .15s}
+.flt:focus{outline:none;box-shadow:0 4px 16px rgba(219,39,119,.18);transform:translateY(-1px)}
 .spacer{flex:1}
 
 /* BUTTONS */
-.btn-add{padding:10px 18px;background:linear-gradient(135deg,#D40000 0%,#C00000 45%,#990000 100%);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 3px 10px rgba(155,0,0,.32),0 1px 2px rgba(0,0,0,.1)}
-.btn-add:hover{background:linear-gradient(135deg,#C00000 0%,#990000 100%);box-shadow:0 4px 14px rgba(155,0,0,.4);transform:translateY(-1px)}
-.btn-outline{padding:9px 14px;background:#fff;color:#8B0000;border:1.5px solid #FF9090;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
-.btn-outline:hover{background:#FBF0F0;border-color:#C00000}
+.btn-add{padding:10px 18px;background:linear-gradient(135deg,#BE185D 0%,#DB2777 50%,#EC4899 100%);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 3px 10px rgba(219,39,119,.32),0 1px 2px rgba(0,0,0,.1)}
+.btn-add:hover{background:linear-gradient(135deg,#DB2777 0%,#BE185D 100%);box-shadow:0 4px 14px rgba(219,39,119,.4);transform:translateY(-1px)}
+.btn-outline{padding:9px 14px;background:#fff;color:#BE185D;border:none;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(219,39,119,.12);transition:all .15s}
+.btn-outline:hover{background:#FDF2F8;box-shadow:0 6px 18px rgba(219,39,119,.22);transform:translateY(-2px)}
 .btn-export-dark{padding:9px 14px;background:#1A1A1A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;transition:all .15s}
 .btn-export-dark:hover{background:#000;transform:translateY(-1px)}
 .btn-import{padding:9px 14px;background:#1A1A1A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;white-space:nowrap}
 .btn-import:hover{background:#000;transform:translateY(-1px)}
-.btn-col{padding:9px 12px;background:#fff;color:#8B0000;border:1.5px solid #FF9090;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px}
-.btn-col:hover{background:#FFF7F7;border-color:#D40000}
-.rc-tag{font-size:12px;color:#D40000;white-space:nowrap;padding:0 4px;margin-left:auto;font-weight:400}
+.btn-col{padding:9px 12px;background:#fff;color:#BE185D;border:none;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(219,39,119,.12);transition:all .15s}
+.btn-col:hover{background:#FDF2F8;box-shadow:0 6px 18px rgba(219,39,119,.22);transform:translateY(-2px)}
+.rc-tag{font-size:12px;color:#EC4899;white-space:nowrap;padding:0 4px;margin-left:auto;font-weight:400}
 
 /* FILTER BAR */
-.filter-bar{background:#fff;border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;box-shadow:0 1px 6px rgba(100,0,0,.08);margin-bottom:12px}
+.filter-bar{background:#fff;border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;box-shadow:0 1px 6px rgba(219,39,119,.08);margin-bottom:12px}
 .filter-bar .fb-label{font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
-.fb-sep{width:1px;height:24px;background:#FFD0D0;flex-shrink:0;margin:0 2px}
+.fb-sep{width:1px;height:24px;background:#FCE7F3;flex-shrink:0;margin:0 2px}
 
 /* COLUMN PICKER */
 .col-picker-wrap{position:relative;display:inline-block}
-.col-picker-panel{position:absolute;top:calc(100% + 6px);left:0;background:#fff;border-radius:12px;border:1.5px solid #FFD0D0;box-shadow:0 8px 24px rgba(100,0,0,.14);width:230px;z-index:50;display:none}
+.col-picker-panel{position:absolute;top:calc(100% + 6px);left:0;background:#fff;border-radius:12px;border:none;box-shadow:0 8px 24px rgba(219,39,119,.18);width:230px;z-index:50;display:none}
 .col-picker-panel.open{display:block}
-.cp-hdr{padding:11px 14px 8px;border-bottom:1px solid #F5EDED;display:flex;align-items:center;justify-content:space-between}
-.cp-hdr-title{font-size:11px;font-weight:700;color:#7B0000;text-transform:uppercase;letter-spacing:.5px}
-.cp-reset{font-size:11px;font-weight:700;color:#C00000;background:none;border:none;padding:0;cursor:pointer}
+.cp-hdr{padding:11px 14px 8px;border-bottom:1px solid #FCE7F3;display:flex;align-items:center;justify-content:space-between}
+.cp-hdr-title{font-size:11px;font-weight:700;color:#9D174D;text-transform:uppercase;letter-spacing:.5px}
+.cp-reset{font-size:11px;font-weight:700;color:#DB2777;background:none;border:none;padding:0;cursor:pointer}
 .cp-reset:hover{text-decoration:underline}
 .cp-list{padding:6px 0;max-height:300px;overflow-y:auto}
 .cp-item{display:flex;align-items:center;gap:10px;padding:6px 14px;cursor:pointer;transition:background .1s}
-.cp-item:hover{background:#FFF7F7}
-.cp-item input[type="checkbox"]{width:14px;height:14px;accent-color:#C00000;cursor:pointer;flex-shrink:0}
+.cp-item:hover{background:#FDF2F8}
+.cp-item input[type="checkbox"]{width:14px;height:14px;accent-color:#DB2777;cursor:pointer;flex-shrink:0}
 .cp-item-lbl{font-size:12.5px;color:#374151;font-weight:400;cursor:pointer;user-select:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* TABLE */
-.tcard{background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(100,0,0,.1),0 1px 4px rgba(100,0,0,.06);overflow:hidden}
+.tcard{background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(219,39,119,.1),0 1px 4px rgba(219,39,119,.06);overflow:hidden}
 .tscroll{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:600px}
-thead th{text-align:left;padding:11px 14px;font-size:11px;color:#fff;font-weight:700;background:linear-gradient(90deg,#780000 0%,#A00000 100%);white-space:nowrap;cursor:pointer;user-select:none;letter-spacing:.4px;text-transform:uppercase;text-shadow:0 1px 2px rgba(0,0,0,.2)}
-thead th:hover{background:linear-gradient(90deg,#5A2424 0%,#990000 100%)}
+thead th{text-align:left;padding:11px 14px;font-size:11px;color:#fff;font-weight:700;background:linear-gradient(90deg,#BE185D 0%,#EC4899 100%);white-space:nowrap;cursor:pointer;user-select:none;letter-spacing:.4px;text-transform:uppercase;text-shadow:0 1px 2px rgba(0,0,0,.15)}
+thead th:hover{background:linear-gradient(90deg,#9D174D 0%,#DB2777 100%)}
 thead th.sa::after{content:' ↑';opacity:.7}
 thead th.sd::after{content:' ↓';opacity:.7}
-tbody td{padding:10px 14px;font-size:13px;border-bottom:1px solid #FFF5F5;color:#374151;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;font-weight:400}
+tbody td{padding:10px 14px;font-size:13px;border-bottom:1px solid #FDF2F8;color:#374151;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;font-weight:400}
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover td{background:#FFF8F8}
 .td-act{display:flex;gap:6px}
 .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
-.bb{background:#F5EDED;color:#8B0000}
+.bb{background:#FCE7F3;color:#BE185D}
 .ba{background:#D1FAE5;color:#065F46}
 .bi{background:#FEE2E2;color:#991B1B}
 
 /* PAGINATION */
-.pagi{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid #F5EDED;flex-wrap:wrap;gap:8px}
-.pg-info{font-size:12px;color:#D40000;font-weight:400}
+.pagi{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid #FCE7F3;flex-wrap:wrap;gap:8px}
+.pg-info{font-size:12px;color:#EC4899;font-weight:400}
 .pg-btns{display:flex;gap:4px}
-.pg-btn{min-width:32px;height:32px;border-radius:8px;border:1.5px solid #FFD0D0;background:#fff;font-size:13px;font-weight:700;color:#374151;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 6px;transition:all .15s}
-.pg-btn:hover:not([disabled]){border-color:#C00000;color:#C00000}
-.pg-btn.active{background:#C00000;border-color:#C00000;color:#fff}
+.pg-btn{min-width:32px;height:32px;border-radius:8px;border:none;background:#fff;font-size:13px;font-weight:700;color:#374151;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 6px;transition:all .15s;box-shadow:0 1px 4px rgba(219,39,119,.1)}
+.pg-btn:hover:not([disabled]){color:#DB2777;box-shadow:0 4px 14px rgba(219,39,119,.2);transform:translateY(-1px)}
+.pg-btn.active{background:#DB2777;border:none;color:#fff;box-shadow:0 4px 14px rgba(219,39,119,.3)}
 .pg-btn[disabled]{opacity:.35;cursor:not-allowed}
 
 /* MODALS */
-.overlay{position:fixed;inset:0;background:rgba(100,0,0,.45);display:none;z-index:200;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.18);display:none;z-index:200;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px}
 .overlay.open{display:flex}
-.form-modal{background:#F7F3F3;border-radius:16px;width:720px;max-width:100%;box-shadow:0 24px 64px rgba(100,0,0,.28);display:flex;flex-direction:column;margin:auto;position:relative}
-.fmhdr{padding:24px 28px 18px;background:#fff;border-radius:16px 16px 0 0;border-bottom:1px solid #FFD0D0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.fmtitle{font-size:22px;font-weight:800;color:#1A0000}
-.fmsub{font-size:12px;color:#D40000;margin-top:4px;font-weight:400}
-.fmx{width:34px;height:34px;border-radius:8px;border:none;background:transparent;color:#D40000;font-size:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
-.fmx:hover{background:#FFF2F2;color:#C00000}
+.form-modal{background:#F9FAFB;border-radius:16px;width:720px;max-width:100%;box-shadow:0 24px 64px rgba(0,0,0,.18);display:flex;flex-direction:column;margin:auto;position:relative}
+.fmhdr{padding:24px 28px 18px;background:#fff;border-radius:16px 16px 0 0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.fmtitle{font-size:22px;font-weight:800;color:#111827}
+.fmsub{font-size:12px;color:#6B7280;margin-top:4px;font-weight:400}
+.fmx{width:34px;height:34px;border-radius:8px;border:none;background:transparent;color:#EC4899;font-size:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+.fmx:hover{background:#FDF2F8;color:#DB2777}
 .fmbody{padding:20px 24px;overflow-y:auto;max-height:calc(90vh - 140px)}
-.fmftr{padding:16px 28px;background:#fff;border-top:1px solid #FFD0D0;border-radius:0 0 16px 16px;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0}
+.fmftr{padding:16px 28px;background:#fff;border-radius:0 0 16px 16px;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0}
 .discard-shield{display:none;position:absolute;inset:0;background:rgba(0,0,0,.52);z-index:50;border-radius:16px;align-items:center;justify-content:center}
 .discard-shield.show{display:flex}
 .discard-card{background:#fff;border-radius:14px;padding:30px 30px 24px;max-width:340px;width:90%;text-align:center;box-shadow:0 20px 56px rgba(0,0,0,.38)}
@@ -252,44 +356,54 @@ tbody tr:hover td{background:#FFF8F8}
 .dc-btns{display:flex;gap:10px;justify-content:center}
 .dc-stay{padding:10px 22px;background:#F1F5F9;color:#374151;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer}
 .dc-stay:hover{background:#E2E8F0}
-.dc-leave{padding:10px 22px;background:linear-gradient(135deg,#D40000,#990000);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer}
-.dc-leave:hover{background:#8B0000}
-.btn-cancel{padding:10px 22px;background:#fff;color:#8B0000;border:1.5px solid #FF9090;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer}
-.btn-cancel:hover{background:#FFF5F5}
-.btn-save{padding:10px 24px;background:#C00000;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;cursor:pointer}
-.btn-save:hover{background:#990000}
-.confirm-modal{background:#fff;border-radius:16px;padding:28px;width:420px;max-width:95vw;box-shadow:0 20px 60px rgba(100,0,0,.25);margin:auto;text-align:center}
+.dc-leave{padding:10px 22px;background:linear-gradient(135deg,#EC4899,#BE185D);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer}
+.dc-leave:hover{background:#BE185D}
+.btn-cancel{padding:10px 22px;background:#fff;color:#BE185D;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(219,39,119,.12);transition:all .15s}
+.btn-cancel:hover{background:#FDF2F8;box-shadow:0 6px 18px rgba(219,39,119,.2);transform:translateY(-2px)}
+.btn-save{padding:10px 24px;background:#DB2777;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;cursor:pointer}
+.btn-save:hover{background:#BE185D;box-shadow:0 6px 18px rgba(219,39,119,.3);transform:translateY(-2px)}
+.confirm-modal{background:#fff;border-radius:16px;padding:28px;width:420px;max-width:95vw;box-shadow:0 20px 60px rgba(219,39,119,.25);margin:auto;text-align:center}
 
 /* GENERIC FORM GRID */
 .fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .fg{display:flex;flex-direction:column;gap:5px}
 .fg.full{grid-column:1/-1}
-.flbl{font-size:11px;font-weight:700;color:#8B0000;letter-spacing:.35px;text-transform:uppercase}
-.finput{padding:10px 12px;border:1.5px solid #FFD0D0;border-radius:10px;font-size:13px;color:#1E293B;background:#fff;width:100%;font-weight:400}
-.finput:focus{outline:none;border-color:#C00000}
+.flbl{font-size:11px;font-weight:700;color:#BE185D;letter-spacing:.35px;text-transform:uppercase}
+.finput{padding:10px 12px;border:none;border-radius:10px;font-size:13px;color:#1E293B;background:#FDF2F8;width:100%;font-weight:400;transition:all .15s;box-shadow:0 1px 4px rgba(219,39,119,.08)}
+.finput:focus{outline:none;background:#fff;box-shadow:0 4px 16px rgba(219,39,119,.18);transform:translateY(-1px)}
 select.finput{appearance:auto}
+.finput[readonly]{background:#F3F4F6 !important;color:#6B7280 !important;cursor:default}
 
 /* ADD RECORD — 2-card layout */
-.add-card{background:#fff;border-radius:12px;border:1px solid #FFD0D0;margin-bottom:16px;overflow:hidden;box-shadow:0 2px 10px rgba(100,0,0,.08)}
-.add-card-hdr{background:linear-gradient(90deg,#7B0000,#A00000);color:#fff;padding:11px 18px;font-size:12.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:flex;align-items:center;gap:9px}
+.add-card{background:#fff;border-radius:12px;border:none;margin-bottom:16px;overflow:hidden;box-shadow:0 2px 10px rgba(219,39,119,.08)}
+.add-card-hdr{background:linear-gradient(90deg,#1F2937,#374151);color:#fff;padding:11px 18px;font-size:12.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:flex;align-items:center;gap:9px}
 .add-card-num{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.22);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .add-card-body{padding:16px 18px}
-.add-sub-lbl{font-size:10px;font-weight:700;color:#A00000;text-transform:uppercase;letter-spacing:.8px;margin:18px 0 10px;padding-bottom:5px;border-bottom:1px solid #FFE8E8;grid-column:1/-1}
+/* SKU multi-row */
+.sku-row{border-radius:10px;background:#fff;padding:0;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden}
+.sku-row-hdr{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:linear-gradient(90deg,#DB2777,#F472B6);margin-bottom:0}
+.sku-row-num{font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.8px}
+.sku-row-fields{padding:14px}
+.sku-row-remove{background:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.4);color:#fff;font-size:12px;font-weight:600;cursor:pointer;padding:3px 10px;border-radius:6px;transition:all .15s}
+.sku-row-remove:hover{background:rgba(255,255,255,0.9);color:#BE185D}
+.btn-add-sku{display:flex;align-items:center;gap:6px;padding:8px 16px;background:#fff;border:none;border-radius:10px;color:#DB2777;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(219,39,119,.14);transition:all .15s;margin-top:4px}
+.btn-add-sku:hover{background:#FDF2F8;box-shadow:0 4px 14px rgba(219,39,119,.22);transform:translateY(-1px)}
+.add-sub-lbl{font-size:10px;font-weight:700;color:#EC4899;text-transform:uppercase;letter-spacing:.8px;margin:18px 0 10px;padding-bottom:5px;border-bottom:1px solid #FFE8E8;grid-column:1/-1}
 .add-hint{font-size:11px;color:#22C55E;font-weight:500;margin-top:3px}
 /* Outlet Code preview bar */
-.cpb{background:linear-gradient(90deg,#7B0000 0%,#A00000 100%);padding:11px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.cpb{background:linear-gradient(90deg,#1F2937 0%,#374151 100%);padding:11px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .cpb-lbl{font-size:9px;font-weight:700;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
 .cpb-code{font-size:15px;font-weight:800;color:#fff;letter-spacing:1.5px;flex:1;font-variant-numeric:tabular-nums}
 .cpb-note{font-size:11px;color:rgba(255,255,255,.55);font-style:italic}
 
 /* IMPORT MODAL */
-.imp-step{display:flex;gap:16px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #F5EDED}
+.imp-step{display:flex;gap:16px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #FCE7F3}
 .imp-step:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.imp-step-num{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#C00000,#990000);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.imp-step-num{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#DB2777,#BE185D);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
 .imp-step-title{font-size:14px;font-weight:700;color:#1A0000;margin-bottom:3px}
-.imp-step-desc{font-size:12.5px;color:#A00000;line-height:1.6}
-.imp-dropzone{margin-top:12px;border:2px dashed #FF9090;border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#FFF7F7}
-.imp-dropzone:hover,.imp-dropzone.drag-over{border-color:#C00000;background:#F5EDED}
+.imp-step-desc{font-size:12.5px;color:#EC4899;line-height:1.6}
+.imp-dropzone{margin-top:12px;border:2px dashed #F9A8D4;border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#FDF2F8}
+.imp-dropzone:hover,.imp-dropzone.drag-over{border-color:#DB2777;background:#FCE7F3}
 .imp-dropzone.has-file{border-color:#22C55E;background:#F0FDF4;border-style:solid}
 .imp-dz-icon{font-size:32px;margin-bottom:8px}
 .imp-dz-text{font-size:13.5px;font-weight:600;color:#374151}
@@ -299,45 +413,45 @@ select.finput{appearance:auto}
 .imp-badge-upd{background:#FEF3C7;color:#92400E}
 .imp-preview-hdr{display:flex;align-items:center;gap:10px;margin:16px 0 8px;flex-wrap:wrap}
 .imp-preview-hdr .imp-pc{font-size:13px;font-weight:700;color:#1A0000;flex:1}
-.imp-pwrap{overflow-x:auto;border:1px solid #F0E8E8;border-radius:10px;max-height:200px;overflow-y:auto}
+.imp-pwrap{overflow-x:auto;border:1px solid #FCE7F3;border-radius:10px;max-height:200px;overflow-y:auto}
 .imp-pwrap table{width:100%;border-collapse:collapse;min-width:400px}
-.imp-pwrap th{padding:8px 12px;font-size:11px;color:#fff;font-weight:700;white-space:nowrap;letter-spacing:.3px;text-transform:uppercase;position:sticky;top:0;background:linear-gradient(90deg,#780000,#A00000)}
-.imp-pwrap td{padding:8px 12px;font-size:12.5px;border-bottom:1px solid #F5EDED;white-space:nowrap;color:#374151;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.imp-pwrap th{padding:8px 12px;font-size:11px;color:#9D174D;font-weight:700;white-space:nowrap;letter-spacing:.3px;text-transform:uppercase;position:sticky;top:0;background:linear-gradient(90deg,#FBCFE8,#FCE7F3)}
+.imp-pwrap td{padding:8px 12px;font-size:12.5px;border-bottom:1px solid #FCE7F3;white-space:nowrap;color:#374151;max-width:180px;overflow:hidden;text-overflow:ellipsis}
 .imp-pwrap tr:last-child td{border-bottom:none}
-.imp-prog{margin-top:12px;background:#F5EDED;border-radius:8px;height:6px;overflow:hidden;display:none}
-.imp-prog-bar{height:100%;background:linear-gradient(90deg,#C00000,#D40000);width:0%;transition:width .2s;border-radius:8px}
+.imp-prog{margin-top:12px;background:#FCE7F3;border-radius:8px;height:6px;overflow:hidden;display:none}
+.imp-prog-bar{height:100%;background:linear-gradient(90deg,#DB2777,#EC4899);width:0%;transition:width .2s;border-radius:8px}
 .bte{padding:4px 10px;border-radius:7px;border:none;background:#EDF5FF;color:#2563EB;font-size:11.5px;font-weight:700;cursor:pointer}
-.btd{padding:4px 10px;border-radius:7px;border:none;background:#FFF2F2;color:#C00000;font-size:11.5px;font-weight:700;cursor:pointer}
+.btd{padding:4px 10px;border-radius:7px;border:none;background:#FDF2F8;color:#DB2777;font-size:11.5px;font-weight:700;cursor:pointer}
 .bte:hover{background:#DBEAFE}.btd:hover{background:#FEE2E2}
 
 /* LOG DRAWER */
-.log-drawer{position:fixed;right:-440px;top:0;width:420px;height:100vh;background:#fff;box-shadow:-4px 0 28px rgba(100,0,0,.18);z-index:300;display:flex;flex-direction:column;transition:right .25s cubic-bezier(.4,0,.2,1)}
+.log-drawer{position:fixed;right:-440px;top:0;width:420px;height:100vh;background:#fff;box-shadow:-4px 0 28px rgba(219,39,119,.18);z-index:300;display:flex;flex-direction:column;transition:right .25s cubic-bezier(.4,0,.2,1)}
 .log-drawer.open{right:0}
-.lhdr{padding:20px;background:#7B0000;color:#fff;position:relative}
+.lhdr{padding:20px;background:#9D174D;color:#fff;position:relative}
 .lhdr h3{font-size:15px;font-weight:800}
 .lhdr p{font-size:11px;color:rgba(255,255,255,.42);margin-top:3px;font-weight:400}
 .lhdr-x{position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:8px;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .lhdr-x:hover{background:rgba(255,255,255,.22)}
 .lbody{flex:1;overflow-y:auto;padding:14px}
-.litem{background:#FFF7F7;border-radius:10px;padding:12px 14px;margin-bottom:9px}
-.litem.li{border-left:3px solid #22C55E}.litem.lu{border-left:3px solid #D40000}.litem.ld{border-left:3px solid #C00000}
+.litem{background:#FDF2F8;border-radius:10px;padding:12px 14px;margin-bottom:9px}
+.litem.li{border-left:3px solid #22C55E}.litem.lu{border-left:3px solid #EC4899}.litem.ld{border-left:3px solid #DB2777}
 .la{font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
-.li .la{color:#16A34A}.lu .la{color:#990000}.ld .la{color:#C00000}
+.li .la{color:#16A34A}.lu .la{color:#BE185D}.ld .la{color:#DB2777}
 .ldesc{font-size:12.5px;color:#374151;margin-top:3px;font-weight:400}
-.lmeta{font-size:11px;color:#D40000;margin-top:5px;font-weight:400}
-.brst{margin-top:8px;padding:4px 12px;border-radius:7px;background:#F0E8E8;color:#8B0000;border:none;font-size:11.5px;font-weight:700;cursor:pointer}
+.lmeta{font-size:11px;color:#EC4899;margin-top:5px;font-weight:400}
+.brst{margin-top:8px;padding:4px 12px;border-radius:7px;background:#FCE7F3;color:#BE185D;border:none;font-size:11.5px;font-weight:700;cursor:pointer}
 .brst:hover{background:#E4D0D0}
 
 /* TOAST */
 .toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.toast{padding:12px 18px;border-radius:10px;font-size:13px;font-weight:700;box-shadow:0 4px 20px rgba(100,0,0,.22);display:flex;align-items:center;gap:8px;animation:tin .25s ease}
-.tok{background:#065F46;color:#fff}.terr{background:#990000;color:#fff}.tinf{background:#7B0000;color:#fff}
+.toast{padding:12px 18px;border-radius:10px;font-size:13px;font-weight:700;box-shadow:0 4px 20px rgba(219,39,119,.22);display:flex;align-items:center;gap:8px;animation:tin .25s ease}
+.tok{background:#065F46;color:#fff}.terr{background:#BE185D;color:#fff}.tinf{background:#9D174D;color:#fff}
 @keyframes tin{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
-.empty-state{text-align:center;padding:60px 20px;color:#FF9090}
+.empty-state{text-align:center;padding:60px 20px;color:#F9A8D4}
 .empty-state .ei{font-size:42px;margin-bottom:12px}
 .empty-state p{font-size:14px;font-weight:400}
-.btn-secondary{padding:9px 14px;background:linear-gradient(135deg,#990000 0%,#8B0000 100%);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(100,0,0,.25)}
-.btn-secondary:hover{background:linear-gradient(135deg,#8B0000 0%,#7B0000 100%)}
+.btn-secondary{padding:9px 14px;background:linear-gradient(135deg,#BE185D 0%,#9D174D 100%);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(219,39,119,.25)}
+.btn-secondary:hover{background:linear-gradient(135deg,#9D174D 0%,#831843 100%)}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=6">
 </head>
@@ -356,18 +470,15 @@ select.finput{appearance:auto}
   <div class="nav-links">
     <div class="nav-section">Main Menu</div>
     <a href="dashboard.html">Dashboard</a>
-
     <div class="nav-section">Master Data</div>
     <a href="outlets.html">Outlet Master</a>
     <a href="data_u.html" class="nav-sub active">Data Universe</a>
     <a href="contracts.html">Contract Master</a>
     <a href="promotions.html">Promotions</a>
-
     <div class="nav-section">Analytics</div>
     <a href="roi.html">ROI Analysis</a>
     <a href="offtake.html">Off-take 2026</a>
     <a href="sku.html">SKU</a>
-
     <div class="nav-section">System</div>
     <a href="users.html">User Management</a>
   </div>
@@ -391,67 +502,77 @@ select.finput{appearance:auto}
 <!-- MAIN -->
 <div class="main">
   <div>
-    <h2 class="page-title">Data Universe <span class="dot-live"></span></h2>
+    <h2 class="page-title">●Data Universe <span class="dot-live"></span></h2>
   </div>
 
   <!-- Context banner: shown when filtered by outlet code via URL param -->
-  <div id="codeCtx" style="display:none;background:linear-gradient(90deg,#8B0000,#990000);color:#fff;border-radius:10px;padding:10px 18px;margin:8px 0;align-items:center;gap:14px;flex-wrap:wrap">
+  <div id="codeCtx" style="display:none;background:linear-gradient(90deg,#BE185D,#DB2777);color:#fff;border-radius:10px;padding:10px 18px;margin:8px 0;align-items:center;gap:14px;flex-wrap:wrap">
     <span style="font-size:20px">🔗</span>
     <div style="flex:1">
       <div style="font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">Linked Outlet Code</div>
       <div style="font-weight:800;font-size:16px;letter-spacing:1px;font-family:monospace" id="codeCtxValue">—</div>
     </div>
-    <a href="outlets.html" style="color:rgba(255,255,255,.85);font-size:12px;font-weight:600;text-decoration:none;padding:7px 14px;border:1px solid rgba(255,255,255,.3);border-radius:8px;white-space:nowrap">← Outlet Master</a>
-    <a href="data_u.html" style="color:rgba(255,255,255,.5);font-size:11px;text-decoration:none;padding:5px 10px;border:1px solid rgba(255,255,255,.15);border-radius:6px;white-space:nowrap">✕ Clear filter</a>
+    <a href="outlets.html" style="color:rgb(0, 0, 0);font-size:12px;font-weight:600;text-decoration:none;padding:7px 14px;border:1px solid rgba(255,255,255,.3);border-radius:8px;white-space:nowrap">← Outlet Master</a>
+    <a href="data_u.html" style="color:rgb(0, 0, 0);font-size:11px;text-decoration:none;padding:5px 10px;border:1px solid rgba(255,255,255,.15);border-radius:6px;white-space:nowrap">✕ Clear filter</a>
   </div>
 
   <!-- KPI Cards -->
   <div class="kpi-row">
-    <!-- Total Outlet -->
+
+    <!-- ── Total Outlet ── -->
     <div class="kpi-card">
-      <div class="kpi-top">
+      <div class="kpi-body">
         <div class="kpi-icon" style="background:rgba(245,158,11,.13)">🏪</div>
-        <div class="kpi-title">Total Outlet</div>
+        <div class="kpi-info">
+          <div class="kpi-label">Total Outlet</div>
+          <div class="kpi-num"><span id="statTotal">—</span><span class="kpi-unit">outlets</span></div>
+          <div class="kpi-badge" style="background:rgba(245,158,11,.12);color:#92400E">All Records</div>
+        </div>
       </div>
-      <div class="kpi-num"><span id="statTotal">—</span><span> outlets</span></div>
-      <div class="kpi-badge" style="background:rgba(245,158,11,.12);color:#92400E">All Records</div>
       <div class="kpi-wave">
         <svg viewBox="0 0 220 52" preserveAspectRatio="none">
-          <path d="M0,38 C25,28 45,46 75,33 C100,22 125,42 155,28 C175,18 200,32 220,29 L220,52 L0,52 Z" fill="rgba(245,158,11,.10)"/>
-          <path d="M0,38 C25,28 45,46 75,33 C100,22 125,42 155,28 C175,18 200,32 220,29" fill="none" stroke="rgba(245,158,11,.45)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M0,38 C25,28 45,46 75,33 C100,22 125,42 155,28 C175,18 200,32 220,29 L220,52 L0,52 Z" fill="rgba(245,158,11,.12)"/>
+          <path d="M0,38 C25,28 45,46 75,33 C100,22 125,42 155,28 C175,18 200,32 220,29" fill="none" stroke="rgba(245,158,11,.5)" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </div>
     </div>
-    <!-- New Outlet -->
+
+    <!-- ── New Outlet ── -->
     <div class="kpi-card">
-      <div class="kpi-top">
+      <div class="kpi-body">
         <div class="kpi-icon" style="background:rgba(16,185,129,.12)">✨</div>
-        <div class="kpi-title">New Outlet</div>
+        <div class="kpi-info">
+          <div class="kpi-label">New Outlet</div>
+          <div class="kpi-num"><span id="statNew">—</span><span class="kpi-unit">outlets</span></div>
+          <div class="kpi-badge" style="background:rgba(16,185,129,.12);color:#065F46">New</div>
+        </div>
       </div>
-      <div class="kpi-num"><span id="statNew">—</span><span> outlets</span></div>
-      <div class="kpi-badge" style="background:rgba(16,185,129,.12);color:#065F46">New</div>
       <div class="kpi-wave">
         <svg viewBox="0 0 220 52" preserveAspectRatio="none">
-          <path d="M0,40 C30,25 55,44 85,30 C110,18 135,38 165,26 C185,16 205,34 220,30 L220,52 L0,52 Z" fill="rgba(16,185,129,.10)"/>
-          <path d="M0,40 C30,25 55,44 85,30 C110,18 135,38 165,26 C185,16 205,34 220,30" fill="none" stroke="rgba(16,185,129,.45)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M0,40 C30,25 55,44 85,30 C110,18 135,38 165,26 C185,16 205,34 220,30 L220,52 L0,52 Z" fill="rgba(16,185,129,.12)"/>
+          <path d="M0,40 C30,25 55,44 85,30 C110,18 135,38 165,26 C185,16 205,34 220,30" fill="none" stroke="rgba(16,185,129,.5)" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </div>
     </div>
-    <!-- Current Outlet -->
+
+    <!-- ── Current Outlet ── -->
     <div class="kpi-card">
-      <div class="kpi-top">
-        <div class="kpi-icon" style="background:rgba(192,57,43,.10)">📌</div>
-        <div class="kpi-title">Current Outlet</div>
+      <div class="kpi-body">
+        <div class="kpi-icon" style="background:rgba(219,39,119,.10)">📌</div>
+        <div class="kpi-info">
+          <div class="kpi-label">Current Outlet</div>
+          <div class="kpi-num"><span id="statCurrent">—</span><span class="kpi-unit">outlets</span></div>
+          <div class="kpi-badge" style="background:rgba(219,39,119,.09);color:#9D174D">Current</div>
+        </div>
       </div>
-      <div class="kpi-num"><span id="statCurrent">—</span><span> outlets</span></div>
-      <div class="kpi-badge" style="background:rgba(192,57,43,.09);color:#7B0000">Current</div>
       <div class="kpi-wave">
         <svg viewBox="0 0 220 52" preserveAspectRatio="none">
-          <path d="M0,36 C20,26 50,44 80,32 C108,20 130,40 158,27 C178,17 202,33 220,28 L220,52 L0,52 Z" fill="rgba(192,57,43,.07)"/>
-          <path d="M0,36 C20,26 50,44 80,32 C108,20 130,40 158,27 C178,17 202,33 220,28" fill="none" stroke="rgba(192,57,43,.35)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M0,36 C20,26 50,44 80,32 C108,20 130,40 158,27 C178,17 202,33 220,28 L220,52 L0,52 Z" fill="rgba(219,39,119,.09)"/>
+          <path d="M0,36 C20,26 50,44 80,32 C108,20 130,40 158,27 C178,17 202,33 220,28" fill="none" stroke="rgba(219,39,119,.4)" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </div>
     </div>
+
   </div>
 
   <!-- Combined action + filter bar (one row) -->
@@ -484,7 +605,7 @@ select.finput{appearance:auto}
     <div class="col-picker-wrap" id="colPickerWrap">
       <button class="btn-col" onclick="toggleColPicker(event)" title="Show / Hide Columns">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-        Columns<span id="colPickerCount" style="font-weight:400;color:#D40000"></span>
+        Columns<span id="colPickerCount" style="font-weight:400;color:#EC4899"></span>
       </button>
       <div class="col-picker-panel" id="colPickerPanel" style="left:0;min-width:240px">
         <div class="cp-hdr">
@@ -539,7 +660,7 @@ select.finput{appearance:auto}
         <div class="imp-step-num">2</div>
         <div style="flex:1">
           <div class="imp-step-title">Upload Excel File</div>
-          <div class="imp-step-desc">Fill in the template then upload. New rows will be <strong style="color:#22C55E">Added</strong>; existing names will be <strong style="color:#C00000">Updated</strong>.</div>
+          <div class="imp-step-desc">Fill in the template then upload. New rows will be <strong style="color:#22C55E">Added</strong>; existing names will be <strong style="color:#DB2777">Updated</strong>.</div>
           <div class="imp-dropzone" id="impDropzone"
                onclick="document.getElementById('impFileInput').click()"
                ondragover="impDragOver(event)" ondragleave="impDragLeave(event)" ondrop="impDrop(event)">
@@ -580,7 +701,7 @@ select.finput{appearance:auto}
 </div>
 
 <!-- ADD MODAL -->
-<div class="overlay" id="addOverlay" onclick="if(event.target===this)closeAdd()">
+<div class="overlay" id="addOverlay">
   <div class="form-modal">
     <div class="fmhdr">
       <div><div class="fmtitle">Add Record</div><div class="fmsub">Outlet Information &amp; SKU — บันทึกลง Supabase ทันที</div></div>
@@ -630,10 +751,28 @@ select.finput{appearance:auto}
   <div class="confirm-modal">
     <div style="font-size:52px;margin-bottom:14px">🗑️</div>
     <div style="font-size:16px;font-weight:800;color:#1A0000;margin-bottom:6px" id="delName">—</div>
-    <div style="font-size:13px;color:#D40000;font-weight:400">This record will be permanently deleted.<br>Restorable from Log History.</div>
+    <div style="font-size:13px;color:#EC4899;font-weight:400">This record will be permanently deleted.<br>Restorable from Log History.</div>
     <div style="display:flex;gap:10px;justify-content:center;margin-top:24px">
       <button class="btn-cancel" onclick="closeDel()">Cancel</button>
-      <button class="btn-save" style="background:#C00000" onclick="confirmDel()">Delete Record</button>
+      <button class="btn-save" style="background:#DB2777" onclick="confirmDel()">Delete Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE PREVIEW MODAL -->
+<div class="overlay" id="savePreviewOverlay" style="display:none">
+  <div class="form-modal" style="width:760px;max-width:96vw">
+    <div class="fmhdr">
+      <div>
+        <div class="fmtitle">ยืนยันการบันทึก</div>
+        <div class="fmsub">ตรวจสอบข้อมูลก่อนบันทึกลง Supabase</div>
+      </div>
+      <button class="fmx" onclick="closeSavePreview()">✕</button>
+    </div>
+    <div class="fmbody" id="savePreviewBody" style="padding:20px 24px"></div>
+    <div class="fmftr">
+      <button class="btn-cancel" onclick="closeSavePreview()">แก้ไข</button>
+      <button class="btn-save" id="confirmSaveBtn" onclick="confirmSaveAdd()">💾 ยืนยันบันทึก</button>
     </div>
   </div>
 </div>
@@ -668,7 +807,7 @@ let skuFilterState = {};   /* { prefix: { fieldName: selectedValue } } — casca
 
 /* SKU field → multiple column name variants to try */
 const SKU_FIELD_KEYS = {
-  'SKU Code':   ['SKU Code','sku_code','SKUCode'],
+  'SKU Code':   ['SKU Code','sku_code','SKUCode','Code','code','skuCode','Sku_Code','SKU_Code'],
   'SKU':        ['SKU','sku','SKU Name','sku_name'],
   'Principle':  ['Principle','principle','PRINCIPLE'],
   'Category':   ['Category','category','CATEGORY'],
@@ -680,6 +819,9 @@ const SKU_FIELD_KEYS = {
 };
 /* Fields shown as linked dropdowns (excludes readonly SKU Code) */
 const SKU_SELECTABLE = ['SKU','Principle','Category','Brand','Product','Size','Pack','SKU Status'];
+
+/* Fields forced to combobox (type + pick) regardless of cardinality */
+const FORCE_COMBO_FIELDS = new Set(['Soi','Road','Wholseller Supply']);
 
 /* Fields forced to select dropdown regardless of cardinality */
 const FORCE_SELECT_FIELDS = new Set([
@@ -766,7 +908,7 @@ async function checkAuth() {
     loadOutletMaster();  /* load Outlet Master lookup in background */
     ensureDuSkuData();   /* preload SKU master for add form combos */
   } catch(e) {
-    document.getElementById('tableWrap').innerHTML = `<div class="empty-state"><div class="ei">⚠️</div><p>Connection error: ${esc(e.message)}<br><small style="color:#FF9090">Check your Supabase config in js/config.js</small></p></div>`;
+    document.getElementById('tableWrap').innerHTML = `<div class="empty-state"><div class="ei">⚠️</div><p>Connection error: ${esc(e.message)}<br><small style="color:#F9A8D4">Check your Supabase config in js/config.js</small></p></div>`;
   }
 }
 
@@ -810,9 +952,9 @@ async function loadData() {
 
   if (error) {
     const hint = error.message.includes('does not exist')
-      ? '<br><small style="color:#FF9090">กรุณาสร้าง table "Data Universe" ใน Supabase และตั้งค่า RLS อนุญาตการอ่าน</small>'
+      ? '<br><small style="color:#F9A8D4">กรุณาสร้าง table "Data Universe" ใน Supabase และตั้งค่า RLS อนุญาตการอ่าน</small>'
       : (error.message.includes('row-level') || error.message.includes('permission'))
-      ? '<br><small style="color:#FF9090">เปิด RLS policy: allow SELECT — ดู setup_data_u.sql</small>'
+      ? '<br><small style="color:#F9A8D4">เปิด RLS policy: allow SELECT — ดู setup_data_u.sql</small>'
       : '';
     wrap.innerHTML = `<div class="empty-state"><div class="ei">⚠️</div><p>Load failed: ${esc(error.message)}${hint}</p></div>`;
     cntEl.textContent = 'Load failed'; return;
@@ -821,11 +963,11 @@ async function loadData() {
   if (!first || !first.length) {
     const diagLine = `Count query: <b>${totalCount ?? 'null (blocked)'}</b> | Count error: <b>${countError?.message || 'none'}</b> | Session: <b>${session?.user?.email || 'NONE'}</b>`;
     wrap.innerHTML = `<div class="empty-state"><div class="ei">📭</div>
-      <p style="font-size:14px;font-weight:600;color:#7B0000">ไม่พบข้อมูลใน table "Data Universe"</p>
+      <p style="font-size:14px;font-weight:600;color:#9D174D">ไม่พบข้อมูลใน table "Data Universe"</p>
       <div style="margin:10px auto;max-width:560px;background:#F9F9F9;border:1px solid #E5E7EB;border-radius:8px;padding:10px 14px;font-size:12px;color:#374151;text-align:left">${diagLine}</div>
       <p style="margin-top:4px;font-size:12.5px;color:#9CA3AF">เปิด DevTools → Console เพื่อดูข้อมูล debug เพิ่มเติม</p>
-      <div style="margin-top:16px;background:#FFF7F7;border-radius:10px;padding:14px 18px;text-align:left;max-width:520px;margin-left:auto;margin-right:auto;border:1px solid #FFD0D0">
-        <div style="font-size:11px;font-weight:700;color:#990000;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">วิธีแก้: รัน SQL นี้ใน Supabase SQL Editor</div>
+      <div style="margin-top:16px;background:#FDF2F8;border-radius:10px;padding:14px 18px;text-align:left;max-width:520px;margin-left:auto;margin-right:auto;border:1px solid #FCE7F3">
+        <div style="font-size:11px;font-weight:700;color:#BE185D;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">วิธีแก้: รัน SQL นี้ใน Supabase SQL Editor</div>
         <pre style="font-size:11.5px;color:#374151;background:#F9F9F9;border-radius:6px;padding:10px;overflow-x:auto;line-height:1.6;border:1px solid #E5E7EB">ALTER TABLE "Data Universe" ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can read Data Universe"
@@ -843,7 +985,7 @@ CREATE POLICY "Users can update Data Universe"
 CREATE POLICY "Users can delete Data Universe"
   ON "Data Universe" FOR DELETE
   USING (auth.uid() IS NOT NULL);</pre>
-        <p style="font-size:11.5px;color:#A00000;margin-top:8px">ไฟล์ SQL เต็ม: <code style="background:#F0E8E8;padding:2px 6px;border-radius:4px">setup_data_u.sql</code> ในโฟลเดอร์ contracthub</p>
+        <p style="font-size:11.5px;color:#EC4899;margin-top:8px">ไฟล์ SQL เต็ม: <code style="background:#FCE7F3;padding:2px 6px;border-radius:4px">setup_data_u.sql</code> ในโฟลเดอร์ contracthub</p>
       </div>
     </div>`;
     cntEl.textContent = '0 records';
@@ -948,7 +1090,7 @@ CREATE POLICY "Users can delete Data Universe"
   } catch(renderErr) {
     console.error('[DataU RenderError]', renderErr);
     wrap.innerHTML = `<div class="empty-state"><div class="ei">⚠️</div>
-      <p style="color:#C00000;font-weight:700">Render Error: ${esc(renderErr.message)}</p>
+      <p style="color:#DB2777;font-weight:700">Render Error: ${esc(renderErr.message)}</p>
       <pre style="font-size:11px;color:#666;text-align:left;max-width:600px;margin:10px auto;background:#f5f5f5;padding:10px;border-radius:6px;overflow-x:auto">${esc(renderErr.stack || '')}</pre>
     </div>`;
     cntEl.textContent = 'Render error'; return;
@@ -1271,7 +1413,7 @@ document.addEventListener('click', e => { const w = document.getElementById('col
    RENDER TABLE
    ============================================================ */
 function fv(v, col) {
-  if (v == null || v === '') return '<span style="color:#FF9090">—</span>';
+  if (v == null || v === '') return '<span style="color:#F9A8D4">—</span>';
   if (typeof v === 'boolean') return v ? '<span class="badge ba">Yes</span>' : '<span class="badge bi">No</span>';
   if (typeof v === 'number') return `<span style="font-variant-numeric:tabular-nums">${Number(v).toLocaleString('th-TH')}</span>`;
   const s = String(v);
@@ -1302,7 +1444,7 @@ function renderPagi() {
   const show = new Set([1, pages, page - 1, page, page + 1].filter(p => p >= 1 && p <= pages));
   let prev = 0;
   [...show].sort((a, b) => a - b).forEach(p => {
-    if (prev && p - prev > 1) btns += `<span style="padding:0 4px;color:#FF9090;font-size:13px">…</span>`;
+    if (prev && p - prev > 1) btns += `<span style="padding:0 4px;color:#F9A8D4;font-size:13px">…</span>`;
     btns += `<button class="pg-btn${p === page ? ' active' : ''}" onclick="goPage(${p})">${p}</button>`;
     prev = p;
   });
@@ -1362,7 +1504,12 @@ function buildField(prefix, desired, rowData, extraAttrs) {
   const attrs = extraAttrs || '';
   let input   = '';
 
-  if (ftype === 'select') {
+  if (FORCE_COMBO_FIELDS.has(desired)) {
+    const duOpts = (actual ? uniqueVals[actual] : null) || [];
+    const dlId   = `${fid}_dl`;
+    input = `<input class="finput" id="${fid}" list="${dlId}" value="${val}" placeholder="Type or Select..." autocomplete="off" ${attrs}>
+      <datalist id="${dlId}">${duOpts.sort().map(o=>`<option value="${esc(o)}">`).join('')}</datalist>`;
+  } else if (ftype === 'select') {
     const duOpts   = (actual ? uniqueVals[actual] : null) || [];
     const typeOpts = outletTypeVals[desired] || [];
     /* Merge DU values + Outlet Master values, deduplicated */
@@ -1441,7 +1588,7 @@ function buildAddForm(prefix, rowData) {
                    onchange="onDuGroupNameChange('${prefix}',this.value);onDuCodeTrigger('${prefix}')"`);
               if (d === 'Group Code')
                 return buildField(prefix, d, rowData,
-                  `readonly style="background:#F5F3F3;color:#8B0000;font-weight:600"`);
+                  `readonly style="background:#F3F4F6;color:#6B7280;font-weight:500"`);
               return buildField(prefix, d, rowData);
             }).join('')}
         </div>
@@ -1482,7 +1629,10 @@ function buildAddForm(prefix, rowData) {
 
 /* ── Get a value from a SKU row, trying multiple column name variants ─── */
 function frSku(row, field) {
-  const keys = SKU_FIELD_KEYS[field] || [field, field.toLowerCase()];
+  /* Try the dynamically detected column name first (from skuColMap), then fallbacks */
+  const detected = skuColMap[field];
+  const fallbacks = SKU_FIELD_KEYS[field] || [field, field.toLowerCase()];
+  const keys = detected ? [detected, ...fallbacks] : fallbacks;
   for (const k of keys) { const v = row[k]; if (v != null && String(v) !== '') return String(v); }
   return '';
 }
@@ -1533,13 +1683,29 @@ function onSkuFieldChange(prefix, field) {
 
   /* Auto-fill SKU Code when exactly 1 row matches, or when SKU name is directly selected */
   const codeEl = document.getElementById(`${prefix}_field_skucode`);
-  let matchRow = filtered.length === 1 ? filtered[0]
-    : (field === 'SKU' && val)
-      ? filtered.find(r => frSku(r,'SKU').trim().toLowerCase() === val.toLowerCase()) || null
-      : null;
+  let matchRow = null;
+  if (filtered.length === 1) {
+    matchRow = filtered[0];
+  } else if (field === 'SKU' && val) {
+    /* Search filtered first, then fall back to full master data (handles cascade-mismatch) */
+    const lower = val.trim().toLowerCase();
+    matchRow = filtered.find(r => frSku(r,'SKU').trim().toLowerCase() === lower)
+      || skuMasterData_du.find(r => frSku(r,'SKU').trim().toLowerCase() === lower)
+      || null;
+  }
 
   if (matchRow) {
-    if (codeEl) codeEl.value = frSku(matchRow, 'SKU Code');
+    let code = frSku(matchRow, 'SKU Code');
+    /* Fallback: look up SKU Code from allData (Data Universe) by matching SKU name */
+    if (!code && field === 'SKU' && val) {
+      const skuAc = findActualCol('SKU');
+      const codeAc = findActualCol('SKU Code');
+      if (skuAc && codeAc) {
+        const duRow = allData.find(r => String(r[skuAc] ?? '').trim().toLowerCase() === val.trim().toLowerCase() && r[codeAc]);
+        if (duRow) code = String(duRow[codeAc]);
+      }
+    }
+    if (codeEl) codeEl.value = code;
     /* If the user just selected a specific SKU name → fill all still-empty linked fields */
     if (field === 'SKU') {
       SKU_SELECTABLE.forEach(f => {
@@ -1557,81 +1723,77 @@ function onSkuFieldChange(prefix, field) {
   }
 }
 
-/* ── SKU section builder — linked cascading dropdowns ─── */
+/* ── SKU section: container + add-row button ─── */
 function buildSkuSection(prefix, rowData) {
-  const today = new Date().toISOString().slice(0, 10);
-  skuFilterState[prefix] = {}; /* reset cascade state when form is (re)built */
+  return `<div id="${prefix}_sku_container">${buildSkuRow(prefix, 0, rowData)}</div>
+    <button type="button" class="btn-add-sku" onclick="addSkuRow('${prefix}')">＋ Add SKU</button>`;
+}
 
-  /* Initial options: all values from SKU master + DU fallback, merged */
+/* ── Single SKU row — order: Principle→Brand→Product→SKU→Size→Pack→Code ─── */
+function buildSkuRow(outerPrefix, idx, rowData) {
+  const rp = `${outerPrefix}_sku_${idx}`;
+  skuFilterState[rp] = {};
+
   const initOpts = (field) => {
     const fromMaster = [...new Set(skuMasterData_du.map(r => frSku(r, field)).filter(Boolean))];
     const ac = findActualCol(field); const fromDU = ac ? (uniqueVals[ac] || []) : [];
     return [...new Set([...fromMaster, ...fromDU])].sort();
   };
-
   const rv = (field) => rowData ? (findActualCol(field) ? esc(rowData[findActualCol(field)] ?? '') : '') : '';
-  const skuCodeVal = rv('SKU Code');
-  const drVal = rowData ? (findActualCol('Date_Register') ? esc(rowData[findActualCol('Date_Register')] ?? today) : today) : today;
-  const udVal = rowData ? (findActualCol('Update_Date')   ? esc(rowData[findActualCol('Update_Date')]   ?? today) : today) : today;
 
-  const mkSkuSel = (field) => {
+  /* Combobox: input + datalist — user can pick from list OR type custom value */
+  const mkCombo = (field, label, required) => {
     const val = rv(field);
     const opts = initOpts(field);
-    const id = `${prefix}_field_${norm(field)}`;
-    return `<select class="finput" id="${id}" onchange="onSkuFieldChange('${prefix}','${field}')">` +
-      `<option value="">— Select —</option>` +
-      opts.map(o => `<option value="${esc(o)}"${o===val?' selected':''}>${esc(o)}</option>`).join('') +
-      `</select>`;
+    const id  = `${rp}_field_${norm(field)}`;
+    const dlId = `${rp}_dl_${norm(field)}`;
+    return `<div class="fg">
+      <label class="flbl">${label}${required ? ` <span style="font-size:9px;font-weight:400;color:#EC4899">*</span>` : ''}</label>
+      <input class="finput" id="${id}" list="${dlId}" value="${val}"
+        placeholder="Type or Select..." autocomplete="off"
+        oninput="onSkuFieldChange('${rp}','${field}')">
+      <datalist id="${dlId}">${opts.map(o => `<option value="${esc(o)}">`).join('')}</datalist>
+    </div>`;
   };
 
-  return `<div class="fg-grid">
-    <div class="fg">
-      <label class="flbl">SKU Code <span style="font-size:9px;font-weight:400;color:#D40000">(auto)</span></label>
-      <input class="finput" id="${prefix}_field_skucode" type="text" value="${skuCodeVal}" placeholder="Auto-filled"
-        style="background:#F5F3F3;color:#8B0000;font-weight:600" readonly>
+  return `<div class="sku-row" data-idx="${idx}">
+    <div class="sku-row-hdr">
+      <span class="sku-row-num">SKU #${idx + 1}</span>
+      ${idx > 0 ? `<button type="button" class="sku-row-remove" onclick="removeSkuRow('${outerPrefix}',this)">✕ Remove</button>` : ''}
     </div>
-    <div class="fg">
-      <label class="flbl">SKU <span style="font-size:9px;font-weight:400;color:#D40000">*</span></label>
-      ${mkSkuSel('SKU')}
-    </div>
-    <div class="fg">
-      <label class="flbl">Principle</label>
-      ${mkSkuSel('Principle')}
-    </div>
-    <div class="fg">
-      <label class="flbl">Category</label>
-      ${mkSkuSel('Category')}
-    </div>
-    <div class="fg">
-      <label class="flbl">Brand</label>
-      ${mkSkuSel('Brand')}
-    </div>
-    <div class="fg">
-      <label class="flbl">Product</label>
-      ${mkSkuSel('Product')}
-    </div>
-    <div class="fg">
-      <label class="flbl">Size</label>
-      ${mkSkuSel('Size')}
-    </div>
-    <div class="fg">
-      <label class="flbl">Pack</label>
-      ${mkSkuSel('Pack')}
-    </div>
-    <div class="fg">
-      <label class="flbl">SKU Status</label>
-      ${mkSkuSel('SKU Status')}
-    </div>
-    <div class="fg">
-      <label class="flbl">Date Register <span style="font-size:9px;font-weight:400;color:#999">(auto today)</span></label>
-      <input class="finput" id="${prefix}_field_dateregister" type="date" value="${drVal}">
-    </div>
-    <div class="fg">
-      <label class="flbl">Update Date <span style="font-size:9px;font-weight:400;color:#999">(auto today)</span></label>
-      <input class="finput" id="${prefix}_field_updatedate" type="date" value="${udVal}">
+    <div class="sku-row-fields">
+      <div class="fg-grid">
+        ${mkCombo('Principle','Principle',false)}
+        ${mkCombo('Brand','Brand',false)}
+        ${mkCombo('Product','Product',false)}
+        ${mkCombo('SKU','SKU',true)}
+        ${mkCombo('Size','Size',false)}
+        ${mkCombo('Pack','Pack',false)}
+        <div class="fg">
+          <label class="flbl">SKU Code <span style="font-size:9px;font-weight:400;color:#EC4899">(auto)</span></label>
+          <input class="finput" id="${rp}_field_skucode" type="text" value="${rv('SKU Code')}"
+            placeholder="Auto-filled from DB" style="background:#F3F4F6;color:#6B7280;font-weight:500" readonly>
+        </div>
+      </div>
     </div>
   </div>`;
 }
+
+function addSkuRow(outerPrefix) {
+  const container = document.getElementById(`${outerPrefix}_sku_container`);
+  if (!container) return;
+  const idx = container.querySelectorAll('.sku-row').length;
+  container.insertAdjacentHTML('beforeend', buildSkuRow(outerPrefix, idx, null));
+}
+
+function removeSkuRow(outerPrefix, btn) {
+  const row = btn.closest('.sku-row');
+  const container = document.getElementById(`${outerPrefix}_sku_container`);
+  if (!row || !container || container.querySelectorAll('.sku-row').length <= 1) return;
+  delete skuFilterState[`${outerPrefix}_sku_${row.dataset.idx}`];
+  row.remove();
+}
+
 
 /* ── Load SKU master data + detect actual column names ──────── */
 async function ensureDuSkuData() {
@@ -1648,8 +1810,12 @@ async function ensureDuSkuData() {
         const actual = tCols.find(c => norm2(c) === dn);
         if (actual) skuColMap[desired] = actual;
       });
+      /* DEBUG — open DevTools Console (F12) to see actual SKU table columns */
+      console.log('[SKU] all columns:', tCols);
+      console.log('[SKU] detected column map:', skuColMap);
+      console.log('[SKU] sample row:', data[0]);
     }
-  } catch(e) {}
+  } catch(e) { console.error('[SKU] load error:', e); }
 }
 
 /* ── Group Name → auto-fill Group Code ──────────────────────── */
@@ -1717,7 +1883,7 @@ function generateAndSetCode(prefix) {
   if (!provVal) {
     codeEl.value = ''; codeEl.style.background = '';
     codeEl.placeholder = 'Select Province (Section 2) to generate code';
-    if (hint) { hint.textContent = 'Please select Province first'; hint.style.display = ''; hint.style.color = '#D40000'; }
+    if (hint) { hint.textContent = 'Please select Province first'; hint.style.display = ''; hint.style.color = '#EC4899'; }
     setBar('Select Province (Section 2) to generate code', false);
     return;
   }
@@ -1846,15 +2012,36 @@ function onOutletNameInput(prefix) {
 
 /* Read all add-form fields → object keyed by actual DB column name */
 function readAddForm(prefix) {
-  const ALL = [...FORM_OUTLET_BASIC,...FORM_ADDRESS,...FORM_CONTACT,...FORM_OUTLET_TYPE,...FORM_SKU];
-  const out = {};
-  ALL.forEach(desired => {
+  /* Outlet fields */
+  const outletVals = {};
+  [...FORM_OUTLET_BASIC,...FORM_ADDRESS,...FORM_CONTACT,...FORM_OUTLET_TYPE].forEach(desired => {
     const el = document.getElementById(`${prefix}_field_${norm(desired)}`);
     if (!el) return;
-    const actual = findActualCol(desired) || desired;
-    out[actual] = el.value.trim() || null;
+    outletVals[findActualCol(desired) || desired] = el.value.trim() || null;
   });
-  return out;
+  /* SKU rows */
+  const today = new Date().toISOString().slice(0, 10);
+  const container = document.getElementById(`${prefix}_sku_container`);
+  const rowEls = container ? container.querySelectorAll('.sku-row') : [];
+  const skuRows = [];
+  rowEls.forEach(rowEl => {
+    const rp = `${prefix}_sku_${rowEl.dataset.idx}`;
+    const rowVals = {};
+    /* Visible SKU fields */
+    ['Principle','Brand','Product','SKU','Size','Pack','SKU Code'].forEach(desired => {
+      const key = desired === 'SKU Code' ? 'skucode' : norm(desired);
+      const el = document.getElementById(`${rp}_field_${key}`);
+      if (!el) return;
+      rowVals[findActualCol(desired) || desired] = el.value.trim() || null;
+    });
+    /* Auto date fields */
+    const drAc = findActualCol('Date_Register');
+    const udAc = findActualCol('Update_Date');
+    if (drAc) rowVals[drAc] = today;
+    if (udAc) rowVals[udAc] = today;
+    skuRows.push(rowVals);
+  });
+  return { outletVals, skuRows };
 }
 
 /* ============================================================
@@ -1926,17 +2113,68 @@ function _closeAddForce() {
 }
 function confirmDiscardDu() { _closeAddForce(); }
 function cancelDiscardDu()  { document.getElementById('addDiscardShield').classList.remove('show'); }
-async function saveAdd() {
-  const btn = document.querySelector('#addOverlay .btn-save');
-  const origHtml = btn ? btn.innerHTML : '';
+let _pendingInsertRows = []; /* rows waiting for preview confirm */
+
+function saveAdd() {
+  const { outletVals, skuRows } = readAddForm('add');
+  _pendingInsertRows = skuRows.length > 0
+    ? skuRows.map(sku => ({ ...outletVals, ...sku }))
+    : [outletVals];
+
+  /* Build preview */
+  const outletCode = outletVals[findActualCol('Outlet Code')] || document.getElementById('add_codeBar')?.textContent || '—';
+  const outletName = outletVals[findActualCol('Outlet Name')] || '—';
+
+  const SKU_PREVIEW_COLS = ['Principle','Brand','Product','SKU','Size','Pack','SKU Code'];
+  const thead = SKU_PREVIEW_COLS.map(f => `<th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:700;color:#9D174D;background:linear-gradient(90deg,#FBCFE8,#FCE7F3);white-space:nowrap">${f}</th>`).join('');
+  const tbody = _pendingInsertRows.map((row, i) => {
+    const cells = SKU_PREVIEW_COLS.map(f => {
+      const ac = findActualCol(f); const v = ac ? (row[ac] || '—') : '—';
+      return `<td style="padding:8px 12px;font-size:13px;border-bottom:1px solid #FCE7F3;color:#374151;white-space:nowrap">${esc(String(v))}</td>`;
+    }).join('');
+    return `<tr><td style="padding:8px 12px;font-size:13px;border-bottom:1px solid #FCE7F3;color:#9CA3AF;font-weight:700">${i+1}</td>${cells}</tr>`;
+  }).join('');
+
+  document.getElementById('savePreviewBody').innerHTML = `
+    <div style="display:flex;gap:24px;margin-bottom:16px;flex-wrap:wrap">
+      <div><div style="font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Outlet Code</div>
+        <div style="font-size:18px;font-weight:800;color:#BE185D;letter-spacing:1px">${esc(outletCode)}</div></div>
+      <div><div style="font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Outlet Name</div>
+        <div style="font-size:16px;font-weight:700;color:#1C1917">${esc(outletName)}</div></div>
+      <div style="margin-left:auto;background:#FDF2F8;border-radius:10px;padding:8px 16px;text-align:center">
+        <div style="font-size:22px;font-weight:800;color:#DB2777">${_pendingInsertRows.length}</div>
+        <div style="font-size:10px;color:#9CA3AF;font-weight:600">SKU rows</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto;border-radius:10px;box-shadow:0 2px 8px rgba(219,39,119,.08)">
+      <table style="width:100%;border-collapse:collapse;min-width:500px">
+        <thead><tr><th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:700;color:#9D174D;background:linear-gradient(90deg,#FBCFE8,#FCE7F3)">#</th>${thead}</tr></thead>
+        <tbody>${tbody}</tbody>
+      </table>
+    </div>`;
+
+  document.getElementById('savePreviewOverlay').style.display = 'flex';
+}
+
+function closeSavePreview() {
+  document.getElementById('savePreviewOverlay').style.display = 'none';
+  _pendingInsertRows = [];
+}
+
+async function confirmSaveAdd() {
+  const btn = document.getElementById('confirmSaveBtn');
+  const orig = btn ? btn.innerHTML : '';
   if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Saving...'; }
-  const vals = readAddForm('add');
-  const { data: inserted, error } = await supabase.from(TABLE).insert([vals]).select();
-  if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+  const { data: inserted, error } = await supabase.from(TABLE).insert(_pendingInsertRows).select();
+  if (btn) { btn.disabled = false; btn.innerHTML = orig; }
   if (error) { showToast('Error: ' + error.message, 'err'); return; }
-  await writeLog('INSERT', inserted?.[0]?.[pkCol] ?? null, null, vals);
+  for (const row of (inserted || [])) {
+    await writeLog('INSERT', row?.[pkCol] ?? null, null, row);
+  }
+  closeSavePreview();
   _closeAddForce();
-  showToast('✅ บันทึกลงฐานข้อมูลแล้ว');
+  showToast(`✅ บันทึก ${_pendingInsertRows.length} รายการลงฐานข้อมูลแล้ว`);
+  _pendingInsertRows = [];
   loadData();
 }
 
@@ -1994,7 +2232,7 @@ async function openLog() {
   document.getElementById('logDrawer').classList.add('open');
   const { data } = await supabase.from(LOG_TABLE).select('*').order('changed_at', { ascending: false }).limit(50);
   const body = document.getElementById('logBody');
-  if (!data || !data.length) { body.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#FF9090"><div style="font-size:36px;margin-bottom:10px">📭</div><p style="font-size:13px">No changes yet</p></div>'; return; }
+  if (!data || !data.length) { body.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#F9A8D4"><div style="font-size:36px;margin-bottom:10px">📭</div><p style="font-size:13px">No changes yet</p></div>'; return; }
   body.innerHTML = data.map(l => {
     const cls = l.action === 'INSERT' ? 'li' : l.action === 'UPDATE' ? 'lu' : 'ld';
     const nm = labelCol && (l.new_data || l.old_data) ? ((l.new_data || l.old_data)[labelCol] || 'Record #' + l.record_id) : 'Record #' + l.record_id;
@@ -2096,7 +2334,7 @@ function buildImportPreview(rows) {
   document.getElementById('impPreviewBadges').innerHTML = `<span class="imp-badge imp-badge-add">＋${addCnt} New</span> <span class="imp-badge imp-badge-upd">↺ ${updCnt} Update</span>`;
   const previewCols = Object.keys(rows[0]).filter(c => c !== '_action' && c !== '_id').slice(0, 5);
   const previewRows = importRows.slice(0, 8);
-  document.getElementById('impPreviewTable').innerHTML = `<thead><tr><th>Status</th>${previewCols.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${previewRows.map(r => `<tr><td>${r._action === 'UPDATE' ? '<span class="imp-badge imp-badge-upd">↺ Replace</span>' : '<span class="imp-badge imp-badge-add">＋ New</span>'}</td>${previewCols.map(c => `<td title="${esc(String(r[c] ?? ''))}">${esc(String(r[c] ?? '').slice(0, 35))}</td>`).join('')}</tr>`).join('')}${rows.length > 8 ? `<tr><td colspan="${previewCols.length + 1}" style="text-align:center;color:#D40000;font-style:italic;padding:10px">... and ${rows.length - 8} more rows</td></tr>` : ''}</tbody>`;
+  document.getElementById('impPreviewTable').innerHTML = `<thead><tr><th>Status</th>${previewCols.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${previewRows.map(r => `<tr><td>${r._action === 'UPDATE' ? '<span class="imp-badge imp-badge-upd">↺ Replace</span>' : '<span class="imp-badge imp-badge-add">＋ New</span>'}</td>${previewCols.map(c => `<td title="${esc(String(r[c] ?? ''))}">${esc(String(r[c] ?? '').slice(0, 35))}</td>`).join('')}</tr>`).join('')}${rows.length > 8 ? `<tr><td colspan="${previewCols.length + 1}" style="text-align:center;color:#EC4899;font-style:italic;padding:10px">... and ${rows.length - 8} more rows</td></tr>` : ''}</tbody>`;
   document.getElementById('impPreviewWrap').style.display = 'block';
   const btn = document.getElementById('impDoBtn');
   btn.style.display = ''; btn.textContent = `⬆ Import ${rows.length.toLocaleString()} Records`; btn.disabled = false;

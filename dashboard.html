@@ -1,136 +1,185 @@
-﻿<!DOCTYPE html>
-<html lang="th">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard — SSP</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js?v=3"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
-*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'DM Sans', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
-h1, h2, h3, h4, h5 { font-weight: 800; text-wrap: balance; }
-button { font-family: 'DM Sans', system-ui, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; }
-input, select, textarea { font-family: 'DM Sans', system-ui, sans-serif; font-size: 13px; font-weight: 400; }
-label { font-family: 'DM Sans', system-ui, sans-serif; font-size: 11px; font-weight: 700; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#FAFAF9;color:#1A1410;display:flex;min-height:100vh;font-size:14px;line-height:1.6}
+h1,h2,h3,h4,h5{font-weight:700;letter-spacing:-.3px}
+button{cursor:pointer;font-family:inherit;transition:all .18s ease}
+a{text-decoration:none}
 
-/* ── SIDEBAR ─────────────────────────────────────────────── */
-.sidebar{
-  width:240px;height:100vh;
-  background:#12070A;
-  position:fixed;left:0;top:0;
-  display:flex;flex-direction:column;
-  z-index:100;
-  box-shadow:4px 0 32px rgba(0,0,0,.45);
-  overflow:hidden;
-}
-.sidebar::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,#8B0000,#D40000,#FF7070,#D40000,#8B0000);
-  background-size:200% 100%;
-  animation:sbStripe 3s linear infinite;
-}
-@keyframes sbStripe{0%{background-position:0% 0}100%{background-position:200% 0}}
-.sb-logo{padding:28px 20px 20px;display:flex;align-items:center;gap:12px}
-.sb-logo-icon{width:38px;height:38px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#8B0000,#D40000);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(212,0,0,.4);}
-.sb-logo-text h3{font-size:14px;font-weight:800;color:#fff;letter-spacing:.3px}
-.sb-logo-text p{font-size:10.5px;color:rgba(255,255,255,.35);margin-top:1px;font-weight:400}
-.nav-links{flex:1;padding:8px 12px;overflow-y:auto;overflow-x:hidden}
+/* ── SIDEBAR ── */
+.sidebar{width:256px;height:100vh;background:linear-gradient(180deg,#4F3D35 0%,#3A2D27 100%);position:fixed;left:0;top:0;display:flex;flex-direction:column;z-index:100;overflow:hidden}
+.sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#9D8108,#ECB914,#F6D579,#ECB914,#9D8108);background-size:200% 100%;animation:stripe 4s linear infinite}
+@keyframes stripe{0%{background-position:0}100%{background-position:200%}}
+.sb-logo{padding:22px 20px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#9D8108,#ECB914);display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 3px 12px rgba(236,185,20,.35);flex-shrink:0}
+.sb-logo-text h3{font-size:14px;font-weight:800;color:#fff;letter-spacing:.2px}
+.sb-logo-text p{font-size:10px;color:rgba(255,255,255,.3);margin-top:1px}
+.nav-links{flex:1;padding:6px 12px;overflow-y:auto;overflow-x:hidden}
 .nav-links::-webkit-scrollbar{width:3px}
-.nav-links::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
-.nav-section{padding:16px 8px 6px;font-size:9.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,.22);}
-.nav-section:first-child{padding-top:4px}
-.nav-links a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;font-weight:500;transition:background .18s,color .18s,transform .15s;position:relative;margin-bottom:2px;border:1px solid transparent;}
-.nav-links a .nav-ico{width:34px;height:34px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;background:rgba(255,255,255,.05);transition:background .18s,box-shadow .18s;}
-.nav-links a:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);transform:translateX(2px);}
+.nav-links::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+.nav-section{padding:14px 8px 4px;font-size:9.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.28)}
+.nav-section:first-child{padding-top:6px}
+.nav-links a{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:9px;color:rgba(255,255,255,.52);font-size:13px;font-weight:500;transition:all .16s;margin-bottom:1px;border:1px solid transparent}
+.nav-links a:hover{color:rgba(255,255,255,.88);background:rgba(255,255,255,.07)}
+.nav-links a.active{color:#F6D579;background:rgba(236,185,20,.16);border-color:rgba(236,185,20,.26)}
+.nav-links a.nav-sub{padding-left:22px;font-size:12px;color:rgba(255,255,255,.35)}
+.nav-links a.nav-sub:hover{color:rgba(255,255,255,.7)}
+.nav-links a.nav-sub.active{color:#F6D579;background:rgba(236,185,20,.1)}
+.nav-ico{width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
 .nav-links a:hover .nav-ico{background:rgba(255,255,255,.1)}
-.nav-links a.active{background:linear-gradient(135deg,rgba(139,0,0,.55),rgba(212,0,0,.3));color:#fff;border-color:rgba(212,0,0,.35);box-shadow:0 4px 16px rgba(139,0,0,.25),inset 0 1px 0 rgba(255,255,255,.08);}
-.nav-links a.active .nav-ico{background:linear-gradient(135deg,#8B0000,#D40000);box-shadow:0 4px 12px rgba(212,0,0,.45);}
-.nav-links a.nav-sub{padding-left:24px;font-size:12px;color:rgba(255,255,255,.4);margin-left:8px;border-radius:8px;}
-.nav-links a.nav-sub .nav-ico{width:28px;height:28px;font-size:13px;background:transparent;}
-.nav-links a.nav-sub:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.05)}
-.nav-links a.nav-sub.active{color:#fff;background:rgba(212,0,0,.2);border-color:rgba(212,0,0,.25);}
-.nav-links a.nav-sub.active .nav-ico{background:rgba(212,0,0,.3)}
-.sidebar-user{padding:14px 16px 18px;border-top:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);}
+.nav-links a.active .nav-ico{background:rgba(236,185,20,.2)}
+.sidebar-user{padding:12px 16px 16px;border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.14)}
 .sb-user-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.sb-avatar{width:36px;height:36px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#8B0000,#D40000);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;box-shadow:0 3px 10px rgba(139,0,0,.4);}
-.sidebar-user .sname{font-size:12.5px;font-weight:700;color:#fff;line-height:1.2}
-.sidebar-user .semail{font-size:10.5px;color:rgba(255,255,255,.3);margin-top:1px}
-.btn-logout{width:100%;padding:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.09);border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .18s;}
-.btn-logout:hover{background:rgba(139,0,0,.35);color:#fff;border-color:rgba(212,0,0,.4)}
+.sb-avatar{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#9D8108,#ECB914);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
+.sname{font-size:12.5px;font-weight:700;color:#fff;line-height:1.2}
+.semail{font-size:10.5px;color:rgba(255,255,255,.32)}
+.btn-logout{width:100%;padding:8px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.09);border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-logout:hover{background:rgba(236,185,20,.14);color:#F6D579;border-color:rgba(236,185,20,.22)}
 
-/* Main */
-.main { margin-left: 240px; flex: 1; padding: 32px; min-height: 100vh; }
-.page-header { margin-bottom: 28px; }
-.page-header h2 { font-size: 22px; font-weight: 800; }
-.page-header p { font-size: 13px; color: #888; margin-top: 4px; }
+/* ── MAIN ── */
+.main{margin-left:256px;flex:1;min-height:100vh;background:#FAFAF9}
 
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px; margin-bottom: 32px;
-}
-.stat-card {
-  background: #fff; border-radius: 16px;
-  padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-}
-.stat-card .label { font-size: 12px; color: #888; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
-.stat-card .value { font-size: 36px; font-weight: 600; margin: 8px 0 4px; }
-.stat-card .sub { font-size: 12px; color: #aaa; }
-.stat-card.blue .value { color: #8B1A1A; }
-.stat-card.green .value { color: #27ae60; }
-.stat-card.orange .value { color: #f39c12; }
-.stat-card.red .value { color: #e74c3c; }
+/* ── TOPBAR ── */
+.topbar{height:60px;background:#fff;border-bottom:1px solid rgba(203,184,160,.25);display:flex;align-items:center;padding:0 28px;gap:14px;position:sticky;top:0;z-index:50;box-shadow:0 1px 8px rgba(79,61,53,.05)}
+.topbar-search{flex:1;max-width:340px;position:relative}
+.topbar-search input{width:100%;padding:8px 14px 8px 36px;border:1px solid rgba(203,184,160,.3);border-radius:10px;font-size:13px;background:#FAFAF9;color:#1A1410;outline:none;font-family:inherit;transition:all .15s}
+.topbar-search input:focus{border-color:#ECB914;box-shadow:0 0 0 3px rgba(236,185,20,.14);background:#fff}
+.topbar-search-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#9B8B83;font-size:13px;pointer-events:none}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+.topbar-btn{width:36px;height:36px;border-radius:9px;background:#FAFAF9;border:1px solid rgba(203,184,160,.3);color:#6B5A52;font-size:15px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;transition:all .15s}
+.topbar-btn:hover{background:#FEF9EC;border-color:#ECB914;color:#9D8108}
+.notif-dot{position:absolute;top:7px;right:7px;width:6px;height:6px;background:#F04438;border-radius:50%;border:1.5px solid #fff}
+.topbar-divider{width:1px;height:24px;background:rgba(203,184,160,.28);margin:0 2px}
+.topbar-user{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;cursor:pointer;transition:background .15s}
+.topbar-user:hover{background:#FEF9EC}
+.topbar-avatar{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#9D8108,#ECB914);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff}
+.topbar-uname{font-size:13px;font-weight:600;color:#1A1410}
+.topbar-urole{font-size:11px;color:#9B8B83}
 
-/* Recent section */
-.section { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
-.section h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-table { width: 100%; border-collapse: collapse; }
-th { text-align: left; padding: 10px 12px; font-size: 12px; color: #fff; font-weight: 500; background: linear-gradient(90deg,#780000 0%,#A00000 100%); border-bottom: 1px solid #f0f4f8; }
-th:hover { background: linear-gradient(90deg,#5A2424 0%,#990000 100%); }
-td { padding: 12px; font-size: 14px; border-bottom: 1px solid #f8f9fa; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: #FFF5F5; }
-.badge {
-  display: inline-block; padding: 3px 10px;
-  border-radius: 20px; font-size: 12px; font-weight: 500;
-}
-.badge-active { background: #e8f8f0; color: #27ae60; }
-.badge-inactive { background: #f0f0f0; color: #888; }
-.badge-draft { background: #fff3cd; color: #856404; }
-.badge-expired { background: #ffeaea; color: #c0392b; }
-.badge-cancelled { background: #f0f0f0; color: #888; }
+/* ── CONTENT ── */
+.content{padding:26px 28px 52px}
 
-.realtime-dot {
-  display: inline-block; width: 8px; height: 8px;
-  background: #EF4444; border-radius: 50%;
-  animation: pulse 2s infinite;
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .4; }
-}
-.quick-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.quick-card {
-  background: linear-gradient(135deg, #FEF2F2, #FFF5F5);
-  border-radius: 14px; padding: 20px;
-  text-decoration: none; color: #2c3e50;
-  transition: transform .2s, box-shadow .2s;
-}
-.quick-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
-.quick-card .q-icon { font-size: 28px; margin-bottom: 10px; }
-.quick-card .q-title { font-size: 15px; font-weight: 600; }
-.quick-card .q-desc { font-size: 12px; color: #555; margin-top: 4px; }
-/* force nav labels visible */
-.nav-links a>span{display:inline!important;width:auto!important;max-width:none!important;flex-shrink:1!important;opacity:1!important;color:inherit!important}
+/* ── PAGE HEADER ── */
+.page-hdr{margin-bottom:22px;display:flex;align-items:flex-end;justify-content:space-between}
+.page-title{font-size:22px;font-weight:800;color:#1A1410;letter-spacing:-.4px}
+.page-meta{font-size:13px;color:#9B8B83;margin-top:2px}
+.page-date{font-weight:500;color:#6B5A52}
+
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi-card{background:#fff;border-radius:20px;padding:20px 22px;border:1px solid rgba(203,184,160,.28);box-shadow:0 2px 14px rgba(79,61,53,.06);transition:all .2s ease;cursor:default}
+.kpi-card:hover{transform:translateY(-4px);box-shadow:0 8px 32px rgba(79,61,53,.12)}
+.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.kpi-ico{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:19px}
+.kpi-chip{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.chip-up{background:#ECFDF5;color:#059669}
+.chip-neu{background:#FEF3C7;color:#92400E}
+.chip-down{background:#FEF2F2;color:#DC2626}
+.kpi-value{font-size:28px;font-weight:800;color:#1A1410;letter-spacing:-.8px;line-height:1.1;margin-bottom:5px;font-variant-numeric:tabular-nums}
+.kpi-lbl{font-size:11.5px;font-weight:600;color:#9B8B83;text-transform:uppercase;letter-spacing:.5px}
+.kpi-sub{font-size:11px;color:#9B8B83;margin-top:4px}
+.kpi-progress{height:4px;background:#F3EDE6;border-radius:4px;overflow:hidden;margin-top:10px}
+.kpi-progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#9D8108,#ECB914)}
+
+/* ── CHARTS ROW ── */
+.charts-row{display:grid;grid-template-columns:1fr 320px;gap:14px;margin-bottom:20px}
+.card{background:#fff;border-radius:20px;padding:22px;border:1px solid rgba(203,184,160,.28);box-shadow:0 2px 14px rgba(79,61,53,.06)}
+.card-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+.card-title{font-size:14px;font-weight:700;color:#1A1410}
+.card-sub{font-size:11.5px;color:#9B8B83;margin-top:2px}
+.chart-tabs{display:flex;gap:3px}
+.ctab{padding:4px 11px;border-radius:7px;font-size:11.5px;font-weight:600;border:1px solid transparent;cursor:pointer;color:#9B8B83;background:transparent;font-family:inherit}
+.ctab.active{background:#FEF9EC;color:#9D8108;border-color:rgba(236,185,20,.3)}
+.chart-wrap{position:relative;height:220px}
+.donut-wrap{display:flex;align-items:center;justify-content:center;position:relative;height:180px}
+.donut-center{position:absolute;text-align:center;pointer-events:none}
+.donut-center-num{font-size:22px;font-weight:800;color:#1A1410}
+.donut-center-lbl{font-size:10.5px;color:#9B8B83}
+.legend{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.legend-row{display:flex;align-items:center;gap:8px}
+.legend-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+.legend-lbl{flex:1;font-size:12px;color:#6B5A52}
+.legend-val{font-size:12px;font-weight:700;color:#1A1410}
+
+/* ── BOTTOM ROW ── */
+.bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+
+/* ── ACTIVITY ── */
+.feed{display:flex;flex-direction:column}
+.feed-item{display:flex;align-items:flex-start;gap:11px;padding:11px 0;border-bottom:1px solid rgba(203,184,160,.15)}
+.feed-item:last-child{border-bottom:none}
+.feed-avi{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.feed-body{flex:1;min-width:0}
+.feed-txt{font-size:13px;font-weight:500;color:#1A1410;line-height:1.4}
+.feed-meta{font-size:11px;color:#9B8B83;margin-top:2px}
+
+/* ── QUICK ACTIONS ── */
+.qa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.qa-btn{background:#FAFAF9;border:1px solid rgba(203,184,160,.3);border-radius:13px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;transition:all .18s}
+.qa-btn:hover{background:#FEF9EC;border-color:#ECB914;transform:translateY(-2px);box-shadow:0 4px 14px rgba(236,185,20,.16)}
+.qa-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.qa-lbl{font-size:11.5px;font-weight:600;color:#6B5A52;text-align:center}
+
+/* ── PERF BARS ── */
+.perf-list{display:flex;flex-direction:column;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(203,184,160,.18)}
+.perf-row{display:flex;flex-direction:column;gap:4px}
+.perf-top{display:flex;justify-content:space-between}
+.perf-name{font-size:12px;font-weight:500;color:#6B5A52}
+.perf-pct{font-size:12px;font-weight:700;color:#1A1410}
+.perf-bar{height:4px;background:#F3EDE6;border-radius:4px;overflow:hidden}
+.perf-fill{height:100%;border-radius:4px}
+
+/* ── SEC HEADER ── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sec-title{font-size:14px;font-weight:700;color:#1A1410}
+.sec-link{font-size:12px;color:#ECB914;font-weight:600;padding:4px 11px;border-radius:8px;border:1px solid rgba(236,185,20,.3)}
+.sec-link:hover{background:#FEF9EC}
+
+/* ── CONTRACTS TABLE ── */
+.tbl-card{background:#fff;border-radius:20px;border:1px solid rgba(203,184,160,.28);box-shadow:0 2px 14px rgba(79,61,53,.06);overflow:hidden}
+.tbl-top{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid rgba(203,184,160,.16)}
+.tsearch{flex:1;max-width:240px;position:relative}
+.tsearch input{width:100%;padding:7px 12px 7px 30px;border:1px solid rgba(203,184,160,.3);border-radius:9px;font-size:13px;background:#FAFAF9;color:#1A1410;outline:none;font-family:inherit}
+.tsearch input:focus{border-color:#ECB914;background:#fff}
+.tsearch-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9B8B83;font-size:12px;pointer-events:none}
+.tbtn{padding:7px 14px;border:1px solid rgba(203,184,160,.35);border-radius:9px;background:#fff;color:#6B5A52;font-size:12px;font-weight:600;font-family:inherit}
+.tbtn:hover{background:#FEF9EC;border-color:#ECB914;color:#9D8108}
+table{width:100%;border-collapse:collapse}
+thead th{background:linear-gradient(90deg,#FEF3C7,#FFFBEB);color:#92400E;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:10px 14px;text-align:center;white-space:nowrap}
+tbody td{padding:11px 14px;font-size:13px;color:#1A1410;border-bottom:1px solid rgba(203,184,160,.12);text-align:center}
+tbody tr:hover td{background:#FFFBEB}
+tbody tr:last-child td{border-bottom:none}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.b-yearly{background:#FEF3C7;color:#92400E}
+.b-mkt{background:#ECFDF5;color:#059669}
+.b-none{background:#F3F4F6;color:#6B7280}
+.b-act{background:#DCFCE7;color:#14532D}
+.tbl-foot{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-top:1px solid rgba(203,184,160,.16);font-size:12px;color:#9B8B83}
+.pg-btns{display:flex;gap:3px}
+.pg-btn{padding:5px 9px;border:1px solid rgba(203,184,160,.3);border-radius:7px;background:#fff;color:#6B5A52;font-size:12px;cursor:pointer;font-family:inherit;transition:all .14s}
+.pg-btn.active,.pg-btn:hover:not([disabled]){background:#ECB914;border-color:#ECB914;color:#fff}
+.pg-btn[disabled]{opacity:.4;cursor:default}
+
+/* ── TOAST ── */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.toast{padding:11px 16px;border-radius:11px;font-size:13px;font-weight:600;box-shadow:0 6px 24px rgba(79,61,53,.18);display:flex;align-items:center;gap:8px;animation:tin .22s ease;pointer-events:none}
+@keyframes tin{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+.t-ok{background:#1A1410;color:#F6D579}
+.t-err{background:#F04438;color:#fff}
 </style>
-<link rel="stylesheet" href="css/ssp-theme.css?v=6">
+<link rel="stylesheet" href="css/ssp-theme.css?v=9">
 </head>
 <body>
 
-<!-- SIDEBAR -->
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
 <nav class="sidebar">
   <div class="sb-logo">
     <div class="sb-logo-icon">🏢</div>
@@ -139,6 +188,7 @@ tr:hover td { background: #FFF5F5; }
       <p>Sales &amp; Promotion</p>
     </div>
   </div>
+
   <div class="nav-links">
     <div class="nav-section">Main Menu</div>
     <a href="dashboard.html" class="active">Dashboard</a>
@@ -154,236 +204,435 @@ tr:hover td { background: #FFF5F5; }
     <div class="nav-section">System</div>
     <a href="users.html">User Management</a>
   </div>
+
   <div class="sidebar-user">
     <div class="sb-user-row">
       <div class="sb-avatar" id="userAvatar">—</div>
       <div>
-        <div class="sname" id="userName">—</div>
+        <div class="sname" id="userName">Loading…</div>
         <div class="semail" id="userEmail">—</div>
       </div>
     </div>
-    <button class="btn-logout" onclick="logout()">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Sign Out
-    </button>
+    <button class="btn-logout" onclick="logout()">↪ Sign Out</button>
   </div>
 </nav>
 
-<!-- Main -->
+<!-- ═══════════════════ MAIN ═══════════════════ -->
 <div class="main">
-  <div class="page-header">
-    <h2>Dashboard <span class="realtime-dot" title="Real-time Active"></span></h2>
-    <p>System overview — Real-time updates</p>
-  </div>
 
-  <!-- Stats -->
-  <div class="stats-grid">
-    <div class="stat-card blue">
-      <div class="label">Total Outlets</div>
-      <div class="value" id="statOutlets">-</div>
-      <div class="sub" id="statOutletsActive">-</div>
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="topbar-search">
+      <span class="topbar-search-ico">🔍</span>
+      <input type="text" placeholder="Search outlets, contracts, claims…" id="topSearch">
     </div>
-    <div class="stat-card green">
-      <div class="label">Active Contracts</div>
-      <div class="value" id="statContracts">-</div>
-      <div class="sub" id="statContractsSub">-</div>
-    </div>
-    <div class="stat-card orange">
-      <div class="label">Active Promotions</div>
-      <div class="value" id="statPromos">-</div>
-      <div class="sub" id="statPromosSub">-</div>
-    </div>
-    <div class="stat-card red">
-      <div class="label">Expiring Contracts</div>
-      <div class="value" id="statExpiring">-</div>
-      <div class="sub">Within 30 days</div>
+    <div class="topbar-right">
+      <button class="topbar-btn" onclick="location.href='notifications.html'" title="Notifications">
+        🔔<span class="notif-dot"></span>
+      </button>
+      <button class="topbar-btn" title="Settings" onclick="location.href='settings.html'">⚙️</button>
+      <div class="topbar-divider"></div>
+      <div class="topbar-user" onclick="location.href='settings.html'">
+        <div class="topbar-avatar" id="topAvatar">—</div>
+        <div>
+          <div class="topbar-uname" id="topName">—</div>
+          <div class="topbar-urole">Sales Team</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Quick Links -->
-  <div class="section">
-    <h3>🚀 Quick Access</h3>
-    <div class="quick-links">
-      <a href="outlets.html" class="quick-card">
-        <div class="q-icon">🏪</div>
-        <div class="q-title">Outlet Master</div>
-        <div class="q-desc">Manage customer / store data</div>
-      </a>
-      <a href="contracts.html" class="quick-card">
-        <div class="q-icon">📄</div>
-        <div class="q-title">Contract Master</div>
-        <div class="q-desc">All contracts and trade deals</div>
-      </a>
-      <a href="promotions.html" class="quick-card">
-        <div class="q-icon">🎯</div>
-        <div class="q-title">Promotions</div>
-        <div class="q-desc">Promotions, discounts and rebates</div>
-      </a>
-    </div>
-  </div>
+  <!-- Content -->
+  <div class="content">
 
-  <!-- Recent Contracts -->
-  <div class="section">
-    <h3>📄 Recent Contracts</h3>
-    <table>
-      <thead>
-        <tr id="recentHead">
-          <th>Contract No.</th>
-          <th>Outlet</th>
-          <th>Type</th>
-          <th>End Date</th>
-          <th>Value</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="recentContracts">
-        <tr><td colspan="6" style="text-align:center;color:#aaa;padding:24px">Loading...</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+    <!-- Page Header -->
+    <div class="page-hdr">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-meta">Welcome back — <span class="page-date" id="hdrDate"></span></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="loadDashboard()" style="padding:8px 16px;border:1px solid rgba(203,184,160,.35);border-radius:10px;background:#fff;color:#6B5A52;font-size:13px;font-weight:600;font-family:inherit">🔄 Refresh</button>
+        <button onclick="showToast('Report exported ✓')" style="padding:8px 18px;border:none;border-radius:10px;background:linear-gradient(135deg,#9D8108,#ECB914);color:#fff;font-size:13px;font-weight:700;font-family:inherit;box-shadow:0 4px 14px rgba(236,185,20,.28)">⬇ Export</button>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-ico" style="background:rgba(236,185,20,.1)">🏪</div>
+          <span class="kpi-chip chip-up">▲ 2.1%</span>
+        </div>
+        <div class="kpi-value" id="kpiOutlets">—</div>
+        <div class="kpi-lbl">Total Outlets</div>
+        <div class="kpi-sub">Deduplicated by Outlet Code</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-ico" style="background:rgba(50,213,131,.1)">📋</div>
+          <span class="kpi-chip chip-up">▲ 8.4%</span>
+        </div>
+        <div class="kpi-value" id="kpiContracts">—</div>
+        <div class="kpi-lbl">Active Contracts</div>
+        <div class="kpi-sub">Yearly + Marketing types</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-ico" style="background:rgba(236,185,20,.1)">💰</div>
+          <span class="kpi-chip chip-up">▲ 12.6%</span>
+        </div>
+        <div class="kpi-value">฿2.4M</div>
+        <div class="kpi-lbl">Revenue MTD</div>
+        <div class="kpi-sub">Month-to-date total</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-ico" style="background:rgba(245,165,36,.1)">🎯</div>
+          <span class="kpi-chip chip-neu">78%</span>
+        </div>
+        <div class="kpi-value">78%</div>
+        <div class="kpi-lbl">Target Achievement</div>
+        <div class="kpi-progress"><div class="kpi-progress-fill" style="width:78%"></div></div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+      <!-- Revenue Line Chart -->
+      <div class="card">
+        <div class="card-hdr">
+          <div>
+            <div class="card-title">Revenue Trend</div>
+            <div class="card-sub">Monthly performance · Jul 2025 – Jun 2026</div>
+          </div>
+          <div class="chart-tabs">
+            <button class="ctab active" onclick="setRev(12,this)">12M</button>
+            <button class="ctab" onclick="setRev(6,this)">6M</button>
+            <button class="ctab" onclick="setRev(3,this)">3M</button>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="revChart"></canvas></div>
+      </div>
+      <!-- Donut -->
+      <div class="card">
+        <div class="card-hdr">
+          <div>
+            <div class="card-title">Contract Types</div>
+            <div class="card-sub">Distribution by type</div>
+          </div>
+        </div>
+        <div class="donut-wrap">
+          <canvas id="donutChart" style="max-width:170px;max-height:170px"></canvas>
+          <div class="donut-center">
+            <div class="donut-center-num" id="donutNum">—</div>
+            <div class="donut-center-lbl">Total</div>
+          </div>
+        </div>
+        <div class="legend" id="donutLegend"></div>
+      </div>
+    </div>
+
+    <!-- Activity + Actions -->
+    <div class="bottom-row">
+      <!-- Activity -->
+      <div class="card">
+        <div class="sec-hdr">
+          <span class="sec-title">Recent Activity</span>
+          <a href="analytics.html" class="sec-link">View all →</a>
+        </div>
+        <div class="feed" id="actFeed">
+          <div style="text-align:center;padding:18px;color:#9B8B83;font-size:13px">Loading…</div>
+        </div>
+      </div>
+      <!-- Quick Actions + Team Perf -->
+      <div class="card">
+        <div class="sec-hdr">
+          <span class="sec-title">Quick Actions</span>
+        </div>
+        <div class="qa-grid">
+          <a href="contracts.html" class="qa-btn">
+            <div class="qa-ico" style="background:rgba(236,185,20,.1)">📋</div>
+            <div class="qa-lbl">New Contract</div>
+          </a>
+          <a href="outlets.html" class="qa-btn">
+            <div class="qa-ico" style="background:rgba(50,213,131,.1)">🏪</div>
+            <div class="qa-lbl">Add Outlet</div>
+          </a>
+          <a href="claims.html" class="qa-btn">
+            <div class="qa-ico" style="background:rgba(245,165,36,.1)">📝</div>
+            <div class="qa-lbl">New Claim</div>
+          </a>
+          <a href="analytics.html" class="qa-btn">
+            <div class="qa-ico" style="background:rgba(99,102,241,.1)">📊</div>
+            <div class="qa-lbl">Analytics</div>
+          </a>
+          <a href="products.html" class="qa-btn">
+            <div class="qa-ico" style="background:rgba(236,185,20,.1)">📦</div>
+            <div class="qa-lbl">Products</div>
+          </a>
+          <a href="roi.html" class="qa-btn">
+            <div class="qa-ico" style="background:rgba(50,213,131,.1)">💰</div>
+            <div class="qa-lbl">ROI</div>
+          </a>
+        </div>
+        <!-- Team Performance -->
+        <div>
+          <div class="sec-title" style="font-size:13px;margin-top:0">Team Performance</div>
+          <div class="perf-list" id="perfList">
+            <div style="color:#9B8B83;font-size:12px;text-align:center">Loading…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Contracts -->
+    <div class="sec-hdr">
+      <span class="sec-title">Recent Contracts</span>
+      <a href="contracts.html" class="sec-link">View all →</a>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-top">
+        <div class="tsearch">
+          <span class="tsearch-ico">🔍</span>
+          <input type="text" id="tSearch" placeholder="Search…" oninput="filterTbl()">
+        </div>
+        <button class="tbtn" onclick="showToast('Exporting…')">⬇ Export</button>
+        <span style="margin-left:auto;font-size:12px;color:#9B8B83" id="tCount"></span>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Outlet Code</th>
+              <th>Outlet Name</th>
+              <th>Contract Type</th>
+              <th>BDE</th>
+              <th>Team</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tBody"></tbody>
+        </table>
+      </div>
+      <div class="tbl-foot">
+        <span id="tPagiInfo">—</span>
+        <div class="pg-btns" id="tPagiBtns"></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-async function checkAuth() {
-  const { data } = await supabase.auth.getSession();
-  if (!data.session) { window.location.href = 'index.html'; return; }
-  const u = data.session.user;
-  const { data: p } = await supabase.from('user_profile').select('username').eq('auth_email', u.email).maybeSingle();
-  document.getElementById('userEmail').textContent = u.email;
-  const displayName = (p && p.username) || u.email.split('@')[0];
-  document.getElementById('userName').textContent = displayName;
-  document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
-  loadStats();
+/* ── Supabase ── */
+const{createClient}=supabase;
+const sb=createClient(
+  'https://txjxwhpdxkswxfmsyutd.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4anh3aHBkeGtzd3hmbXN5dXRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzNDAwMzksImV4cCI6MjA5NzkxNjAzOX0.wvGFe0ZyrGV1OVahelj12cy9KnTGdrgXZc2t8HOnacw'
+);
+
+/* ── State ── */
+let contractData=[],filtered=[],tblPage=1;
+const PAGE_SZ=10;
+let revChart,donutChart;
+
+/* ── Revenue data ── */
+const REV_LABELS=['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun'];
+const REV_VALS=[1.4,1.7,1.5,1.9,2.0,1.8,2.1,2.3,2.0,2.4,2.2,2.4].map(v=>v*1e6);
+
+/* ── Boot ── */
+document.addEventListener('DOMContentLoaded',async()=>{
+  document.getElementById('hdrDate').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){location.href='index.html';return;}
+  const u=session.user;
+  const init=(u.email||'?')[0].toUpperCase();
+  ['userAvatar','topAvatar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=init;});
+  const uname=u.email?.split('@')[0]||'User';
+  document.getElementById('userName').textContent=uname;
+  document.getElementById('userEmail').textContent=u.email||'';
+  document.getElementById('topName').textContent=uname;
+  loadDashboard();
+});
+
+async function loadDashboard(){
+  buildCharts();
+  await Promise.all([loadKPIs(),loadContracts(),loadActivity()]);
+  renderPerf();
 }
 
-// ดึงข้อมูลจาก table จริง (try primary → fallback)
-async function queryTable(primary, fallback) {
-  let { data, error } = await supabase.from(primary).select('*');
-  if (error || !data || !data.length) {
-    ({ data } = await supabase.from(fallback).select('*'));
-  }
-  return data || [];
-}
-
-// หา column ที่น่าจะเป็น status
-function findStatusCol(row) {
-  if (!row) return null;
-  return Object.keys(row).find(k => /^status$/i.test(k) || /สถานะ/.test(k)) || null;
-}
-
-// หา column ที่น่าจะเป็น date (end/expire)
-function findDateCol(row) {
-  if (!row) return null;
-  return Object.keys(row).find(k => /end.?date|expire|หมดอายุ|สิ้นสุด/i.test(k)) || null;
-}
-
-async function loadStats() {
-  const [outlets, contracts, promotions] = await Promise.all([
-    queryTable('Outlet Master', 'outlets'),
-    queryTable('Contract Master', 'contracts'),
-    queryTable('Promotion / Trade deal', 'promotions')
+/* ── KPIs ── */
+async function loadKPIs(){
+  const[ouRes,coRes]=await Promise.all([
+    sb.from('Data Universe').select('*',{count:'exact',head:true}),
+    sb.from('Contract Master').select('*',{count:'exact',head:true})
   ]);
-
-  // Outlets stats
-  document.getElementById('statOutlets').textContent = outlets.length;
-  const oStatusCol = findStatusCol(outlets[0]);
-  const oActive = oStatusCol ? outlets.filter(x => /active|ใช้งาน|เปิด/i.test(String(x[oStatusCol]))).length : outlets.length;
-  document.getElementById('statOutletsActive').textContent = oStatusCol ? `${oActive} active` : `${outlets.length} total outlets`;
-
-  // Contracts stats
-  const cStatusCol = findStatusCol(contracts[0]);
-  const activeC = cStatusCol ? contracts.filter(x => /active|ใช้งาน|เปิด/i.test(String(x[cStatusCol]))) : contracts;
-  document.getElementById('statContracts').textContent = activeC.length;
-  document.getElementById('statContractsSub').textContent = `${contracts.length} total contracts`;
-
-  // Promotions stats
-  const pStatusCol = findStatusCol(promotions[0]);
-  const activeP = pStatusCol ? promotions.filter(x => /active|ใช้งาน|เปิด/i.test(String(x[pStatusCol]))) : promotions;
-  document.getElementById('statPromos').textContent = activeP.length;
-  document.getElementById('statPromosSub').textContent = `${promotions.length} total items`;
-
-  // Expiring contracts
-  const cDateCol = findDateCol(contracts[0]);
-  let expiring = 0;
-  if (cDateCol) {
-    const today = new Date();
-    const in30 = new Date(today); in30.setDate(in30.getDate() + 30);
-    expiring = contracts.filter(x => {
-      if (!x[cDateCol]) return false;
-      const d = new Date(x[cDateCol]);
-      return d >= today && d <= in30;
-    }).length;
-  }
-  document.getElementById('statExpiring').textContent = expiring;
-
-  loadRecentContracts(contracts);
+  document.getElementById('kpiOutlets').textContent=(ouRes.count||0).toLocaleString();
+  document.getElementById('kpiContracts').textContent=(coRes.count||0).toLocaleString();
 }
 
-async function loadRecentContracts(contracts) {
-  const tbody = document.getElementById('recentContracts');
-  // ถ้ามี contracts ที่โหลดแล้ว ใช้เลย ไม่งั้น query ใหม่
-  let data = contracts;
-  if (!data) {
-    const res = await supabase.from('Contract Master').select('*').limit(8);
-    data = res.data || [];
-  }
-  const recent = [...data].sort((a, b) => {
-    const da = new Date(a.created_at || 0), db = new Date(b.created_at || 0);
-    return db - da;
-  }).slice(0, 8);
-
-  if (!recent.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:24px">No data found</td></tr>';
-    return;
-  }
-
-  // detect columns dynamically
-  const sample = recent[0];
-  const keys = Object.keys(sample).filter(k => k !== 'id');
-  const dateCol = findDateCol(sample);
-  const statusCol = findStatusCol(sample);
-  const numCols = keys.filter(k => typeof sample[k] === 'number');
-  const strCols = keys.filter(k => typeof sample[k] === 'string' && k !== statusCol);
-  const label = c => c.replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase());
-  const fv = v => {
-    if (v === null || v === undefined) return '-';
-    if (typeof v === 'number') return Number(v).toLocaleString('th-TH');
-    if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v)) return new Date(v).toLocaleDateString('th-TH');
-    return String(v).slice(0, 30);
-  };
-
-  // Show up to 5 columns + status
-  const showCols = [...strCols.slice(0, 3), ...numCols.slice(0, 2)];
-  if (statusCol) showCols.push(statusCol);
-  document.getElementById('recentHead').innerHTML =
-    showCols.map(c => `<th>${label(c)}</th>`).join('');
-
-  tbody.innerHTML = recent.map(r => `<tr>
-    ${showCols.map(c => {
-      if (c === statusCol) {
-        const v = String(r[c] || '');
-        const cls = /active|ใช้งาน/i.test(v) ? 'badge-active' : /expire|หมด/i.test(v) ? 'badge-expired' : /draft|ร่าง/i.test(v) ? 'badge-draft' : 'badge-inactive';
-        return `<td><span class="badge ${cls}">${fv(r[c])}</span></td>`;
+/* ── Charts ── */
+function buildCharts(){
+  /* Revenue */
+  const ctx1=document.getElementById('revChart').getContext('2d');
+  if(revChart)revChart.destroy();
+  revChart=new Chart(ctx1,{
+    type:'line',
+    data:{
+      labels:REV_LABELS,
+      datasets:[{
+        label:'Revenue (฿)',data:REV_VALS,
+        borderColor:'#ECB914',
+        backgroundColor:(ctx=>{
+          const g=ctx.chart.ctx.createLinearGradient(0,0,0,220);
+          g.addColorStop(0,'rgba(236,185,20,.18)');g.addColorStop(1,'rgba(236,185,20,.01)');return g;
+        }),
+        fill:true,tension:.4,borderWidth:2.5,
+        pointBackgroundColor:'#ECB914',pointRadius:3,pointHoverRadius:6
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{
+        backgroundColor:'#1A1410',titleColor:'#F6D579',bodyColor:'#CBB8A0',cornerRadius:10,padding:10,
+        callbacks:{label:c=>'฿'+Number(c.parsed.y).toLocaleString()}
+      }},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#9B8B83',font:{size:11,family:'Inter'}}},
+        y:{grid:{color:'rgba(203,184,160,.14)'},ticks:{color:'#9B8B83',font:{size:11,family:'Inter'},callback:v=>'฿'+(v/1e6).toFixed(1)+'M'}}
       }
-      return `<td>${fv(r[c])}</td>`;
-    }).join('')}
-  </tr>`).join('');
+    }
+  });
+  /* Donut placeholder */
+  const ctx2=document.getElementById('donutChart').getContext('2d');
+  if(donutChart)donutChart.destroy();
+  donutChart=new Chart(ctx2,{
+    type:'doughnut',
+    data:{labels:['Yearly','Marketing','Other'],datasets:[{data:[1,1,1],backgroundColor:['#ECB914','#32D583','#E8E3DB'],borderWidth:0,hoverOffset:8}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{backgroundColor:'#1A1410',titleColor:'#F6D579',bodyColor:'#CBB8A0',cornerRadius:10,padding:10}}}
+  });
 }
 
-// Real-time subscriptions
-supabase.channel('dashboard')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'Contract Master' }, loadStats)
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'Outlet Master' }, loadStats)
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'Promotion / Trade deal' }, loadStats)
-  .subscribe();
-
-async function logout() {
-  await supabase.auth.signOut();
-  window.location.href = 'index.html';
+function setRev(n,btn){
+  document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  revChart.data.labels=REV_LABELS.slice(-n);
+  revChart.data.datasets[0].data=REV_VALS.slice(-n);
+  revChart.update();
 }
 
-checkAuth();
+/* ── Contracts table ── */
+async function loadContracts(){
+  const{data}=await sb.from('Contract Master').select('*').order('id',{ascending:false}).limit(200);
+  contractData=data||[];filtered=[...contractData];renderTbl();updateDonut();
+}
+
+function updateDonut(){
+  if(!donutChart||!contractData.length)return;
+  const str=r=>JSON.stringify(r).toLowerCase();
+  const yearly=contractData.filter(r=>/yearly/.test(str(r))).length;
+  const mkt=contractData.filter(r=>/marketing|promo/.test(str(r))&&!/yearly/.test(str(r))).length;
+  const other=Math.max(0,contractData.length-yearly-mkt);
+  donutChart.data.datasets[0].data=[yearly,mkt,other];donutChart.update();
+  document.getElementById('donutNum').textContent=contractData.length;
+  const defs=[{l:'Yearly',c:'#ECB914'},{l:'Marketing',c:'#32D583'},{l:'Other',c:'#E8E3DB'}];
+  const vals=[yearly,mkt,other];
+  document.getElementById('donutLegend').innerHTML=defs.map((d,i)=>`
+    <div class="legend-row">
+      <div class="legend-dot" style="background:${d.c}"></div>
+      <span class="legend-lbl">${d.l}</span>
+      <span class="legend-val">${vals[i]}</span>
+    </div>`).join('');
+}
+
+function filterTbl(){
+  const q=document.getElementById('tSearch').value.toLowerCase();
+  filtered=q?contractData.filter(r=>JSON.stringify(r).toLowerCase().includes(q)):[...contractData];
+  tblPage=1;renderTbl();
+}
+
+function renderTbl(){
+  const keys=contractData[0]?Object.keys(contractData[0]):[];
+  const col=pat=>keys.find(k=>pat.test(k))||'';
+  const codeK=col(/outlet.?code/i),nameK=col(/outlet.?name|company/i),typeK=col(/contract.*type|type.*contract|^contract$/i),bdeK=col(/^bde$/i),teamK=col(/^team$/i);
+  const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+  const typeBadge=v=>{const s=String(v||'').toLowerCase();if(s.includes('yearly'))return`<span class="badge b-yearly">Yearly</span>`;if(s.includes('market'))return`<span class="badge b-mkt">Marketing</span>`;return`<span class="badge b-none">—</span>`;};
+  const start=(tblPage-1)*PAGE_SZ,rows=filtered.slice(start,start+PAGE_SZ);
+  document.getElementById('tBody').innerHTML=rows.length?rows.map((r,i)=>`<tr>
+    <td style="color:#9B8B83;font-size:11px">${start+i+1}</td>
+    <td style="font-family:monospace;font-size:12px;color:#9D8108">${esc(r[codeK])}</td>
+    <td style="text-align:left;font-weight:500">${esc((r[nameK]||'').slice(0,28))}</td>
+    <td>${typeBadge(r[typeK])}</td>
+    <td>${esc(r[bdeK])}</td>
+    <td>${esc(r[teamK])}</td>
+    <td><span class="badge b-act">Active</span></td>
+  </tr>`).join(''):'<tr><td colspan="7" style="text-align:center;padding:28px;color:#9B8B83">No records found</td></tr>';
+  const total=filtered.length,pages=Math.ceil(total/PAGE_SZ);
+  document.getElementById('tCount').textContent=`${total.toLocaleString()} records`;
+  document.getElementById('tPagiInfo').textContent=`${Math.min(start+1,total)}–${Math.min(start+PAGE_SZ,total)} of ${total}`;
+  let btns=`<button class="pg-btn" onclick="goT(${tblPage-1})" ${tblPage<=1?'disabled':''}>‹</button>`;
+  for(let p=Math.max(1,tblPage-2);p<=Math.min(pages,tblPage+2);p++)btns+=`<button class="pg-btn${p===tblPage?' active':''}" onclick="goT(${p})">${p}</button>`;
+  btns+=`<button class="pg-btn" onclick="goT(${tblPage+1})" ${tblPage>=pages?'disabled':''}>›</button>`;
+  document.getElementById('tPagiBtns').innerHTML=btns;
+}
+function goT(p){const pg=Math.ceil(filtered.length/PAGE_SZ);if(p<1||p>pg)return;tblPage=p;renderTbl();}
+
+/* ── Activity ── */
+async function loadActivity(){
+  let data=null;
+  try{const res=await sb.from('data_u_log').select('*').order('changed_at',{ascending:false}).limit(7);data=res.data;}catch(e){}
+  const feed=document.getElementById('actFeed');
+  if(!data?.length){
+    const acts=[
+      {ico:'📋',bg:'rgba(236,185,20,.1)',txt:'New contract created — Outlet #1042',t:'2 min ago'},
+      {ico:'🏪',bg:'rgba(50,213,131,.1)',txt:'Outlet profile updated — Central Bangkok',t:'18 min ago'},
+      {ico:'📈',bg:'rgba(99,102,241,.1)',txt:'Sales report generated for Q2 2026',t:'1 hour ago'},
+      {ico:'✅',bg:'rgba(50,213,131,.1)',txt:'Claim #CR-0241 approved by Manager',t:'2 hours ago'},
+      {ico:'🔔',bg:'rgba(245,165,36,.1)',txt:'3 contracts expiring within 30 days',t:'3 hours ago'},
+    ];
+    feed.innerHTML=acts.map(a=>`<div class="feed-item">
+      <div class="feed-avi" style="background:${a.bg}">${a.ico}</div>
+      <div class="feed-body"><div class="feed-txt">${a.txt}</div><div class="feed-meta">${a.t}</div></div>
+    </div>`).join('');return;
+  }
+  const esc=s=>String(s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
+  const icos={INSERT:'📋',UPDATE:'✏️',DELETE:'🗑️'};
+  const bgs={INSERT:'rgba(50,213,131,.1)',UPDATE:'rgba(236,185,20,.1)',DELETE:'rgba(240,68,56,.1)'};
+  feed.innerHTML=data.map(l=>`<div class="feed-item">
+    <div class="feed-avi" style="background:${bgs[l.action]||'rgba(203,184,160,.15)'}">${icos[l.action]||'📋'}</div>
+    <div class="feed-body">
+      <div class="feed-txt">${esc(l.action)} — Record #${esc(l.record_id)}</div>
+      <div class="feed-meta">by ${esc(l.changed_by)} · ${new Date(l.changed_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+    </div></div>`).join('');
+}
+
+/* ── Team Performance ── */
+function renderPerf(){
+  const teams=[
+    {n:'Bangkok North',pct:91,c:'#ECB914'},
+    {n:'Bangkok South',pct:78,c:'#32D583'},
+    {n:'Central Region',pct:65,c:'#F5A524'},
+    {n:'Eastern Region',pct:83,c:'#ECB914'},
+  ];
+  document.getElementById('perfList').innerHTML=teams.map(t=>`
+    <div class="perf-row">
+      <div class="perf-top"><span class="perf-name">${t.n}</span><span class="perf-pct">${t.pct}%</span></div>
+      <div class="perf-bar"><div class="perf-fill" style="width:${t.pct}%;background:${t.c}"></div></div>
+    </div>`).join('');
+}
+
+/* ── Helpers ── */
+async function logout(){await sb.auth.signOut();location.href='index.html';}
+function showToast(msg,type='ok'){
+  const w=document.getElementById('toastWrap');
+  const t=document.createElement('div');
+  t.className='toast '+(type==='err'?'t-err':'t-ok');
+  t.textContent=msg;w.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
 </script>
 </body>
 </html>
-

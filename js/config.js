@@ -9,13 +9,13 @@ const { createClient } = window.supabase;
 window._sbCreateClient = createClient;
 window.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ── Fix nav labels: undo any icon injection + restore text ── */
+/* ── Nav labels ── */
 (function () {
   var NAV_LABELS = {
     'dashboard.html':  'Dashboard',
     'outlets.html':    'Outlet Master',
     'data_u.html':     'Data Universe',
-    'contracts.html':  'Contract Master',
+    'contracts.html':  'Contracts',
     'promotions.html': 'Promotions',
     'roi.html':        'ROI Analysis',
     'offtake.html':    'Off-take 2026',
@@ -29,20 +29,13 @@ window.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
       var key = raw.replace(/^.*\//, '').replace(/\?.*$/, '');
       var label = NAV_LABELS[key];
       if (!label) return;
-      /* Remove all child elements (icon divs / injected spans) */
       while (a.firstChild) a.removeChild(a.firstChild);
-      /* Set plain text label */
       a.textContent = label;
-      /* Point href at cache-busted URL so next navigation loads fresh */
-      if (!raw.includes('?')) a.setAttribute('href', raw + '?v=4');
     });
   }
 
-  /* Run after nav-icons.js (or any other script) has had a chance to run */
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
-      setTimeout(restoreNav, 0);
-    });
+    document.addEventListener('DOMContentLoaded', function () { setTimeout(restoreNav, 0); });
   } else {
     setTimeout(restoreNav, 0);
   }
