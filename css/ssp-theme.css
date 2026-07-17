@@ -40,7 +40,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
-  font-family: 'Inter', 'DM Sans', system-ui, sans-serif !important;
+  font-family: 'Poppins', system-ui, sans-serif !important;
   background: var(--bg) !important;
   background-attachment: fixed !important;
   color: var(--text-1) !important;

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Outlet Master — SSP</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="js/config.js?v=3"></script>
@@ -17,11 +17,11 @@
 
 /* 1. RESET & BASE */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',system-ui,sans-serif;background:linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%);background-attachment:fixed;color:#1E293B;display:flex;font-size:14px;line-height:1.55;min-height:100vh;font-weight:400}
-h1,h2,h3,h4,h5{font-weight:800;text-wrap:balance}
-button{cursor:pointer;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:600;transition:all .15s}
-input,select,textarea{font-family:'DM Sans',system-ui,sans-serif;font-size:13px;font-weight:400}
-label{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:.35px;text-transform:uppercase;color:#475569}
+body{font-family:'Poppins',system-ui,sans-serif;background:linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%);background-attachment:fixed;color:#1E293B;display:flex;font-size:14px;line-height:1.55;min-height:100vh;font-weight:400}
+h1,h2,h3,h4,h5{font-weight:700;text-wrap:balance}
+button{cursor:pointer;font-family:'Poppins',system-ui,sans-serif;font-size:13px;font-weight:600;transition:all .15s}
+input,select,textarea{font-family:'Poppins',system-ui,sans-serif;font-size:13px;font-weight:400}
+label{font-family:'Poppins',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:.35px;text-transform:uppercase;color:#475569}
 
 /* ── SIDEBAR ─────────────────────────────────────────────── */
 .sidebar{
@@ -89,7 +89,7 @@ label{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:700;
 /* CODE PREVIEW BANNER */
 .cpb{background:linear-gradient(135deg,#0F3E7C 0%,#114588 100%);border-radius:10px;padding:12px 18px;margin:0 0 12px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:10;box-shadow:0 4px 16px rgba(11,45,89,.25)}
 .cpb-lbl{font-size:9px;font-weight:700;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap}
-.cpb-code{font-size:16px;font-weight:800;color:#fff;letter-spacing:1.5px;font-family:'DM Sans',monospace;flex:1}
+.cpb-code{font-size:16px;font-weight:800;color:#fff;letter-spacing:1.5px;font-family:'Poppins',monospace;flex:1}
 .cpb-note{font-size:11px;color:rgba(255,255,255,.6);font-style:italic}
 
 /* 5. TOOLBAR */
@@ -276,7 +276,7 @@ select.finput{appearance:auto}
 .btn-del-sku:hover{background:#D5E5FA}
 .sku-auto{background:#FFFBF0 !important;color:#7B5E00 !important;font-size:11px;font-style:italic}
 </style>
-<link rel="stylesheet" href="css/ssp-theme.css?v=13">
+<link rel="stylesheet" href="css/ssp-theme.css?v=14">
 </head>
 <body>
 
