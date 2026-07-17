@@ -1,39 +1,39 @@
 /* ============================================================
-   SSP  —  Luxury Gold Design System  v9
-   Mood: Premium · Warm · Minimal · Modern · Elegant
+   SSP  —  Minimal Blue Design System  v9
+   Mood: Clean · Calm · Minimal · Modern · Basic Blue
    ============================================================ */
 
 :root {
-  --gold:         #ECB914;
-  --gold-light:   #F6D579;
-  --gold-dark:    #9D8108;
-  --brown-dark:   #4F3D35;
-  --brown-mid:    #7B5E52;
-  --beige:        #CBB8A0;
-  --beige-light:  rgba(203,184,160,.18);
+  --gold:         #175FBD;
+  --gold-light:   #5090E4;
+  --gold-dark:    #114588;
+  --brown-dark:   #36404E;
+  --brown-mid:    #546479;
+  --beige:        #A2B3C9;
+  --beige-light:  rgba(162,179,201,.18);
   --bg:           #FAFAF9;
   --bg-alt:       #F8F7F4;
   --bg-card:      #FFFFFF;
-  --bg-warm:      #FEF9EC;
-  --text-1:       #1A1410;
-  --text-2:       #6B5A52;
+  --bg-warm:      #F3F7FD;
+  --text-1:       #101419;
+  --text-2:       #535D6A;
   --text-3:       #9B8B83;
   --success:      #32D583;
-  --warning:      #F5A524;
-  --error:        #F04438;
-  --border:       rgba(203,184,160,.32);
-  --border-mid:   rgba(203,184,160,.6);
-  --shadow-xs:    0 1px 4px rgba(79,61,53,.06);
-  --shadow-sm:    0 2px 14px rgba(79,61,53,.08);
-  --shadow-md:    0 4px 28px rgba(79,61,53,.10);
-  --shadow-lg:    0 8px 48px rgba(79,61,53,.13);
-  --shadow-gold:  0 4px 24px rgba(236,185,20,.28);
-  --brand:        #ECB914;
-  --brand-deep:   #9D8108;
-  --brand-mid:    #F6D579;
-  --brand-light:  #FEF9EC;
-  --brand-glow:   rgba(236,185,20,.22);
-  --bg-sidebar:   #4F3D35;
+  --warning:      #3381E6;
+  --error:        #4189E7;
+  --border:       rgba(162,179,201,.32);
+  --border-mid:   rgba(162,179,201,.6);
+  --shadow-xs:    0 1px 4px rgba(54,64,78,.06);
+  --shadow-sm:    0 2px 14px rgba(54,64,78,.08);
+  --shadow-md:    0 4px 28px rgba(54,64,78,.10);
+  --shadow-lg:    0 8px 48px rgba(54,64,78,.13);
+  --shadow-gold:  0 4px 24px rgba(23,95,189,.28);
+  --brand:        #175FBD;
+  --brand-deep:   #114588;
+  --brand-mid:    #5090E4;
+  --brand-light:  #F3F7FD;
+  --brand-glow:   rgba(23,95,189,.22);
+  --bg-sidebar:   #36404E;
   --bg-page:      #FAFAF9;
 }
 
@@ -50,22 +50,19 @@ body {
 .sidebar {
   width: 256px !important;
   min-width: 256px !important;
-  background: linear-gradient(180deg, #4F3D35 0%, #3A2D27 100%) !important;
+  background: linear-gradient(180deg, #36404E 0%, #282F39 100%) !important;
   border-right: none !important;
-  box-shadow: 3px 0 32px rgba(79,61,53,.22) !important;
+  box-shadow: 3px 0 32px rgba(54,64,78,.22) !important;
 }
 .main, .page-main, main { margin-left: 256px !important; }
 
 .sidebar::before {
   height: 2px !important;
-  background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light), var(--gold), var(--gold-dark)) !important;
-  background-size: 200% 100% !important;
-  animation: sbStripe 4s linear infinite !important;
+  background: var(--gold) !important;
 }
-@keyframes sbStripe { 0%{background-position:0% 0} 100%{background-position:200% 0} }
 
 .sb-logo { border-bottom: 1px solid rgba(255,255,255,.08) !important; padding-bottom: 20px !important; }
-.sb-logo-icon { background: linear-gradient(135deg, var(--gold-dark), var(--gold)) !important; box-shadow: 0 3px 14px rgba(236,185,20,.35) !important; color: #fff !important; }
+.sb-logo-icon { background: linear-gradient(135deg, var(--gold-dark), var(--gold)) !important; box-shadow: 0 3px 14px rgba(23,95,189,.35) !important; color: #fff !important; }
 .sb-logo-text h3 { color: #FFFFFF !important; font-weight: 800 !important; }
 .sb-logo-text p  { color: rgba(255,255,255,.35) !important; }
 
@@ -92,15 +89,15 @@ body {
   transform: none !important;
 }
 .nav-links a.active {
-  background: rgba(236,185,20,.18) !important;
-  color: #F6D579 !important;
-  border-color: rgba(236,185,20,.28) !important;
+  background: rgba(23,95,189,.18) !important;
+  color: #5090E4 !important;
+  border-color: rgba(23,95,189,.28) !important;
   font-weight: 600 !important;
   box-shadow: none !important;
 }
 .nav-links a.nav-sub        { color: rgba(255,255,255,.38) !important; font-size: 12.5px !important; }
 .nav-links a.nav-sub:hover  { color: rgba(255,255,255,.75) !important; background: rgba(255,255,255,.05) !important; }
-.nav-links a.nav-sub.active { color: #F6D579 !important; background: rgba(236,185,20,.12) !important; }
+.nav-links a.nav-sub.active { color: #5090E4 !important; background: rgba(23,95,189,.12) !important; }
 
 .nav-links a .nav-ico {
   width: 26px !important; height: 26px !important; min-width: 26px !important;
@@ -110,14 +107,14 @@ body {
   box-shadow: none !important;
 }
 .nav-links a:hover .nav-ico { background: rgba(255,255,255,.11) !important; color: rgba(255,255,255,.8) !important; }
-.nav-links a.active .nav-ico { background: rgba(236,185,20,.22) !important; color: #F6D579 !important; }
+.nav-links a.active .nav-ico { background: rgba(23,95,189,.22) !important; color: #5090E4 !important; }
 
 .sidebar-user { border-top: 1px solid rgba(255,255,255,.07) !important; background: rgba(0,0,0,.16) !important; }
 .sidebar-user .sname  { color: #FFFFFF !important; }
 .sidebar-user .semail { color: rgba(255,255,255,.38) !important; }
-.sb-avatar { background: linear-gradient(135deg, var(--gold-dark), var(--gold)) !important; box-shadow: 0 2px 8px rgba(236,185,20,.3) !important; }
+.sb-avatar { background: linear-gradient(135deg, var(--gold-dark), var(--gold)) !important; box-shadow: 0 2px 8px rgba(23,95,189,.3) !important; }
 .btn-logout { background: rgba(255,255,255,.06) !important; color: rgba(255,255,255,.45) !important; border: 1px solid rgba(255,255,255,.10) !important; }
-.btn-logout:hover { background: rgba(236,185,20,.15) !important; color: #F6D579 !important; border-color: rgba(236,185,20,.25) !important; }
+.btn-logout:hover { background: rgba(23,95,189,.15) !important; color: #5090E4 !important; border-color: rgba(23,95,189,.25) !important; }
 
 /* ── PAGE ── */
 .main, .page-main, main { background: var(--bg) !important; }
@@ -143,20 +140,20 @@ body {
 .toolbar { background: var(--bg-card) !important; border: 1px solid var(--border) !important; border-radius: 14px !important; box-shadow: var(--shadow-xs) !important; }
 
 thead th {
-  background: linear-gradient(90deg, #FEF3C7 0%, #FFFBEB 100%) !important;
-  color: #92400E !important;
+  background: linear-gradient(90deg, #EAF1FC 0%, #F6F9FE 100%) !important;
+  color: #15488B !important;
   font-size: 11px !important;
   font-weight: 700 !important;
   letter-spacing: .5px !important;
   text-align: center !important;
   text-transform: uppercase !important;
 }
-tbody tr:hover td { background: #FFFBEB !important; }
-tbody tr:hover th { background: #FFFBEB !important; }
+tbody tr:hover td { background: #F6F9FE !important; }
+tbody tr:hover th { background: #F6F9FE !important; }
 
 .finput:focus, .search-wrap input:focus, .search-box input:focus, .flt:focus {
   border: 1px solid var(--gold) !important;
-  box-shadow: 0 0 0 3px rgba(236,185,20,.18) !important;
+  box-shadow: 0 0 0 3px rgba(23,95,189,.18) !important;
   transform: translateY(-1px) !important;
   background: #fff !important;
 }
@@ -164,26 +161,26 @@ tbody tr:hover th { background: #FFFBEB !important; }
 .flt { background: var(--bg-warm) !important; border: 1px solid var(--border) !important; }
 .search-ico { color: var(--gold-dark) !important; }
 
-.btn-add { background: linear-gradient(135deg, var(--gold-dark), var(--gold)) !important; border: none !important; border-radius: 12px !important; color: #fff !important; box-shadow: 0 4px 16px rgba(236,185,20,.28) !important; transition: all .18s ease !important; }
-.btn-add:hover { background: linear-gradient(135deg, #7A6200, var(--gold-dark)) !important; transform: translateY(-2px) !important; box-shadow: 0 6px 22px rgba(236,185,20,.38) !important; }
+.btn-add { background: linear-gradient(135deg, var(--gold-dark), var(--gold)) !important; border: none !important; border-radius: 12px !important; color: #fff !important; box-shadow: 0 4px 16px rgba(23,95,189,.28) !important; transition: all .18s ease !important; }
+.btn-add:hover { background: linear-gradient(135deg, #0E376D, var(--gold-dark)) !important; transform: translateY(-2px) !important; box-shadow: 0 6px 22px rgba(23,95,189,.38) !important; }
 .btn-exp { background: var(--bg-card) !important; border: 1px solid var(--border-mid) !important; color: var(--text-2) !important; border-radius: 12px !important; }
 .btn-exp:hover { background: var(--bg-warm) !important; border-color: var(--gold) !important; color: var(--gold-dark) !important; }
 
-.overlay, .add-overlay { backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important; background: rgba(79,61,53,.35) !important; }
+.overlay, .add-overlay { backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important; background: rgba(54,64,78,.35) !important; }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #CBB8A0; border-radius: 6px; }
+::-webkit-scrollbar-thumb { background: #A2B3C9; border-radius: 6px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
 
-.badge-admin    { background: #FEF3C7; color: #92400E; }
-.badge-manager  { background: #FEE2E2; color: #991B1B; }
+.badge-admin    { background: #FEF3C7; color: #15488B; }
+.badge-manager  { background: #E4EEFC; color: #215293; }
 .badge-user     { background: #ECFDF5; color: #065F46; }
 .badge-active   { background: #DCFCE7; color: #14532D; }
-.badge-inactive { background: #FEE2E2; color: #7B0000; }
-.b-admin    { background: #FEF3C7; color: #92400E; }
-.b-manager  { background: #FEE2E2; color: #991B1B; }
+.badge-inactive { background: #E4EEFC; color: #0E376D; }
+.b-admin    { background: #FEF3C7; color: #15488B; }
+.b-manager  { background: #E4EEFC; color: #215293; }
 .b-user     { background: #ECFDF5; color: #065F46; }
 .b-active   { background: #DCFCE7; color: #14532D; }
-.b-inactive { background: #FEE2E2; color: #7B0000; }
+.b-inactive { background: #E4EEFC; color: #0E376D; }
 .dot-live { background: var(--success) !important; }
