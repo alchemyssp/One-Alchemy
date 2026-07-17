@@ -140,13 +140,14 @@ body {
 .toolbar { background: var(--bg-card) !important; border: 1px solid var(--border) !important; border-radius: 14px !important; box-shadow: var(--shadow-xs) !important; }
 
 thead th {
-  background: linear-gradient(90deg, #114588 0%, #0E376D 100%) !important;
-  color: #fff !important;
+  background: transparent !important;
+  color: #114588 !important;
   font-size: 11px !important;
   font-weight: 700 !important;
   letter-spacing: .5px !important;
   text-align: center !important;
   text-transform: uppercase !important;
+  border-bottom: 2px solid #CBDFF7 !important;
 }
 tbody tr:hover td { background: #F6F9FE !important; }
 tbody tr:hover th { background: #F6F9FE !important; }
