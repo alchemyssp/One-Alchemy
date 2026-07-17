@@ -41,23 +41,9 @@
 
 body {
   font-family: 'Poppins', system-ui, sans-serif !important;
-  background: transparent !important;
+  background: var(--bg) !important;
+  background-attachment: fixed !important;
   color: var(--text-1) !important;
-}
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background: url('../img/bg-wine.jpg') center/cover no-repeat;
-  filter: blur(6px) brightness(.55);
-  transform: scale(1.08);
-}
-.page-header, .page-hdr {
-  background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%) !important;
-  border-radius: 16px !important;
-  padding: 18px 24px !important;
-  box-shadow: var(--shadow-sm) !important;
 }
 
 /* ── SIDEBAR ── */
@@ -131,7 +117,7 @@ body::before {
 .btn-logout:hover { background: rgba(23,95,189,.15) !important; color: #114588 !important; border-color: rgba(23,95,189,.3) !important; }
 
 /* ── PAGE ── */
-.main, .page-main, main { background: transparent !important; }
+.main, .page-main, main { background: var(--bg) !important; }
 
 .table-card, .tcard { background: var(--bg-card) !important; border-radius: 20px !important; box-shadow: var(--shadow-sm) !important; border: 1px solid var(--border) !important; }
 .strip-item { border-radius: 16px !important; border: 1px solid var(--border) !important; box-shadow: var(--shadow-xs) !important; }
