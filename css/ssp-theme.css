@@ -53,9 +53,11 @@ body::before {
   filter: blur(6px) brightness(.55);
   transform: scale(1.08);
 }
-.page-title, .page-header h2, .page-hdr .page-title,
-.page-sub, .page-header p, .page-hdr .page-sub {
-  text-shadow: 0 1px 8px rgba(255,255,255,.85) !important;
+.page-header, .page-hdr {
+  background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%) !important;
+  border-radius: 16px !important;
+  padding: 18px 24px !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 /* ── SIDEBAR ── */
