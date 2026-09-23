@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kanit Typography — Demo</title>
+<link rel="stylesheet" href="../css/kanit-typography.css">
+<style>
+  /* demo layout only — not part of the typography system */
+  body { background: #FAFAFA; }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 20px; }
+  section { background: #FFFFFF; border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+  .tag { color: #B0120A; }
+</style>
+</head>
+<body>
+<main>
+
+  <section>
+    <h1>หัวข้อหลัก H1 — Heading One</h1>
+    <h2>หัวข้อรอง H2 — Heading Two</h2>
+    <h3>หัวข้อย่อย H3 — Heading Three</h3>
+    <p>
+      นี่คือตัวอย่างเนื้อหาหลักภาษาไทย ขนาด 16px ระยะบรรทัด 28px
+      ทดสอบสระและวรรณยุกต์ซ้อนกัน เช่น ปู่ ญี่ปุ่น น้ำ ผู้ใหญ่ กี่ที่ ฤๅษี
+      เพื่อดูว่าสระบนและสระล่างไม่ชนกับบรรทัดด้านบนหรือด้านล่าง
+      This is English body text set in Kanit Regular at the same size.
+    </p>
+    <p>
+      ย่อหน้าที่สอง ทุกขนาดเก็บไว้ใน CSS Variables ใน <span class="tag">:root</span>
+      แก้ค่าที่เดียว มีผลทั้งเว็บ ลองย่อหน้าต่างให้แคบกว่า 768px เพื่อดูขนาดบนมือถือ
+    </p>
+    <small>ข้อความขนาดเล็ก (Small) — Light 14px บน Desktop / 12px บน Mobile</small>
+  </section>
+
+  <section>
+    <h3>น้ำหนักฟอนต์ที่โหลดไว้</h3>
+    <p class="fw-light">Light 300 — ตัวอย่างข้อความ</p>
+    <p class="fw-regular">Regular 400 — ตัวอย่างข้อความ</p>
+    <p class="fw-medium">Medium 500 — ตัวอย่างข้อความ</p>
+    <p class="fw-bold">Bold 700 — ตัวอย่างข้อความ</p>
+    <p class="fw-black">Black 900 — ตัวอย่างข้อความ</p>
+  </section>
+
+</main>
+<footer style="text-align:center;padding:0 20px 32px">
+  © 2026 Archive — ส่วนท้ายเว็บไซต์ (Footer) ใช้ขนาด Small
+</footer>
+</body>
+</html>

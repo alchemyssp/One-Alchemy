@@ -1,25 +1,25 @@
 /* ============================================================
    SSP  —  Typography, Menu Bar, Boxes & No-Border rules
    Loaded AFTER ssp-theme.css on every page, so it wins.
-   - Font: Roboto (Thai text falls back to Noto Sans Thai)
-   - Sizes: page title 24 · section title 18 · body 14 · small 12
+   - Font: Kanit (Latin + Thai), headlines regular weight
+   - Sizes: see "TYPOGRAPHY v3" block at the end (H1 40/28 · H2 32/24 · H3 24/20 · body 16/28 · small 14/12)
    - Main menu bar: dark red → light red gradient, white text
    - Content boxes: white background, black text
    - No borders on any box, card, panel, table or input
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --font-main: 'Roboto', 'Noto Sans Thai', 'Segoe UI', system-ui, sans-serif;
+  --font-main: 'Kanit', 'Segoe UI', system-ui, sans-serif;
   --fs-title:   24px;   /* page title, big KPI numbers */
   --fs-section: 18px;   /* section / card / popup titles */
   --fs-body:    14px;   /* normal text, tables, menu, buttons, inputs */
   --fs-small:   12px;   /* labels, table headers, badges, sub text */
   --ink:        #111111;
   --ink-soft:   #555555;
-  --menu-top:   #6D0E18;
-  --menu-mid:   #A51423;
-  --menu-bot:   #E4505F;
+  --menu-top:   #B0120A;
+  --menu-mid:   #B0120A;
+  --menu-bot:   #F36C60;
 }
 
 /* ── FONT ── */
@@ -73,7 +73,7 @@ h1, h1 *, .page-title, .page-header h2, .page-hdr .page-title,
 .sidebar .nav-links a.nav-sub.active { background: #fff !important; color: var(--menu-mid) !important; box-shadow: 0 3px 12px rgba(0,0,0,.18) !important; }
 .sidebar .nav-links a .nav-ico       { background: rgba(255,255,255,.14) !important; color: #fff !important; }
 .sidebar .nav-links a:hover .nav-ico { background: rgba(255,255,255,.24) !important; color: #fff !important; }
-.sidebar .nav-links a.active .nav-ico { background: rgba(165,20,35,.12) !important; color: var(--menu-mid) !important; }
+.sidebar .nav-links a.active .nav-ico { background: rgba(176,18,10,.12) !important; color: var(--menu-mid) !important; }
 .sidebar .sidebar-user { background: rgba(0,0,0,.12) !important; }
 .sidebar .sidebar-user .sname  { color: #fff !important; }
 .sidebar .sidebar-user .semail { color: rgba(255,255,255,.7) !important; }
@@ -153,8 +153,198 @@ select:focus, textarea:focus {
 .strip-item.strip-marketing .sl,
 .strip-item.strip-marketing .sv { color: #EA580C !important; -webkit-text-fill-color: #EA580C !important; }
 
-/* Dashboard page accent = orange (menu bar stays red like other pages) */
+/* Dashboard page uses the same 3-color palette as the rest of the site */
 body.page-dashboard {
-  --gold: #EA580C; --gold-light: #FB923C; --gold-dark: #C2410C;
-  --brand: #EA580C; --brand-deep: #C2410C; --brand-mid: #FB923C; --brand-light: #FFF7ED;
+  --gold: #B0120A; --gold-light: #F36C60; --gold-dark: #B0120A;
+  --brand: #B0120A; --brand-deep: #B0120A; --brand-mid: #F36C60; --brand-light: #FDE0DC;
+}
+
+/* ── TEXT SPACING (whole site) ──
+   comfortable line height, natural letter spacing, even table padding */
+body { line-height: 1.55 !important; }
+body * { letter-spacing: normal !important; }
+p, li, td, label, .feed-txt, .card-sub, .page-sub, .kpi-sub { line-height: 1.5 !important; }
+h1, h2, h3, h4, .page-title, .sec-title, .card-title, .section-head,
+.fmtitle, .fstitle, .mtitle, .kpi-num, .kpi-value, .stat-num { letter-spacing: -0.01em !important; }
+th, .kpi-lbl, .kpi-label, .strip-item .sl { letter-spacing: 0.02em !important; }
+th, td { padding: 10px 12px !important; }
+.sku-table th, .sku-table td { padding: 4px 6px !important; }
+.page-title, .page-header h2 { margin-bottom: 4px !important; }
+.sec-title, .card-title { margin-bottom: 2px !important; }
+label { margin-bottom: 6px !important; display: inline-block; }
+
+/* ── SIDEBAR: no ALL CAPS, highlight the section headlines instead ── */
+.sidebar, .sidebar * { text-transform: none !important; }
+.sidebar .nav-links a { padding: 9px 12px !important; margin-bottom: 2px !important; font-weight: 400 !important; }
+.sidebar .nav-links a.active { font-weight: 600 !important; }
+.sidebar .nav-section {
+  display: block;
+  margin: 18px 0 6px !important;
+  padding: 4px 12px !important;
+  border-radius: 8px !important;
+  background: rgba(255,255,255,.16) !important;
+  color: #FFFFFF !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: normal !important;
+}
+.sidebar .nav-section:first-child { margin-top: 6px !important; }
+
+/* Sidebar v2: bigger group headlines, menu items indented one step under them */
+.sidebar .nav-section { font-size: 15px !important; padding: 6px 12px !important; }
+.sidebar .nav-links a { padding-left: 28px !important; }
+.sidebar .nav-links a.nav-sub { margin-left: 0 !important; padding-left: 28px !important; font-size: var(--fs-body) !important; color: rgba(255,255,255,.88) !important; }
+.sidebar .nav-links a.nav-sub.active { color: var(--menu-mid) !important; }
+
+/* ── RED GRADIENT: Data Universe table header + summary cards site-wide ── */
+:root { --red-grad: linear-gradient(135deg, #B0120A 0%, #F36C60 100%); }
+
+body.page-datau thead th {
+  background: linear-gradient(90deg, #B0120A 0%, #F36C60 100%) !important;
+  background-attachment: fixed;
+  color: #FFFFFF !important;
+}
+body.page-datau thead th * { color: #FFFFFF !important; }
+
+/* summary / KPI cards (Dashboard, Data U, SKU, Outlets, ROI, Contracts, Promotions) */
+.kpi-card, .stat-card, .strip-item {
+  background: var(--red-grad) !important;
+  color: #FFFFFF !important;
+}
+.kpi-card *, .stat-card *, .strip-item * {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+}
+.kpi-card .kpi-lbl, .kpi-card .kpi-label, .kpi-card .kpi-sub, .kpi-card .kpi-unit,
+.stat-card .label, .stat-card .sub, .strip-item .sl, .strip-item > div:last-child:not(.sv) {
+  color: rgba(255,255,255,.85) !important;
+  -webkit-text-fill-color: rgba(255,255,255,.85) !important;
+}
+.kpi-card .kpi-chip { background: rgba(255,255,255,.2) !important; }
+.kpi-card .kpi-progress { background: rgba(255,255,255,.25) !important; }
+.kpi-card .kpi-progress-fill { background: #FFFFFF !important; }
+
+/* Marketing Contract keeps its orange identity: orange card, white text */
+.strip-item.strip-marketing { background: linear-gradient(135deg, #EA580C 0%, #FB923C 100%) !important; }
+.strip-item.strip-marketing .sl, .strip-item.strip-marketing .sv { color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important; }
+
+/* ── HEADLINES: regular weight, no bold (Kanit 400) ── */
+h1, h2, h3, h4, h5, h6, h1 *, h2 *, h3 *, h4 *,
+.page-title, .page-header h2, .sec-title, .card-title, .section-head,
+.fmtitle, .fstitle, .mtitle, .cp-hdr-title, .sku-modal-title, .imp-step-title,
+.discard-title, .sb-logo-text h3, .sidebar .nav-section, th {
+  font-weight: 400 !important;
+}
+
+/* ============================================================
+   TYPOGRAPHY v3 — Kanit spec (overrides the size/weight rules above)
+   Mobile-first; Desktop = 768px and wider
+   H1 40/28 Bold · H2 32/24 Bold · H3 24/20 Medium
+   Body 16px / line-height 28px Regular · Small 14/12 Light
+   ============================================================ */
+:root {
+  --fw-light: 300; --fw-regular: 400; --fw-medium: 500; --fw-bold: 700; --fw-black: 900;
+  --t-h1: 28px; --t-h2: 24px; --t-h3: 20px; --t-body: 16px; --t-small: 12px;
+  --t-lh-body: 28px;
+  /* keep older variables in sync so earlier rules use the new sizes */
+  --fs-body: 16px; --fs-small: 12px; --fs-section: 24px; --fs-title: 28px;
+}
+@media (min-width: 768px) {
+  :root { --t-h1: 40px; --t-h2: 32px; --t-h3: 24px; --t-small: 14px;
+          --fs-small: 14px; --fs-section: 32px; --fs-title: 40px; }
+}
+
+/* Body text: 16px / 28px, Regular */
+body { line-height: var(--t-lh-body) !important; font-weight: var(--fw-regular); }
+body, body * { font-size: var(--t-body) !important; }
+p, li, label, .feed-txt { line-height: var(--t-lh-body) !important; }
+td { line-height: 1.5 !important; }   /* tables stay compact: 24px rows */
+
+/* H1 — page titles */
+h1, h1 *, .page-title, .page-header h2, .page-hdr .page-title {
+  font-size: var(--t-h1) !important; font-weight: var(--fw-bold) !important; line-height: 1.3 !important;
+}
+/* H2 — section headings */
+h2, h2 *, .sec-title, .section-head {
+  font-size: var(--t-h2) !important; font-weight: var(--fw-bold) !important; line-height: 1.3 !important;
+}
+/* H3 — card & popup titles */
+h3, h4, h3 *, h4 *, .card-title, .fmtitle, .fstitle, .mtitle, .cp-hdr-title,
+.sku-modal-title, .imp-step-title, .discard-title {
+  font-size: var(--t-h3) !important; font-weight: var(--fw-medium) !important; line-height: 1.3 !important;
+}
+
+/* Small / footer / secondary text: Light */
+small, footer, .text-small, .page-sub, .card-sub, .kpi-sub, .msub, .semail,
+.feed-meta, .topbar-urole, .page-meta, .kpi-lbl, .kpi-label, .kpi-unit, .strip-item .sl,
+[class*="badge"], [class*="chip"] {
+  font-size: var(--t-small) !important; font-weight: var(--fw-light) !important; line-height: 1.6 !important;
+}
+th, th * { font-size: var(--t-small) !important; font-weight: var(--fw-medium) !important; }
+
+/* Big KPI numbers: H3 size, Bold */
+.kpi-num, .kpi-value, .stat-num, .stat-card .value, .donut-center-num {
+  font-size: var(--t-h3) !important; font-weight: var(--fw-bold) !important; line-height: 1.25 !important;
+}
+.kpi-num span:last-child { font-size: var(--t-small) !important; }
+
+/* Sidebar keeps its own compact sizes */
+.sidebar .sb-logo-text h3 { font-size: 20px !important; font-weight: var(--fw-medium) !important; }
+.sidebar .nav-section { font-size: 15px !important; font-weight: var(--fw-medium) !important; }
+.sidebar .nav-links a, .sidebar .nav-links a.nav-sub { font-size: var(--t-body) !important; line-height: 1.5 !important; }
+.sidebar .sb-logo-text p, .sidebar .semail { font-size: var(--t-small) !important; }
+
+/* Weight helpers */
+.fw-light{font-weight:var(--fw-light)!important} .fw-regular{font-weight:var(--fw-regular)!important}
+.fw-medium{font-weight:var(--fw-medium)!important} .fw-bold{font-weight:var(--fw-bold)!important}
+.fw-black{font-weight:var(--fw-black)!important}
+
+/* ============================================================
+   READABILITY PASS — calmer weights, airier spacing
+   Pages ask for weight 800/900 in many places; with Kanit that renders
+   as Black and looks cramped. Reset everything to Regular, then add
+   weight back only where it helps.
+   ============================================================ */
+body * { font-weight: var(--fw-regular) !important; }
+
+h1, h1 *, .page-title, .page-header h2, .page-hdr .page-title,
+h2, h2 *, .section-head                                   { font-weight: 600 !important; }
+h3, h4, h3 *, h4 *, .sec-title, .card-title, .fmtitle, .fstitle, .mtitle,
+.cp-hdr-title, .sku-modal-title, .imp-step-title, .discard-title { font-weight: var(--fw-medium) !important; }
+.kpi-num, .kpi-value, .stat-num, .stat-card .value, .strip-item .sv, .donut-center-num { font-weight: 600 !important; }
+button, .btn, [class*="btn"], .sec-link, .ctab, th, th *,
+.sidebar .nav-links a.active, .sidebar .sb-logo-text h3, .sidebar .nav-section { font-weight: var(--fw-medium) !important; }
+small, footer, .page-sub, .card-sub, .kpi-sub, .feed-meta, .topbar-urole, .page-meta { font-weight: var(--fw-light) !important; }
+
+/* Card headings are H3, not H2 (32px was too big inside a card) */
+.sec-title { font-size: var(--t-h3) !important; line-height: 1.35 !important; }
+
+/* Letter spacing: never negative with Kanit; a hair of air for body text */
+body, body * { letter-spacing: 0.01em !important; }
+h1, h2, h3, h4, .page-title, .sec-title, .card-title, .kpi-value, .kpi-num, .stat-num { letter-spacing: 0 !important; }
+
+/* No ALL CAPS on labels / table headers — easier to read */
+.kpi-lbl, .kpi-label, .strip-item .sl, th, th *, .nav-section, [class*="badge"], [class*="chip"] { text-transform: none !important; }
+
+/* Breathing room between a title and the line under it */
+.page-title, .page-header h2 { margin-bottom: 8px !important; }
+.sec-title, .card-title { margin-bottom: 6px !important; }
+.card-hdr, .sec-hdr { margin-bottom: 20px !important; }
+.kpi-value, .kpi-num, .stat-num { margin: 10px 0 6px !important; }
+.kpi-lbl, .kpi-label { margin-bottom: 2px !important; }
+/* Space between page header and the cards/toolbar below it */
+.page-hdr, .page-header { margin-bottom: 24px !important; }
+.page-title, .page-header h2 { margin-bottom: 6px !important; }
+
+/* ── TABLE HEADER: solid dark red, full width, white text (all tables) ── */
+table { width: 100%; }
+thead th, body.page-datau thead th {
+  background: #B0120A !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
+}
+thead th *, body.page-datau thead th * { color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important; }
+tbody tr:hover th { background: #F2F2F2 !important; }
+thead th:hover, th.col-filtered, thead th.sort-asc, thead th.sort-desc {
+  background: #B0120A !important; background-image: none !important; color: #FFFFFF !important;
 }

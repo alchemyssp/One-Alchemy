@@ -1,0 +1,109 @@
+/* ============================================================
+   Kanit Typography
+   - Font: Kanit (Google Fonts) — Thai + Latin
+   - Mobile-first: base values = Mobile, @media (min-width: 768px) = Desktop
+   - Change sizes/weights in :root only
+   ============================================================ */
+
+/* 1) Load Kanit — only the weights we use:
+      300 Light · 400 Regular · 500 Medium · 700 Bold · 900 Black */
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700;900&display=swap');
+
+
+/* 2) Design tokens (CSS Custom Properties) */
+:root {
+  /* Font family (fallbacks show Thai correctly if Kanit fails to load) */
+  --font-kanit: 'Kanit', 'Leelawadee UI', 'Thonburi', system-ui, sans-serif;
+
+  /* Font weights */
+  --fw-light:   300;
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-bold:    700;
+  --fw-black:   900;
+
+  /* Font sizes — Mobile (default) */
+  --fs-h1:    28px;
+  --fs-h2:    24px;
+  --fs-h3:    20px;
+  --fs-body:  16px;
+  --fs-small: 12px;
+
+  /* Line heights */
+  --lh-body:    28px;  /* fixed 28px: room for Thai vowels & tone marks */
+  --lh-heading: 1.3;   /* headings: tighter, relative to their size */
+  --lh-small:   1.6;
+}
+
+/* Font sizes — Desktop (768px and wider) */
+@media (min-width: 768px) {
+  :root {
+    --fs-h1:    40px;
+    --fs-h2:    32px;
+    --fs-h3:    24px;
+    --fs-body:  16px;
+    --fs-small: 14px;
+  }
+}
+
+
+/* 3) Base — whole page uses Kanit, body text 16px / 28px */
+html {
+  -webkit-text-size-adjust: 100%;   /* stop iOS from auto-enlarging text */
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-kanit);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+  color: #1A1A1A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Form controls don't inherit fonts by default */
+button, input, select, textarea {
+  font: inherit;
+}
+
+
+/* 4) Headings */
+h1, h2, h3 {
+  margin: 0 0 0.5em;
+  line-height: var(--lh-heading);
+  letter-spacing: normal;           /* never tighten Thai letters */
+}
+
+h1 { font-size: var(--fs-h1); font-weight: var(--fw-bold); }
+h2 { font-size: var(--fs-h2); font-weight: var(--fw-bold); }
+h3 { font-size: var(--fs-h3); font-weight: var(--fw-medium); }
+
+
+/* 5) Body text */
+p {
+  margin: 0 0 1em;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+}
+
+
+/* 6) Small text & footer */
+small,
+.text-small,
+footer {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-light);
+  line-height: var(--lh-small);
+}
+
+
+/* 7) Optional weight helpers (incl. Black 900 for display numbers/banners) */
+.fw-light   { font-weight: var(--fw-light); }
+.fw-regular { font-weight: var(--fw-regular); }
+.fw-medium  { font-weight: var(--fw-medium); }
+.fw-bold    { font-weight: var(--fw-bold); }
+.fw-black   { font-weight: var(--fw-black); }

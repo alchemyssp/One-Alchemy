@@ -8,38 +8,38 @@
 <script src="../js/config.js?v=3"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans Thai',system-ui,sans-serif;background:#2A0F12;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;font-size:14px;color:#F0E2E3}
+body{font-family:'Noto Sans Thai',system-ui,sans-serif;background:#2A0F12;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;font-size:14px;color:#FDE0DC}
 .card{background:#1E293B;border-radius:20px;padding:40px 44px;width:520px;max-width:100%;box-shadow:0 24px 80px rgba(0,0,0,.5)}
 .logo{display:flex;align-items:center;gap:14px;margin-bottom:32px}
-.logo-ico{width:44px;height:44px;background:#85202A;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
-.logo-text h2{font-size:18px;font-weight:800;color:#FCF8F8}
+.logo-ico{width:44px;height:44px;background:#B0120A;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.logo-text h2{font-size:18px;font-weight:800;color:#FDE0DC}
 .logo-text p{font-size:12px;color:#64748B;margin-top:2px}
 h3{font-size:13px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px}
 .step{display:flex;align-items:flex-start;gap:14px;padding:14px 16px;border-radius:12px;border:1px solid #334155;margin-bottom:10px;transition:all .25s}
 .step.ok{border-color:#166534;background:#052e16}
-.step.err{border-color:#7A222B;background:#1B0709}
-.step.run{border-color:#5F1E25;background:#2E0C0F;animation:pulse 1.4s infinite}
+.step.err{border-color:#B0120A;background:#1B0709}
+.step.run{border-color:#B0120A;background:#2E0C0F;animation:pulse 1.4s infinite}
 .step.wait{opacity:.45}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
 .step-ico{font-size:20px;flex-shrink:0;margin-top:1px}
-.step-title{font-size:13px;font-weight:700;color:#F9F1F2}
+.step-title{font-size:13px;font-weight:700;color:#FDE0DC}
 .step-msg{font-size:12px;color:#94A3B8;margin-top:4px;word-break:break-all}
 .step.ok .step-msg{color:#86EFAC}
-.step.err .step-msg{color:#F5ACB3}
-.step.run .step-msg{color:#FD939E}
+.step.err .step-msg{color:#FDE0DC}
+.step.run .step-msg{color:#F36C60}
 .sep{height:1px;background:#1E293B;border:none;margin:24px 0}
 .tips-card{background:#2A0F12;border-radius:12px;padding:18px 20px;border:1px solid #334155}
 .tip{display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:#94A3B8}
 .tip:last-child{margin-bottom:0}
-.tip-num{background:#85202A;color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;margin-top:1px}
-.tip a{color:#FA606F}
-.tip strong{color:#F0E2E3;font-weight:600}
-.btn{margin-top:24px;width:100%;padding:13px;background:#85202A;color:#fff;border:none;border-radius:12px;font-size:14px;font-family:inherit;font-weight:700;cursor:pointer;letter-spacing:.2px}
-.btn:hover{background:#6A1921}
+.tip-num{background:#B0120A;color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;margin-top:1px}
+.tip a{color:#F36C60}
+.tip strong{color:#FDE0DC;font-weight:600}
+.btn{margin-top:24px;width:100%;padding:13px;background:#B0120A;color:#fff;border:none;border-radius:12px;font-size:14px;font-family:inherit;font-weight:700;cursor:pointer;letter-spacing:.2px}
+.btn:hover{background:#B0120A}
 .url-info{background:#2A0F12;border-radius:10px;padding:12px 14px;border:1px solid #334155;margin-bottom:24px;font-size:12px;color:#64748B;word-break:break-all}
 .url-info strong{color:#94A3B8;display:block;margin-bottom:4px}
 </style>
-<link rel="stylesheet" href="../css/ssp-type.css?v=9">
+<link rel="stylesheet" href="../css/ssp-type.css?v=23">
 </head>
 <body>
 <div class="card">
