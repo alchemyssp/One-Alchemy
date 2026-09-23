@@ -27,12 +27,12 @@
   --shadow-sm:    0 2px 14px rgba(54,64,78,.08);
   --shadow-md:    0 4px 28px rgba(54,64,78,.10);
   --shadow-lg:    0 8px 48px rgba(54,64,78,.13);
-  --shadow-gold:  0 4px 24px rgba(189,23,40,.28);
+  --shadow-gold:  0 4px 24px rgba(0,0,0,0.1);
   --brand:        #BD1728;
   --brand-deep:   #88111D;
   --brand-mid:    #E4505F;
   --brand-light:  #FDF3F4;
-  --brand-glow:   rgba(189,23,40,.22);
+  --brand-glow:   rgba(0,0,0,0.1);
   --bg-sidebar:   #36404E;
   --bg-page:      #FAFAF9;
 }
@@ -52,7 +52,7 @@ body {
   min-width: 256px !important;
   background: #FCE3E6 !important;
   border-right: 1px solid #F7CBCF !important;
-  box-shadow: 3px 0 24px rgba(189,23,40,.10) !important;
+  box-shadow: 3px 0 24px rgba(0,0,0,0.1) !important;
 }
 .main, .page-main, main { margin-left: 256px !important; }
 
@@ -62,7 +62,7 @@ body {
 }
 
 .sb-logo { border-bottom: 1px solid rgba(189,23,40,.14) !important; padding-bottom: 20px !important; }
-.sb-logo-icon { background: linear-gradient(135deg, var(--gold-dark), var(--gold)) !important; box-shadow: 0 3px 14px rgba(189,23,40,.35) !important; color: #fff !important; }
+.sb-logo-icon { background: linear-gradient(135deg, var(--gold-dark), var(--gold)) !important; box-shadow: 0 3px 14px rgba(0,0,0,0.1) !important; color: #fff !important; }
 .sb-logo-text h3 { color: #88111D !important; font-weight: 800 !important; }
 .sb-logo-text p  { color: rgba(136,17,29,.55) !important; }
 
@@ -93,7 +93,7 @@ body {
   color: #fff !important;
   border-color: transparent !important;
   font-weight: 600 !important;
-  box-shadow: 0 3px 10px rgba(189,23,40,.35) !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1) !important;
 }
 .nav-links a.nav-sub        { color: rgba(136,17,29,.55) !important; font-size: 12.5px !important; }
 .nav-links a.nav-sub:hover  { color: #88111D !important; background: rgba(189,23,40,.06) !important; }
@@ -112,7 +112,7 @@ body {
 .sidebar-user { border-top: 1px solid rgba(189,23,40,.14) !important; background: rgba(189,23,40,.04) !important; }
 .sidebar-user .sname  { color: #101419 !important; }
 .sidebar-user .semail { color: rgba(16,20,25,.45) !important; }
-.sb-avatar { background: linear-gradient(135deg, var(--gold-dark), var(--gold)) !important; box-shadow: 0 2px 8px rgba(189,23,40,.3) !important; }
+.sb-avatar { background: linear-gradient(135deg, var(--gold-dark), var(--gold)) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important; }
 .btn-logout { background: rgba(189,23,40,.08) !important; color: #783B41 !important; border: 1px solid rgba(189,23,40,.18) !important; }
 .btn-logout:hover { background: rgba(189,23,40,.15) !important; color: #88111D !important; border-color: rgba(189,23,40,.3) !important; }
 
@@ -154,7 +154,7 @@ tbody tr:hover th { background: #FEF6F7 !important; }
 
 .finput:focus, .search-wrap input:focus, .search-box input:focus, .flt:focus {
   border: 1px solid var(--gold) !important;
-  box-shadow: 0 0 0 3px rgba(189,23,40,.18) !important;
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.1) !important;
   transform: translateY(-1px) !important;
   background: #fff !important;
 }
@@ -162,8 +162,8 @@ tbody tr:hover th { background: #FEF6F7 !important; }
 .flt { background: var(--bg-warm) !important; border: 1px solid var(--border) !important; }
 .search-ico { color: var(--gold-dark) !important; }
 
-.btn-add { background: linear-gradient(135deg, var(--gold-dark), var(--gold)) !important; border: none !important; border-radius: 12px !important; color: #fff !important; box-shadow: 0 4px 16px rgba(189,23,40,.28) !important; transition: all .18s ease !important; }
-.btn-add:hover { background: linear-gradient(135deg, #6D0E18, var(--gold-dark)) !important; transform: translateY(-2px) !important; box-shadow: 0 6px 22px rgba(189,23,40,.38) !important; }
+.btn-add { background: linear-gradient(135deg, var(--gold-dark), var(--gold)) !important; border: none !important; border-radius: 12px !important; color: #fff !important; box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important; transition: all .18s ease !important; }
+.btn-add:hover { background: linear-gradient(135deg, #6D0E18, var(--gold-dark)) !important; transform: translateY(-2px) !important; box-shadow: 0 6px 22px rgba(0,0,0,0.1) !important; }
 .btn-exp { background: var(--bg-card) !important; border: 1px solid var(--border-mid) !important; color: var(--text-2) !important; border-radius: 12px !important; }
 .btn-exp:hover { background: var(--bg-warm) !important; border-color: var(--gold) !important; color: var(--gold-dark) !important; }
 

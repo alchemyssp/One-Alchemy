@@ -1,0 +1,144 @@
+/* ============================================================
+   SSP  —  Typography, Menu Bar, Boxes & No-Border rules
+   Loaded AFTER ssp-theme.css on every page, so it wins.
+   - Font: Roboto (Thai text falls back to Noto Sans Thai)
+   - Sizes: page title 24 · section title 18 · body 14 · small 12
+   - Main menu bar: dark red → light red gradient, white text
+   - Content boxes: white background, black text
+   - No borders on any box, card, panel, table or input
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700&display=swap');
+
+:root {
+  --font-main: 'Roboto', 'Noto Sans Thai', 'Segoe UI', system-ui, sans-serif;
+  --fs-title:   24px;   /* page title, big KPI numbers */
+  --fs-section: 18px;   /* section / card / popup titles */
+  --fs-body:    14px;   /* normal text, tables, menu, buttons, inputs */
+  --fs-small:   12px;   /* labels, table headers, badges, sub text */
+  --ink:        #111111;
+  --ink-soft:   #555555;
+  --menu-top:   #6D0E18;
+  --menu-mid:   #A51423;
+  --menu-bot:   #E4505F;
+}
+
+/* ── FONT ── */
+body, body *:not(code):not(pre):not(kbd) { font-family: var(--font-main) !important; }
+
+/* ── SIZE SCALE ── */
+body, body * { font-size: var(--fs-body) !important; }
+
+th, th *, label, small,
+.nav-section, .page-sub, .card-sub, .msub, .semail,
+.kpi-label, .kpi-lbl, .kpi-sub, .kpi-unit, .kpi-badge, .kpi-chip,
+.strip-item .sl, .add-card-num, .sku-row-num, .imp-step-num,
+[class*="badge"], [class*="chip"], .b-admin, .b-manager, .b-user, .b-active, .b-inactive {
+  font-size: var(--fs-small) !important;
+}
+
+h2, h3, h4, h2 *, h3 *, h4 *,
+.sec-title, .card-title, .section-head, .fmtitle, .fstitle, .mtitle,
+.cp-hdr-title, .sku-modal-title, .imp-step-title, .discard-title,
+.sb-logo-text h3 {
+  font-size: var(--fs-section) !important;
+  line-height: 1.3 !important;
+}
+
+h1, h1 *, .page-title, .page-header h2, .page-hdr .page-title,
+.kpi-num, .kpi-value, .stat-num, .stat-card .value, .donut-center-num {
+  font-size: var(--fs-title) !important;
+  line-height: 1.25 !important;
+}
+.kpi-num span:last-child { font-size: var(--fs-small) !important; }
+
+/* ── NO BORDERS ── */
+*, *::before, *::after { border: none !important; outline: none !important; }
+
+/* ── MAIN MENU BAR (sidebar): dark red → light red ── */
+.sidebar {
+  background: linear-gradient(180deg, var(--menu-top) 0%, var(--menu-mid) 55%, var(--menu-bot) 100%) !important;
+  box-shadow: 3px 0 24px rgba(0,0,0,0.1) !important;
+}
+.sidebar::before { background: transparent !important; }
+.sidebar .sb-logo { border: none !important; }
+.sidebar .sb-logo-icon { background: rgba(255,255,255,.18) !important; box-shadow: none !important; color: #fff !important; }
+.sidebar .sb-logo-text h3 { color: #fff !important; }
+.sidebar .sb-logo-text p  { color: rgba(255,255,255,.7) !important; }
+.sidebar .nav-section     { color: rgba(255,255,255,.6) !important; }
+.sidebar .nav-links a,
+.sidebar .nav-links a.nav-sub       { color: rgba(255,255,255,.88) !important; }
+.sidebar .nav-links a:hover,
+.sidebar .nav-links a.nav-sub:hover { color: #fff !important; background: rgba(255,255,255,.14) !important; }
+.sidebar .nav-links a.active,
+.sidebar .nav-links a.nav-sub.active { background: #fff !important; color: var(--menu-mid) !important; box-shadow: 0 3px 12px rgba(0,0,0,.18) !important; }
+.sidebar .nav-links a .nav-ico       { background: rgba(255,255,255,.14) !important; color: #fff !important; }
+.sidebar .nav-links a:hover .nav-ico { background: rgba(255,255,255,.24) !important; color: #fff !important; }
+.sidebar .nav-links a.active .nav-ico { background: rgba(165,20,35,.12) !important; color: var(--menu-mid) !important; }
+.sidebar .sidebar-user { background: rgba(0,0,0,.12) !important; }
+.sidebar .sidebar-user .sname  { color: #fff !important; }
+.sidebar .sidebar-user .semail { color: rgba(255,255,255,.7) !important; }
+.sidebar .sb-avatar { background: #fff !important; color: var(--menu-mid) !important; box-shadow: none !important; }
+.sidebar .btn-logout { background: rgba(255,255,255,.16) !important; color: #fff !important; }
+.sidebar .btn-logout:hover { background: rgba(255,255,255,.28) !important; color: #fff !important; }
+
+/* ── CONTENT BOXES: white background, black text ── */
+.card, .kpi-card, .stat-card, .table-card, .tcard, .tbl-card, .fscard, .add-card,
+.discard-card, .col-picker-panel, .chart-wrap, .strip-item, .toolbar, .section,
+.modal, .mbox, .sku-modal, .login-card, body > .card,
+.form-modal, .confirm-modal, .log-drawer, .col-flt-panel, .filter-bar {
+  background: #FFFFFF !important;
+  color: var(--ink) !important;
+  box-shadow: none !important;
+}
+.card-title, .sec-title, .section-head, .page-title, .kpi-num, .kpi-value, .stat-num,
+.stat-card .value, .strip-item .sv, td, .fmtitle, .fstitle, .mtitle {
+  color: var(--ink) !important;
+  -webkit-text-fill-color: var(--ink) !important;
+}
+.kpi-label, .kpi-lbl, .kpi-sub, .kpi-unit, .card-sub, .page-sub, .strip-item .sl, .msub {
+  color: var(--ink-soft) !important;
+}
+
+/* Tables: black text, light gray header, zebra rows instead of lines */
+thead th { background: #F2F2F2 !important; color: var(--ink) !important; }
+tbody tr:nth-child(even) > td { background-color: #FAFAFA; }
+tbody tr:hover td, tbody tr:hover th { background: #F2F2F2 !important; }
+
+/* Inputs: without a border they need a fill to stay visible */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select, textarea {
+  background-color: #F4F4F4 !important;
+  color: var(--ink) !important;
+  box-shadow: none !important;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+select:focus, textarea:focus {
+  background-color: #FFFFFF !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1) !important;
+}
+
+/* Dashboard: quick-action tiles, activity feed, top bar */
+.qa-btn { background: #FFFFFF !important; box-shadow: none !important; }
+.qa-btn:hover { background: #F5F5F5 !important; box-shadow: none !important; }
+.qa-lbl, .feed-txt, .topbar-uname { color: var(--ink) !important; }
+.feed-meta, .topbar-urole, .qa-lbl { font-size: var(--fs-small) !important; }
+.feed-meta, .topbar-urole { color: var(--ink-soft) !important; }
+
+
+/* ── NO EDGES AT ALL on sections, cards, popups ──
+   no shadow outline, no colored top strip, no separator lines */
+.card, .kpi-card, .stat-card, .table-card, .tcard, .tbl-card, .fscard, .add-card,
+.discard-card, .col-picker-panel, .chart-wrap, .strip-item, .toolbar, .section,
+.modal, .mbox, .sku-modal, .login-card, .qa-btn,
+.form-modal, .confirm-modal, .log-drawer, .col-flt-panel, .filter-bar, .sku-row, .topbar,
+.card:hover, .kpi-card:hover, .stat-card:hover, .add-card:hover, .qa-btn:hover {
+  box-shadow: none !important;
+}
+.stat-card::before, .stat-card::after, .kpi-card::before, .kpi-card::after,
+.card::before, .card::after, .sidebar::before, .sub-hdr::after,
+.divider::before, .divider::after {
+  display: none !important;
+}
+.cfp-sep, .fb-sep, .flt-sep, .stat-sep, .topbar-divider, hr {
+  background: transparent !important;
+}

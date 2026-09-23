@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SSP - Sign In</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js?v=3"></script>
 <style>
@@ -33,7 +32,7 @@ h1, h2, h3, h4, h5 { font-weight: 700; }
   display: inline-flex; align-items: center; justify-content: center;
   width: 52px; height: 52px; background: linear-gradient(135deg,#BD1728 0%,#88111D 100%);
   border-radius: 14px; margin-bottom: 14px;
-  font-size: 24px; box-shadow: 0 4px 16px rgba(138,17,29,.35);
+  font-size: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.1);
 }
 .logo h1 { font-size: 20px; color: #111; font-weight: 700; letter-spacing: -.3px; }
 .logo p { font-size: 13px; color: #9CA3AF; margin-top: 5px; }
@@ -45,7 +44,7 @@ input {
   font-size: 14px; font-family: inherit; color: #111;
   background: #FAFAFA; transition: all .2s;
 }
-input:focus { outline: none; border-color: #85202A; background: #fff; box-shadow: 0 0 0 3px rgba(133,32,42,.08); }
+input:focus { outline: none; border-color: #85202A; background: #fff; box-shadow: 0 0 0 3px rgba(0,0,0,0.08); }
 .btn {
   width: 100%; padding: 13px;
   background: linear-gradient(135deg,#BD1728 0%,#AB1524 45%,#88111D 100%); color: #fff;
@@ -53,9 +52,9 @@ input:focus { outline: none; border-color: #85202A; background: #fff; box-shadow
   font-size: 15px; font-family: inherit;
   font-weight: 600; cursor: pointer;
   transition: all .2s; margin-top: 8px;
-  letter-spacing: .2px; box-shadow: 0 3px 12px rgba(138,17,29,.3);
+  letter-spacing: .2px; box-shadow: 0 3px 12px rgba(0,0,0,0.1);
 }
-.btn:hover { background: linear-gradient(135deg,#AB1524 0%,#88111D 100%); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(138,17,29,.4); }
+.btn:hover { background: linear-gradient(135deg,#AB1524 0%,#88111D 100%); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
 .btn:active { transform: translateY(0); }
 .btn:disabled { opacity: .6; cursor: not-allowed; transform: none; box-shadow: none; }
 .btn-outline {
@@ -74,7 +73,8 @@ input:focus { outline: none; border-color: #85202A; background: #fff; box-shadow
 .divider::before { left: 0; }
 .divider::after { right: 0; }
 </style>
-<link rel="stylesheet" href="css/ssp-theme.css?v=20">
+<link rel="stylesheet" href="css/ssp-theme.css?v=21">
+<link rel="stylesheet" href="css/ssp-type.css?v=5">
 </head>
 <body>
 <div class="card">
