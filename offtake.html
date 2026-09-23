@@ -128,7 +128,7 @@ tr:hover td { background: #F9FBFE; }
 .nav-links a>span{display:inline!important;width:auto!important;max-width:none!important;flex-shrink:1!important;opacity:1!important;color:inherit!important}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=42">
+<link rel="stylesheet" href="css/ssp-type.css?v=49">
 </head>
 <body>
 
@@ -179,8 +179,6 @@ tr:hover td { background: #F9FBFE; }
     <h3 class="sec-title">Raw data</h3>
     <span style="font-size:13px;color:#777" id="rowCount">Loading...</span>
   </div>
-
-  <div id="infoBar" class="info-bar" style="display:none"></div>
 
   <div class="table-card">
     <div class="overflow-x">
@@ -249,6 +247,7 @@ async function loadData() {
 }
 
 function detectAndShowInfo(data) {
+  if (!document.getElementById('infoBar')) return;   /* info cards removed from the page */
   const numCols = columns.filter(c => typeof data[0][c] === 'number');
   if (!numCols.length) return;
   const bar = document.getElementById('infoBar');
@@ -338,7 +337,7 @@ checkAuth();
 <script src="js/table-scroll.js?v=3"></script>
 <script src="js/search-loading.js?v=1"></script>
 <script src="js/offtake-import.js?v=1"></script>
-<script src="js/offtake-dashboard.js?v=3"></script>
+<script src="js/offtake-dashboard.js?v=12"></script>
 </body>
 </html>
 

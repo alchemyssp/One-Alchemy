@@ -1,14 +1,126 @@
 /* Off-take Analytics dashboard (Off-take page).
    All totals are computed in Supabase (offtake_options / offtake_dashboard RPCs),
    so the page never downloads the ~75k raw rows.
-   Colors: previous year #F36C60, selected year #B0120A (validated pair; the light
-   one is under 3:1 on white, so values are also shown as text / in tables). */
+   Colors: previous year light yellow #F8D77A fading to cream #FFF3D6 (bars) / #D99500 (line), selected year #B0120A; the light
+   colors are under 3:1 on white, so values are also shown as text / in tables and tooltips. */
 (function () {
-  var PREV = '#F36C60', CUR = '#B0120A', INK = '#111111', MUTED = '#666666', GRID = '#EEEEEE';
+  var PREV = '#F8D77A', CUR = '#B0120A', PREV_LINE = '#D99500',   /* previous year: light yellow bars (user choice; lighter than the validator band, so totals are shown as text) / yellow line */
+      INK = '#111111', MUTED = '#666666', GRID = '#EEEEEE';
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var MONTHS_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   var opts = null, charts = {}, seq = 0;
+  /* categorical palette (validated reference order) — fixed per principle name, never by rank */
+  var CAT = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7'], OTHER = '#9E9E9E', colorMap = {};
+  var colorOf = function (name) {
+    if (name === 'Other') return OTHER;
+    if (!colorMap[name]) { var used = Object.keys(colorMap).length; colorMap[name] = used < CAT.length ? CAT[used] : OTHER; }
+    return colorMap[name];
+  };
   var $ = function (id) { return document.getElementById(id); };
+
+  /* ── 3D pie: tilted ellipse, side walls, per-slice gradients, soft shadow, hover lift + tooltip ── */
+  var mix = function (hex, to, t) {   /* blend a hex color toward white (to=255) or black (to=0) */
+    var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    var f = function (c) { return Math.round(c + (to - c) * t); };
+    return 'rgb(' + f(r) + ',' + f(g) + ',' + f(b) + ')';
+  };
+  var pie3d = {
+    items: [], hidden: {}, hover: -1, share: null, geo: null,
+    set: function (items, share) { this.items = items; this.hidden = {}; this.hover = -1; this.share = share; this.bind(); this.draw(); },
+    toggle: function (i) { this.hidden[i] = !this.hidden[i]; this.draw(); return !this.hidden[i]; },
+    bind: function () {
+      var cv = $('otdPrinChart'), self = this;
+      if (!cv || cv.dataset.bound) return;
+      cv.dataset.bound = '1';
+      var tip = document.createElement('div'); tip.className = 'otd-pie-tip'; tip.hidden = true; cv.parentElement.appendChild(tip);
+      cv.addEventListener('mousemove', function (e) {
+        var r = cv.getBoundingClientRect(), i = self.hit(e.clientX - r.left, e.clientY - r.top);
+        if (i !== self.hover) { self.hover = i; self.draw(); }
+        if (i < 0) { tip.hidden = true; cv.style.cursor = ''; return; }
+        var it = self.items[i]; cv.style.cursor = 'pointer';
+        tip.innerHTML = '<span class="otd-dot" style="background:' + it.color + '"></span><b>' + esc(it.name) + '</b><br>' +
+          fmt(it.vol) + ' btls · ' + self.share(it.vol) + '%';
+        tip.hidden = false;
+        tip.style.left = Math.min(e.clientX - r.left + 14, r.width - 170) + 'px';
+        tip.style.top = (e.clientY - r.top + 14) + 'px';
+      });
+      cv.addEventListener('mouseleave', function () { self.hover = -1; tip.hidden = true; self.draw(); });
+      if (window.ResizeObserver) new ResizeObserver(function () { self.draw(); }).observe(cv.parentElement);
+    },
+    slices: function () {
+      var vis = this.items.map(function (it, i) { return { it: it, i: i }; }).filter(function (s) { return !this.hidden[s.i] && s.it.vol > 0; }, this);
+      var tot = vis.reduce(function (s, x) { return s + x.it.vol; }, 0), a = -Math.PI / 2;
+      return vis.map(function (s) { var a0 = a, a1 = a + (tot ? s.it.vol / tot : 0) * Math.PI * 2; a = a1; return { i: s.i, it: s.it, a0: a0, a1: a1 }; });
+    },
+    hit: function (x, y) {
+      var g = this.geo; if (!g) return -1;
+      var dx = (x - g.cx) / g.rx, dy = (y - g.cy) / g.ry;
+      if (dx * dx + dy * dy > 1) return -1;
+      var ang = Math.atan2(dy, dx); if (ang < -Math.PI / 2) ang += Math.PI * 2;
+      var s = this.slices().filter(function (s) { return ang >= s.a0 && ang < s.a1; })[0];
+      return s ? s.i : -1;
+    },
+    draw: function () {
+      var cv = $('otdPrinChart'); if (!cv) return;
+      var box = cv.parentElement, W = box.clientWidth, H = box.clientHeight, dpr = window.devicePixelRatio || 1;
+      if (!W || !H) return;
+      cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+      var c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
+      var rx = Math.min(W * 0.47, (H - 24) / (2 * 0.52 + 0.16) ), ry = rx * 0.52, depth = rx * 0.16, cx = W / 2, cy = (H - depth) / 2;
+      this.geo = { cx: cx, cy: cy, rx: rx, ry: ry };
+      var sl = this.slices(), self = this;
+      var lift = function (s) { return s.i === self.hover ? 8 : 0; };
+      var off = function (s) { var m = (s.a0 + s.a1) / 2, d = lift(s); return { x: Math.cos(m) * d, y: Math.sin(m) * d * 0.6 - d * 0.4 }; };
+
+      /* soft floor shadow */
+      c.save(); c.filter = 'blur(10px)'; c.fillStyle = 'rgba(0,0,0,0.18)';
+      c.beginPath(); c.ellipse(cx, cy + depth + ry * 0.12, rx * 0.95, ry * 0.8, 0, 0, Math.PI * 2); c.fill(); c.restore();
+
+      /* side walls: only the front half (angles 0..π) is visible */
+      sl.forEach(function (s) {
+        var a0 = Math.max(s.a0, 0), a1 = Math.min(s.a1, Math.PI), o = off(s);
+        var parts = [[a0, a1]];
+        if (s.a1 > Math.PI * 2) parts.push([Math.PI * 2, Math.min(s.a1, Math.PI * 3)]);   /* wrap past 2π */
+        parts.forEach(function (p) {
+          var b0 = p[0], b1 = p[1]; if (b1 <= b0) return;
+          var x = cx + o.x, y = cy + o.y;
+          var g = c.createLinearGradient(x - rx, 0, x + rx, 0);
+          g.addColorStop(0, mix(s.it.color, 0, 0.45)); g.addColorStop(0.5, mix(s.it.color, 0, 0.2)); g.addColorStop(1, mix(s.it.color, 0, 0.5));
+          c.beginPath();
+          c.ellipse(x, y, rx, ry, 0, b0, b1);
+          c.lineTo(x + Math.cos(b1) * rx, y + Math.sin(b1) * ry + depth);
+          c.ellipse(x, y + depth, rx, ry, 0, b1, b0, true);
+          c.closePath(); c.fillStyle = g; c.fill();
+        });
+      });
+
+      /* tops: radial highlight from upper-left, thin white seams between slices */
+      sl.forEach(function (s) {
+        var o = off(s), x = cx + o.x, y = cy + o.y;
+        var g = c.createRadialGradient(x - rx * 0.35, y - ry * 0.55, rx * 0.05, x, y, rx * 1.1);
+        g.addColorStop(0, mix(s.it.color, 255, 0.45)); g.addColorStop(0.55, s.it.color); g.addColorStop(1, mix(s.it.color, 0, 0.25));
+        c.beginPath(); c.moveTo(x, y); c.ellipse(x, y, rx, ry, 0, s.a0, s.a1); c.closePath();
+        c.fillStyle = g; c.fill();
+        c.lineWidth = 1.5; c.strokeStyle = 'rgba(255,255,255,0.85)'; c.stroke();
+      });
+
+      /* glossy rim */
+      c.save(); c.beginPath(); c.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); c.clip();
+      var gl = c.createLinearGradient(0, cy - ry, 0, cy + ry);
+      gl.addColorStop(0, 'rgba(255,255,255,0.28)'); gl.addColorStop(0.45, 'rgba(255,255,255,0)'); c.fillStyle = gl;
+      c.fillRect(cx - rx, cy - ry, rx * 2, ry * 2); c.restore();
+
+      /* % labels on slices ≥ 6% */
+      c.save(); c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '600 13px Kanit, sans-serif';
+      sl.forEach(function (s) {
+        var frac = (s.a1 - s.a0) / (Math.PI * 2); if (frac < 0.09) return;   /* small slices: % in legend + tooltip */
+        var m = (s.a0 + s.a1) / 2, o = off(s), x = cx + o.x + Math.cos(m) * rx * 0.62, y = cy + o.y + Math.sin(m) * ry * 0.62;
+        c.shadowColor = 'rgba(0,0,0,0.45)'; c.shadowBlur = 4; c.fillStyle = '#FFFFFF';
+        c.fillText((frac * 100).toFixed(1) + '%', x, y);
+      });
+      c.restore();
+    },
+  };
   var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
   var fmt = function (n) { return Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 }); };
   var short = function (n) {
@@ -24,7 +136,8 @@
     return (cur - base) / base * 100;
   };
   var pctHtml = function (v) {
-    if (v == null || !isFinite(v)) return '<span class="otd-chg">—</span>';
+    /* KPI change badge: light green up, light red down, light yellow no data (arrow + sign too) */
+    if (v == null || !isFinite(v)) return '<span class="otd-chg flat">— no data</span>';
     var up = v >= 0;
     return '<span class="otd-chg ' + (up ? 'up' : 'down') + '">' + (up ? '▲ +' : '▼ ') + v.toFixed(2) + '%</span>';
   };
@@ -35,7 +148,8 @@
     host.innerHTML =
       '<div class="otd-filters" role="group" aria-label="Dashboard filters">' +
       '  <div class="otd-f otd-company"><span class="otd-lbl">Company</span><div id="otdCompanies" class="otd-chips"></div></div>' +
-      '  <label class="otd-f"><span class="otd-lbl">Year, Month</span><select id="otdMonth"></select></label>' +
+      '  <label class="otd-f"><span class="otd-lbl">Year</span><select id="otdYear"></select></label>' +
+      '  <label class="otd-f"><span class="otd-lbl">Month</span><select id="otdMonth"></select></label>' +
       '  <label class="otd-f"><span class="otd-lbl">Principle</span><select id="otdPrinciple"><option value="">All</option></select></label>' +
       '  <label class="otd-f"><span class="otd-lbl">Brand</span><select id="otdBrand"><option value="">All</option></select></label>' +
       '  <label class="otd-f"><span class="otd-lbl">Wholesaler</span><select id="otdWholesaler"><option value="">All</option></select></label>' +
@@ -45,20 +159,20 @@
       '</div>' +
       '<h2 class="otd-title" id="otdTitle">Off-Take Dashboard</h2>' +
       '<div class="otd-kpis">' +
-      '  <div class="kpi-card otd-kpi"><div class="kpi-label">Off-Take Volume (Btls) of Selected Month</div>' +
-      '    <div class="kpi-value" id="otdVol">—</div><div class="otd-chgrow"><span>MoM</span><span id="otdVolMom"></span><span>YoY</span><span id="otdVolYoy"></span></div></div>' +
-      '  <div class="kpi-card otd-kpi"><div class="kpi-label">Off-Take Value Inc.VAT (THB) of Selected Month</div>' +
-      '    <div class="kpi-value" id="otdVal">—</div><div class="otd-chgrow"><span>MoM</span><span id="otdValMom"></span><span>YoY</span><span id="otdValYoy"></span></div></div>' +
+      '  <div class="kpi-card otd-kpi"><div class="kpi-label">Selling by Bottle as of the month</div>' +
+      '    <div class="kpi-value" id="otdVol">—</div><div class="otd-chgrow"><span class="otd-k">MoM</span><span id="otdVolMom"></span><span class="otd-k">YoY</span><span id="otdVolYoy"></span></div></div>' +
+      '  <div class="kpi-card otd-kpi"><div class="kpi-label">Value Inc.VAT(THB) as of the month</div>' +
+      '    <div class="kpi-value" id="otdVal">—</div><div class="otd-chgrow"><span class="otd-k">MoM</span><span id="otdValMom"></span><span class="otd-k">YoY</span><span id="otdValYoy"></span></div></div>' +
       '</div>' +
       '<div class="otd-grid">' +
       '  <section class="card otd-card otd-wide"><h3 class="card-title" id="otdVolTitle">Off-Take Volume (Btls)</h3>' +
       '    <div class="otd-years" id="otdYearTbl"></div><div class="otd-chart"><canvas id="otdVolChart" aria-label="Off-take volume by month"></canvas></div></section>' +
       '  <section class="card otd-card"><h3 class="card-title">Off-Take Volume (Btls) by Principle</h3>' +
-      '    <div class="otd-chart otd-tall"><canvas id="otdPrinChart" aria-label="Volume by principle"></canvas></div></section>' +
+      '    <div class="otd-pie"><div class="otd-chart otd-pie-canvas"><canvas id="otdPrinChart" aria-label="Volume by principle"></canvas></div><ul class="otd-legend" id="otdPrinLegend"></ul></div></section>' +
       '  <section class="card otd-card"><h3 class="card-title">Top 10 Brands — Volume (Btls)</h3>' +
       '    <div class="otd-chart otd-tall"><canvas id="otdBrandChart" aria-label="Top 10 brands by volume"></canvas></div></section>' +
       '  <section class="card otd-card otd-wide"><h3 class="card-title" id="otdValTitle">Off-Take Value Inc.VAT (THB)</h3>' +
-      '    <div class="otd-chart"><canvas id="otdValChart" aria-label="Off-take value by month"></canvas></div></section>' +
+      '    <div class="otd-years" id="otdValYears"></div><div class="otd-chart"><canvas id="otdValChart" aria-label="Off-take value by month"></canvas></div></section>' +
       '  <section class="card otd-card otd-wide"><h3 class="card-title" id="otdProdTitle">By Product: Selected Month vs Previous Year</h3>' +
       '    <div class="otd-tablewrap"><table class="otd-prod" id="otdProdTbl"></table></div></section>' +
       '</div>';
@@ -69,6 +183,12 @@
     var cur = keep ? sel.value : '';
     sel.innerHTML = '<option value="">All</option>' + values.map(function (v) { return '<option value="' + esc(v) + '">' + esc(v) + '</option>'; }).join('');
     if (values.indexOf(cur) >= 0) sel.value = cur;
+  }
+  function fillMonths() {
+    var y = $('otdYear').value;
+    $('otdMonth').innerHTML = (opts.months || []).filter(function (m) { return m.slice(0, 4) === y; }).map(function (m) {
+      return '<option value="' + m + '">' + MONTHS_FULL[+m.slice(5, 7) - 1] + '</option>';
+    }).join('');   /* latest month of the year is first = default */
   }
   function refreshDependent() {
     var p = $('otdPrinciple').value, t = $('otdTeam').value;
@@ -83,7 +203,11 @@
     var r = await supabase.rpc('offtake_options');
     if (r.error) { $('otdTitle').textContent = 'Dashboard unavailable: ' + r.error.message; return; }
     opts = r.data || {};
-    $('otdMonth').innerHTML = (opts.months || []).map(function (m) { return '<option value="' + m + '">' + monthLabel(m) + '</option>'; }).join('');
+    /* Year first, then the months that have data in that year (latest first) */
+    var years = (opts.months || []).map(function (m) { return m.slice(0, 4); }).filter(function (v, i, a) { return a.indexOf(v) === i; });
+    $('otdYear').innerHTML = years.map(function (y) { return '<option value="' + y + '">' + y + '</option>'; }).join('');
+    fillMonths();
+    $('otdYear').onchange = function () { fillMonths(); load(); };
     $('otdCompanies').innerHTML = (opts.companies || []).map(function (c) {
       return '<label class="otd-chip"><input type="checkbox" value="' + esc(c) + '"> ' + esc(c) + '</label>';
     }).join('');
@@ -98,7 +222,7 @@
     $('otdReset').onclick = function () {
       ['otdPrinciple', 'otdBrand', 'otdWholesaler', 'otdTeam', 'otdBde'].forEach(function (id) { $(id).value = ''; });
       [].forEach.call($('otdCompanies').querySelectorAll('input'), function (i) { i.checked = false; });
-      $('otdMonth').selectedIndex = 0; refreshDependent(); load();
+      $('otdYear').selectedIndex = 0; fillMonths(); refreshDependent(); load();
     };
     load();
   }
@@ -149,38 +273,76 @@
       (d.monthly || []).forEach(function (x) { if (x.y === year) a[x.m - 1] = Number(x[key]); });
       return a;
     };
+    /* 2025 bars: light yellow at the top fading to egg-shell cream at the base */
+    var prevGradient = function (ctx) {
+      var a = ctx.chart.chartArea; if (!a) return PREV;
+      var g = ctx.chart.ctx.createLinearGradient(0, a.bottom, 0, a.top);
+      g.addColorStop(0, '#FFF3D6'); g.addColorStop(1, PREV); return g;
+    };
     var ds = function (key) {
       return [
-        { label: String(PY), data: series(PY, key), backgroundColor: PREV, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 22 },
+        { label: String(PY), data: series(PY, key), backgroundColor: key === 'vol' ? prevGradient : PREV, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 22 },
         { label: String(Y), data: series(Y, key), backgroundColor: CUR, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 22 },
       ];
     };
     $('otdVolTitle').textContent = 'Off-Take Volume (Btls) ' + PY + ' – ' + Y;
     $('otdValTitle').textContent = 'Off-Take Value Inc.VAT (THB) ' + PY + ' – ' + Y;
     draw('otdVolChart', { type: 'bar', data: { labels: MONTHS, datasets: ds('vol') }, options: barOpts(false, ' btls') });
-    draw('otdValChart', { type: 'bar', data: { labels: MONTHS, datasets: ds('val') }, options: barOpts(false, ' THB') });
+    /* value: line chart, previous year yellow, selected year red; hover shows both years for a month */
+    var line = function (label, data, color) {
+      return { label: label, data: data, borderColor: color, backgroundColor: color, borderWidth: 2, tension: 0.25,
+        pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: color, pointBorderColor: '#FFFFFF', pointBorderWidth: 2, spanGaps: false };
+    };
+    var vOpts = barOpts(false, ' THB');
+    vOpts.interaction = { mode: 'index', intersect: false };
+    vOpts.plugins.legend.labels.pointStyle = 'circle';
+    draw('otdValChart', { type: 'line', data: { labels: MONTHS, datasets: [
+      line(String(PY), series(PY, 'val'), PREV_LINE), line(String(Y), series(Y, 'val'), CUR)] }, options: vOpts });
 
     var yt = d.year_totals || [];
     /* year totals as text (also the text alternative for the lighter bar color) */
     $('otdYearTbl').innerHTML = yt.map(function (r) {
-      return '<div class="otd-year"><span class="otd-sw" style="background:' + (r.y === Y ? CUR : PREV) + '"></span><b>' + r.y + '</b>' +
+      return '<div class="otd-year"><span class="otd-sw" style="background:' + (r.y === Y ? CUR : 'linear-gradient(180deg,' + PREV + ',#FFF3D6)') + '"></span><b>' + r.y + '</b>' +
         '<span>' + fmt(r.vol) + ' btls</span><span class="otd-muted">YTD ' + MONTHS[sel.getMonth()] + ': ' + fmt(r.vol_ytd) + '</span></div>';
     }).join('');
 
+    $('otdValYears').innerHTML = yt.map(function (r) {
+      return '<div class="otd-year"><span class="otd-sw" style="background:' + (r.y === Y ? CUR : PREV_LINE) + '"></span><b>' + r.y + '</b>' +
+        '<span>' + short(r.val) + ' THB</span><span class="otd-muted">YTD ' + MONTHS[sel.getMonth()] + ': ' + short(r.val_ytd) + '</span></div>';
+    }).join('');
+
+    /* principle share: pie, top 7 + Other; each principle keeps its color across filters */
     var prin = d.by_principle || [], total = prin.reduce(function (s, x) { return s + Number(x.vol); }, 0);
-    var top = prin.slice(0, 8), rest = prin.slice(8).reduce(function (s, x) { return s + Number(x.vol); }, 0);
+    var top = prin.slice(0, 7), rest = prin.slice(7).reduce(function (s, x) { return s + Number(x.vol); }, 0);
     if (rest > 0) top = top.concat([{ name: 'Other', vol: rest }]);
-    var pOpts = barOpts(true, ' btls');
-    pOpts.plugins.tooltip.callbacks.label = function (c) { return fmt(c.parsed.x) + ' btls (' + (total ? (c.parsed.x / total * 100).toFixed(1) : 0) + '%)'; };
-    draw('otdPrinChart', { type: 'bar', data: {
-      labels: top.map(function (x) { return x.name + '  ' + (total ? (x.vol / total * 100).toFixed(1) : 0) + '%'; }),
-      datasets: [{ data: top.map(function (x) { return x.vol; }), backgroundColor: CUR, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 18 }] }, options: pOpts });
+    var share = function (v) { return total ? (v / total * 100).toFixed(1) : '0.0'; };
+    /* 3D pie (custom canvas — Chart.js has no 3D), shaded slices; HTML legend with share bars */
+    pie3d.set(top.map(function (x) { return { name: x.name, vol: Number(x.vol), color: colorOf(x.name) }; }), share);
+    $('otdPrinLegend').innerHTML = top.map(function (x, i) {
+      var col = colorOf(x.name);
+      return '<li><button type="button" data-i="' + i + '" aria-pressed="true">' +
+        '<span class="otd-dot" style="background:' + col + '"></span><span class="otd-lg-name" title="' + esc(x.name) + '">' + esc(x.name) + '</span>' +
+        '<span class="otd-lg-val">' + fmt(x.vol) + '</span><span class="otd-lg-pct">' + share(x.vol) + '%</span>' +
+        '<span class="otd-lg-bar"><i style="width:' + share(x.vol) + '%;background:' + col + '"></i></span></button></li>';
+    }).join('');
+    [].forEach.call($('otdPrinLegend').querySelectorAll('button'), function (b) {
+      b.onclick = function () {
+        var on = pie3d.toggle(+b.dataset.i);
+        b.setAttribute('aria-pressed', on); b.classList.toggle('off', !on);
+      };
+    });
 
     var br = d.by_brand || [];
     draw('otdBrandChart', { type: 'bar', data: { labels: br.map(function (x) { return x.name; }),
       datasets: [{ data: br.map(function (x) { return x.vol; }), backgroundColor: CUR, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 18 }] }, options: barOpts(true, ' btls') });
 
-    var chg = function (a, b) { var v = pct(a, b); return v == null ? '—' : (v >= 0 ? '▲ +' : '▼ ') + v.toFixed(1) + '%'; };
+    /* change badge: up = light green, down = light red, no change / no data = light yellow (arrow + sign too, not color alone) */
+    var chg = function (a, b) {
+      var v = pct(a, b);
+      if (v == null || !isFinite(v)) return '<span class="otd-pill flat">— no data</span>';
+      if (Math.abs(v) < 0.05) return '<span class="otd-pill flat">■ 0.0%</span>';
+      return v > 0 ? '<span class="otd-pill up">▲ +' + v.toFixed(1) + '%</span>' : '<span class="otd-pill down">▼ ' + v.toFixed(1) + '%</span>';
+    };
     $('otdProdTitle').textContent = 'By Product: ' + MONTHS[sel.getMonth()] + ' ' + Y + ' vs ' + MONTHS[sel.getMonth()] + ' ' + PY + ' (top 20 by volume)';
     $('otdProdTbl').innerHTML = '<thead><tr><th>Product</th><th>Vol ' + Y + '</th><th>Vol ' + PY + '</th><th>Change</th><th>Value ' + Y + ' (THB)</th><th>Value ' + PY + ' (THB)</th><th>Change</th></tr></thead><tbody>' +
       (d.by_product || []).map(function (p) {
