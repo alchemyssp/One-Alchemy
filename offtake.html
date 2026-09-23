@@ -6,7 +6,7 @@
 <title>Off-take 2026 — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="js/config.js?v=3"></script>
+<script src="js/config.js?v=4"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Poppins', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
@@ -125,7 +125,7 @@ tr:hover td { background: #F9FBFE; }
 .nav-links a>span{display:inline!important;width:auto!important;max-width:none!important;flex-shrink:1!important;opacity:1!important;color:inherit!important}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=23">
+<link rel="stylesheet" href="css/ssp-type.css?v=25">
 </head>
 <body>
 
@@ -251,9 +251,9 @@ function detectAndShowInfo(data) {
     const vals = data.map(r => parseFloat(r[c] || 0)).filter(v => !isNaN(v));
     const total = vals.reduce((s, v) => s + v, 0);
     const avg = vals.length ? total / vals.length : 0;
-    const label = c.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    const label = colLabel(c);
     return `<div class="info-item">
-      <div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.4px">${label}</div>
+      <div style="font-size:11px;color:#aaa">${label}</div>
       <div><strong>${Number(total).toLocaleString('th-TH', {maximumFractionDigits: 0})}</strong>
       <span style="color:#aaa;font-size:12px"> รวม | เฉลี่ย ${Number(avg).toLocaleString('th-TH', {maximumFractionDigits: 1})}</span></div>
     </div>`;
@@ -300,7 +300,7 @@ function renderTable(data) {
     return s.length > 60 ? s.slice(0, 57) + '…' : s;
   };
 
-  const label = c => c.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const label = c => colLabel(c);
   const arrow = c => sortCol === c ? (sortAsc ? ' ↑' : ' ↓') : '';
 
   wrap.innerHTML = `<table>

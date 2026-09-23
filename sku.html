@@ -6,7 +6,7 @@
 <title>SKU — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="js/config.js?v=3"></script>
+<script src="js/config.js?v=4"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Poppins',system-ui,sans-serif;background:linear-gradient(160deg,#fff 0%,#F4F4F5 50%,#EBEBED 100%);background-attachment:fixed;color:#1E293B;display:flex;font-size:14px;line-height:1.55}
@@ -152,7 +152,7 @@ tbody tr:hover td{background:#FDE0DC}
 .sku-toast.err{background:#B0120A}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=23">
+<link rel="stylesheet" href="css/ssp-type.css?v=25">
 </head>
 <body>
 
@@ -562,7 +562,7 @@ function renderTable(data) {
     return esc(s.length > 55 ? s.slice(0,52)+'…' : s);
   };
 
-  const lbl   = c => esc(c.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase()));
+  const lbl   = c => esc(colLabel(c));
   const arrow = c => sortCol===c ? (sortAsc?' ↑':' ↓') : '';
 
   const cols2show = visibleCols.length ? visibleCols : dispCols;

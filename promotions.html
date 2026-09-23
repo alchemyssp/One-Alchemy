@@ -6,7 +6,7 @@
 <title>Promotions — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="js/config.js?v=3"></script>
+<script src="js/config.js?v=4"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Poppins', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
@@ -91,7 +91,7 @@ tr:hover td { background: #FDE0DC; }
 .nav-links a>span{display:inline!important;width:auto!important;max-width:none!important;flex-shrink:1!important;opacity:1!important;color:inherit!important}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=23">
+<link rel="stylesheet" href="css/ssp-type.css?v=25">
 </head>
 <body>
 <nav class="sidebar">
@@ -190,7 +190,7 @@ function renderTable(data) {
   const arrow = c => sortCol === c ? (sortAsc ? ' ↑' : ' ↓') : '';
   wrap.innerHTML = `<table><thead><tr>${cols.map(c => `<th onclick="sortBy('${c.replace(/'/g,"\\'")}') ">${label(c)}${arrow(c)}</th>`).join('')}</tr></thead><tbody>${sorted.map(row => `<tr>${cols.map(c => `<td title="${String(row[c] ?? '')}">${fv(row[c])}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
 }
-function label(c) { return c.replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase()); }
+function label(c) { return colLabel(c); }
 function fNum(n) { return Number(n).toLocaleString('th-TH', { maximumFractionDigits: 0 }); }
 function fv(v) {
   if (v === null || v === undefined) return '<span style="color:#D1D5DB">—</span>';

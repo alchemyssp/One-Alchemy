@@ -6,7 +6,7 @@
 <title>Outlet Master — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="js/config.js?v=3"></script>
+<script src="js/config.js?v=4"></script>
 <script src="js/thai_geo.js"></script>
 <style>
 /* ============================================================
@@ -276,7 +276,7 @@ select.finput{appearance:auto}
 .sku-auto{background:#FFFBF0 !important;color:#7B5E00 !important;font-size:11px;font-style:italic}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=23">
+<link rel="stylesheet" href="css/ssp-type.css?v=25">
 </head>
 <body>
 
@@ -818,7 +818,7 @@ function renderTable(){
   if(!filtered.length){wrap.innerHTML='<div class="empty-state"><div class="ei"></div><p>No outlets match the current filters.</p></div>';document.getElementById('pagiWrap').innerHTML='';return;}
   if(!visibleCols.length){wrap.innerHTML='<div class="empty-state"><div class="ei"></div><p>No columns selected — click ⊞ Columns to show columns.</p></div>';document.getElementById('pagiWrap').innerHTML='';return;}
   const arrow=c=>sortCol===c?(sortAsc?' sa':' sd'):'';
-  const lbl=c=>c.replace(/_/g,' ');
+  const lbl=c=>colLabel(c);
   const codeColName=colMap['Outlet Code'];
   wrap.innerHTML=`<table><thead><tr><th style="width:36px">#</th>${visibleCols.map(c=>`<th class="${arrow(c)}" onclick="sortBy('${esc(c)}')">${esc(lbl(c))}</th>`).join('')}<th>Actions</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td style="color:#F36C60;font-size:12px">${start+i+1}</td>${visibleCols.map(c=>`<td class="${c===outletNameCol?'col-outletname':''}" title="${esc(String(r[c]??''))}">${fv(r[c],c)}</td>`).join('')}<td><div class="td-act"><button class="bte" onclick="openEdit(${r[pkCol]})">Edit</button>${codeColName&&r[codeColName]?`<a class="btu" href="data_u.html?code=${encodeURIComponent(String(r[codeColName]??''))}" title="View Data U for this outlet">Data U</a>`:''}<button class="btd" onclick="openDel(${r[pkCol]})">Delete</button></div></td></tr>`).join('')}</tbody></table>`;
   renderPagi();

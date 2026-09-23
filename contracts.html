@@ -8,7 +8,7 @@
 <title>Contract Master — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="js/config.js?v=3"></script>
+<script src="js/config.js?v=4"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Poppins', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
@@ -138,7 +138,7 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
 .cfp-btn-ok:hover { background: #B0120A; }
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=23">
+<link rel="stylesheet" href="css/ssp-type.css?v=25">
 </head>
 <body>
 <nav class="sidebar">
@@ -216,7 +216,7 @@ let colFilters = {}; /* col → Set of allowed values; empty/absent = no filter 
 
 /* ── helpers ── */
 function esc(v)  { return String(v ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function label(c){ return String(c).replace(/_/g,' '); }
+function label(c){ return colLabel(c); }
 function fNum(n) { return Number(n).toLocaleString('th-TH', { maximumFractionDigits: 0 }); }
 function norm(s) { return String(s).toLowerCase().replace(/[^a-z0-9]/g,''); }
 function findCol(rx, fb) { return cols.find(c => rx.test(c)) || (fb ? cols.find(c => fb.test(c)) : null) || null; }

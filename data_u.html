@@ -9,7 +9,7 @@
 <title>Data Universe — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="js/config.js?v=3"></script>
+<script src="js/config.js?v=4"></script>
 <style>
 /* ============================================================
    BAKED APPLE PALETTE
@@ -451,7 +451,7 @@ select.finput{appearance:auto}
 .btn-secondary:hover{background:linear-gradient(135deg,#B0120A 0%,#B0120A 100%)}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=23">
+<link rel="stylesheet" href="css/ssp-type.css?v=25">
 </head>
 <body class="page-datau">
 
@@ -1425,7 +1425,7 @@ function renderTable() {
   if (!filtered.length) { wrap.innerHTML = '<div class="empty-state"><div class="ei"></div><p>No records match the current filters.</p></div>'; document.getElementById('pagiWrap').innerHTML = ''; return; }
   if (!visibleCols.length) { wrap.innerHTML = '<div class="empty-state"><div class="ei"></div><p>No columns selected. Use the Columns button to show columns.</p></div>'; document.getElementById('pagiWrap').innerHTML = ''; return; }
   const arrow = c => sortCol === c ? (sortAsc ? ' sa' : ' sd') : '';
-  const lbl = c => c.replace(/_/g, ' ');
+  const lbl = c => colLabel(c);
   const safeId = v => String(v ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   wrap.innerHTML = `<table><thead><tr>${visibleCols.map(c => `<th class="${arrow(c)}" onclick="sortBy('${esc(c)}')">${esc(lbl(c))}</th>`).join('')}<th>Actions</th></tr></thead><tbody>${rows.map(r => `<tr>${visibleCols.map(c => `<td title="${esc(String(r[c] ?? ''))}">${fv(r[c], c)}</td>`).join('')}<td><div class="td-act"><button class="bte" onclick="openEdit('${safeId(r[pkCol])}')">Edit</button><button class="btd" onclick="openDel('${safeId(r[pkCol])}')">Del</button></div></td></tr>`).join('')}</tbody></table>`;
   console.log('[DataU renderTable done]', { visibleRows: rows.length, domTag: wrap.firstChild?.tagName });

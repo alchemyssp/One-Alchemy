@@ -40,3 +40,14 @@ window.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
     setTimeout(restoreNav, 0);
   }
 })();
+
+/* Table header label: show the real Supabase column name.
+   Only names stored in ALL CAPS are turned into Title Case
+   (short codes like BDE / ROI / SKU / VAT stay as they are). */
+window.colLabel = function (c) {
+  const s = String(c);
+  const letters = s.replace(/[^A-Za-z]/g, '');
+  if (!letters || letters !== letters.toUpperCase()) return s;   // not ALL CAPS → as-is
+  const KEEP = new Set(['BDE','ROI','SKU','BBC','VAT','THB','TEG','RC','ID','WS','CM','TH','EN']);
+  return s.replace(/[A-Z]+/g, w => KEEP.has(w) ? w : w.charAt(0) + w.slice(1).toLowerCase());
+};
