@@ -7,7 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="js/config.js?v=6"></script>
+<script src="js/config.js?v=7"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Poppins', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
@@ -148,7 +148,7 @@ tr:hover td { background: #FDE0DC; }
 .nav-links a>span{display:inline!important;width:auto!important;max-width:none!important;flex-shrink:1!important;opacity:1!important;color:inherit!important}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=34">
+<link rel="stylesheet" href="css/ssp-type.css?v=36">
 </head>
 <body>
 
@@ -165,6 +165,7 @@ tr:hover td { background: #FDE0DC; }
     <a href="data_u.html" class="nav-sub">Data Universe</a>
     <a href="contracts.html">Contract Master</a>
     <a href="promotions.html">Promotions</a>
+    <a href="products.html">Products</a>
     <div class="nav-section">Analytics</div>
     <a href="roi.html" class="active">ROI Analysis</a>
     <a href="offtake.html">Off-take 2026</a>
@@ -556,6 +557,7 @@ async function logout() {
 checkAuth();
 </script>
 <script src="js/responsive.js?v=1"></script>
+<script src="js/table-scroll.js?v=3"></script>
 </body>
 </html>
 

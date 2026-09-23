@@ -1,27 +1,53 @@
-/* Data U: keep the horizontal scrollbar reachable without scrolling to the bottom.
-   - a mirrored scrollbar above the table (#tscrollTop) synced with the table box (#tscroll)
-   - the table box itself is limited to the screen height (see css/ssp-type.css) */
+/* Big tables: fit the table box into the visible screen, so its scrollbars
+   (sideways and up/down) are always on screen — no need to scroll the page
+   down to reach the horizontal scrollbar.
+   Works on every page with a data table; styles live in css/ssp-type.css. */
 (function () {
-  function init() {
-    var top = document.getElementById('tscrollTop');
-    var box = document.getElementById('tscroll');
-    if (!top || !box) return;
-    var spacer = top.firstElementChild, lock = false;
+  var MIN_H = 320;
 
-    function size() {
-      /* fit the box into the space left on screen (page not scrolled), min 320px; leave room for paging */
-      var topY = box.getBoundingClientRect().top + window.scrollY;
-      box.style.maxHeight = Math.max(320, window.innerHeight - topY - 64) + 'px';
-      spacer.style.width = box.scrollWidth + 'px';
-      top.style.display = box.scrollWidth > box.clientWidth + 1 ? 'block' : 'none';
-    }
-    top.addEventListener('scroll', function () { if (lock) { lock = false; return; } lock = true; box.scrollLeft = top.scrollLeft; });
-    box.addEventListener('scroll', function () { if (lock) { lock = false; return; } lock = true; top.scrollLeft = box.scrollLeft; });
-
-    new MutationObserver(size).observe(box, { childList: true, subtree: true });
-    window.addEventListener('resize', size);
-    size();
+  /* the element that actually scrolls: .tscroll if present, else the table wrapper */
+  function findBoxes() {
+    var boxes = [];
+    document.querySelectorAll('.tscroll').forEach(function (el) { boxes.push(el); });
+    ['tableWrap', 'rawWrap'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && !el.closest('.tscroll')) boxes.push(el);
+    });
+    return boxes;
   }
+
+  function fit(box) {
+    if (!box.offsetParent) return;                       /* hidden (e.g. inactive tab) */
+    var top = box.getBoundingClientRect().top + window.scrollY;
+    /* leave room for pagination / footer that sits below the box */
+    var after = 0, n = box.parentElement && box.parentElement.lastElementChild;
+    if (n && n !== box && box.parentElement.contains(box)) after = n.offsetHeight + 16;
+    var h = Math.max(MIN_H, window.innerHeight - top - after - 16);
+    var px = h + 'px';
+    if (box.style.maxHeight !== px) box.style.maxHeight = px;
+  }
+
+  function init() {
+    var boxes = findBoxes();
+    if (!boxes.length) return;
+    boxes.forEach(function (b) { b.classList.add('fit-scroll'); });
+
+    var queued = false;
+    function refit() {
+      if (queued) return; queued = true;
+      requestAnimationFrame(function () { queued = false; boxes.forEach(fit); });
+    }
+    window.addEventListener('resize', refit);
+    document.addEventListener('click', function () { setTimeout(refit, 50); });   /* tabs, filters */
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(refit);
+      ro.observe(document.body);
+      boxes.forEach(function (b) { ro.observe(b); });
+    }
+    boxes.forEach(function (b) { new MutationObserver(refit).observe(b, { childList: true }); });
+    refit();
+  }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

@@ -12,6 +12,7 @@ MASTER/
 ├── data_u.html         ← Data Universe (ตารางข้อมูลหลัก)
 ├── contracts.html      ← Contract Master (สัญญา)
 ├── promotions.html     ← Promotions
+├── products.html       ← Products (catalogue + pictures from Storage "product-images")
 ├── sku.html            ← SKU (สินค้า)
 ├── roi.html            ← ROI Analysis
 ├── offtake.html        ← Off-take 2026

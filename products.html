@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Products — Archive</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="js/config.js?v=7"></script>
+<style>
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; min-height: 100vh; }
+button { cursor: pointer; font-family: inherit; transition: all .15s; }
+/* ── SIDEBAR (colors/sizes come from css/ssp-type.css) ── */
+.sidebar { width: 240px; height: 100vh; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; z-index: 100; overflow: hidden; }
+.sb-logo { padding: 28px 20px 20px; display: flex; align-items: center; gap: 12px; }
+.nav-links { flex: 1; padding: 8px 12px; overflow-y: auto; overflow-x: hidden; }
+.nav-section { padding: 16px 8px 6px; }
+.nav-links a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; text-decoration: none; margin-bottom: 2px; }
+.sidebar-user { padding: 14px 16px 18px; }
+.sb-user-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.sb-avatar { width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.btn-logout { width: 100%; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+/* ── PAGE ── */
+.main { margin-left: 240px; flex: 1; padding: 28px 32px; min-height: 100vh; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.stats-strip { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.strip-item { border-radius: 14px; padding: 16px 20px; flex: 1; min-width: 150px; }
+.toolbar { border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.search-box { flex: 1; min-width: 220px; }
+.search-box input, select.filter { width: 100%; padding: 10px 14px; border-radius: 10px; }
+select.filter { width: auto; min-width: 170px; }
+.btn-exp { padding: 10px 18px; border-radius: 10px; background: #fff; color: #333; }
+.btn-exp:hover { background: #F2F2F2; }
+.row-count { color: #777; margin-left: auto; }
+.table-card { background: #fff; border-radius: 14px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; white-space: nowrap; cursor: pointer; user-select: none; }
+td { white-space: nowrap; color: #222; }
+tbody tr { cursor: pointer; }
+.col-num { text-align: right; font-variant-numeric: tabular-nums; }
+.empty { text-align: center; padding: 60px 20px; color: #999; }
+.view-hint { color: #B0120A; }
+
+/* ── IMAGE POPUP ── */
+.pv-overlay { position: fixed; inset: 0; z-index: 1200; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; padding: 20px; }
+.pv-overlay.open { display: flex; }
+.pv-card { background: #fff; border-radius: 18px; width: 860px; max-width: 100%; max-height: calc(100vh - 40px); overflow: auto; display: grid; grid-template-columns: 1fr 1fr; }
+.pv-img { background: #F5F5F5; display: flex; align-items: center; justify-content: center; min-height: 380px; padding: 24px; }
+.pv-img img { max-width: 100%; max-height: 60vh; object-fit: contain; }
+.pv-img .pv-noimg { color: #999; }
+.pv-info { padding: 28px 28px 24px; display: flex; flex-direction: column; gap: 14px; }
+.pv-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.pv-cat { color: #B0120A; }
+.pv-close { background: #F2F2F2; border-radius: 10px; padding: 6px 12px; color: #333; }
+.pv-close:hover { background: #E6E6E6; }
+.pv-grid { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; }
+.pv-grid dt { color: #777; }
+.pv-grid dd { color: #111; }
+.pv-price { color: #B0120A; }
+.pv-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.pv-tag { background: #FDE0DC; color: #B0120A; border-radius: 20px; padding: 2px 10px; }
+.pv-nav { display: flex; gap: 8px; margin-top: auto; }
+.pv-nav button { flex: 1; background: #F2F2F2; border-radius: 10px; padding: 9px; color: #333; }
+.pv-nav button:hover { background: #E6E6E6; }
+@media (max-width: 768px) {
+  .pv-card { grid-template-columns: 1fr; }
+  .pv-img { min-height: 240px; }
+}
+</style>
+<link rel="stylesheet" href="css/ssp-theme.css?v=22">
+<link rel="stylesheet" href="css/ssp-type.css?v=36">
+</head>
+<body>
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon"></div>
+    <div class="sb-logo-text"><h3>Archive</h3><p>One for All</p></div>
+  </div>
+  <div class="nav-links">
+    <div class="nav-section">Main Menu</div>
+    <a href="dashboard.html">Dashboard</a>
+    <div class="nav-section">Master Data</div>
+    <a href="outlets.html">Outlet Master</a>
+    <a href="data_u.html" class="nav-sub">Data Universe</a>
+    <a href="contracts.html">Contract Master</a>
+    <a href="promotions.html">Promotions</a>
+    <a href="products.html" class="active">Products</a>
+    <div class="nav-section">Analytics</div>
+    <a href="roi.html">ROI Analysis</a>
+    <a href="offtake.html">Off-take 2026</a>
+    <a href="sku.html">SKU</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="sb-user-row">
+      <div class="sb-avatar" id="userAvatar">—</div>
+      <div><div class="sname" id="userName">—</div><div class="semail" id="userEmail">—</div></div>
+    </div>
+    <button class="btn-logout" onclick="logout()">Sign Out</button>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Products</h2>
+      <p class="page-sub">Product catalogue from Supabase · click a product to see its picture</p>
+    </div>
+    <button class="btn-exp" onclick="exportExcel()">Export Excel</button>
+  </div>
+
+  <div class="stats-strip">
+    <div class="strip-item"><div class="sl">Total Products</div><div class="sv" id="stTotal">—</div></div>
+    <div class="strip-item"><div class="sl">Categories</div><div class="sv" id="stCats">—</div></div>
+    <div class="strip-item"><div class="sl">Brands</div><div class="sv" id="stBrands">—</div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box"><input type="text" id="searchInput" placeholder="Search products, brands, keywords..." oninput="applyFilters()"></div>
+    <select id="fltCat" class="filter" onchange="applyFilters()"><option value="">All categories</option></select>
+    <select id="fltBrand" class="filter" onchange="applyFilters()"><option value="">All brands</option></select>
+    <span class="row-count" id="rowCount">Loading...</span>
+  </div>
+
+  <div class="table-card"><div id="tableWrap"><div class="empty"><p>Loading...</p></div></div></div>
+</div>
+
+<!-- Image popup -->
+<div class="pv-overlay" id="pvOverlay" onclick="if(event.target===this)closeView()">
+  <div class="pv-card" role="dialog" aria-modal="true" aria-labelledby="pvName">
+    <div class="pv-img" id="pvImg"></div>
+    <div class="pv-info">
+      <div class="pv-top">
+        <div>
+          <div class="pv-cat" id="pvCat"></div>
+          <h3 id="pvName"></h3>
+        </div>
+        <button class="pv-close" onclick="closeView()" aria-label="Close">Close</button>
+      </div>
+      <dl class="pv-grid" id="pvGrid"></dl>
+      <div class="pv-tags" id="pvTags"></div>
+      <div class="pv-nav">
+        <button onclick="stepView(-1)">← Previous</button>
+        <button onclick="stepView(1)">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const TABLE  = 'products';
+const BUCKET = 'product-images';
+/* columns shown in the table (real Supabase names, in this order) */
+const SHOW = ['name', 'brand', 'brand_th', 'category', 'size', 'abv', 'price_thb', 'page_no'];
+
+let allData = [], filtered = [], sortCol = 'id', sortAsc = true, viewIdx = -1;
+
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const imgUrl = p => p ? supabase.storage.from(BUCKET).getPublicUrl(p).data.publicUrl : '';
+const price = v => v == null || v === '' ? '—' : Number(v).toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+async function checkAuth() {
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) { window.location.href = 'index.html'; return; }
+  const u = data.session.user;
+  const { data: p } = await supabase.from('user_profile').select('username').eq('auth_email', u.email).maybeSingle();
+  const name = (p && p.username) || u.email.split('@')[0];
+  document.getElementById('userEmail').textContent = u.email;
+  document.getElementById('userName').textContent = name;
+  document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
+  loadData();
+  supabase.channel('products-rt').on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, liveReload(loadData)).subscribe();
+}
+
+async function loadData() {
+  const rows = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase.from(TABLE).select('*').eq('is_active', true).order('id').range(from, from + 999);
+    if (error) {
+      document.getElementById('tableWrap').innerHTML = `<div class="empty"><p>Load failed: ${esc(error.message)}</p></div>`;
+      document.getElementById('rowCount').textContent = 'Load failed';
+      return;
+    }
+    rows.push(...(data || []));
+    if (!data || data.length < 1000) break;
+  }
+  allData = rows;
+  document.getElementById('stTotal').textContent  = rows.length.toLocaleString();
+  document.getElementById('stCats').textContent   = new Set(rows.map(r => r.category).filter(Boolean)).size.toLocaleString();
+  document.getElementById('stBrands').textContent = new Set(rows.map(r => r.brand).filter(Boolean)).size.toLocaleString();
+  fillSelect('fltCat',   'All categories', rows.map(r => r.category));
+  fillSelect('fltBrand', 'All brands',     rows.map(r => r.brand));
+  applyFilters();
+}
+
+function fillSelect(id, first, values) {
+  const sel = document.getElementById(id), keep = sel.value;
+  const opts = [...new Set(values.filter(Boolean))].sort();
+  sel.innerHTML = `<option value="">${first}</option>` + opts.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  if (opts.includes(keep)) sel.value = keep;
+}
+
+function applyFilters() {
+  const q   = document.getElementById('searchInput').value.trim().toLowerCase();
+  const cat = document.getElementById('fltCat').value;
+  const br  = document.getElementById('fltBrand').value;
+  filtered = allData.filter(r => {
+    if (cat && r.category !== cat) return false;
+    if (br && r.brand !== br) return false;
+    if (!q) return true;
+    const hay = [r.name, r.brand, r.brand_th, r.category, r.size, r.abv, ...(r.keywords || [])].join(' ').toLowerCase();
+    return hay.includes(q);
+  });
+  filtered.sort((a, b) => {
+    const av = a[sortCol], bv = b[sortCol];
+    if (av == null) return 1; if (bv == null) return -1;
+    const n = typeof av === 'number' || !isNaN(Number(av)) && !isNaN(Number(bv));
+    const cmp = n ? Number(av) - Number(bv) : String(av).localeCompare(String(bv));
+    return sortAsc ? cmp : -cmp;
+  });
+  renderTable();
+}
+
+function sortBy(c) { if (sortCol === c) sortAsc = !sortAsc; else { sortCol = c; sortAsc = true; } applyFilters(); }
+
+function renderTable() {
+  document.getElementById('rowCount').textContent = `${filtered.length.toLocaleString()} products`;
+  const wrap = document.getElementById('tableWrap');
+  if (!filtered.length) { wrap.innerHTML = '<div class="empty"><p>No products match</p></div>'; return; }
+  const arrow = c => sortCol === c ? (sortAsc ? ' ↑' : ' ↓') : '';
+  wrap.innerHTML = `<table><thead><tr><th style="width:48px">#</th>${SHOW.map(c =>
+      `<th onclick="sortBy('${c}')">${esc(colLabel(c))}${arrow(c)}</th>`).join('')}<th></th></tr></thead><tbody>${
+    filtered.map((r, i) => `<tr onclick="openView(${i})"><td>${i + 1}</td>${SHOW.map(c =>
+      c === 'price_thb' ? `<td class="col-num">${price(r[c])}</td>`
+                        : `<td>${r[c] == null || r[c] === '' ? '—' : esc(r[c])}</td>`).join('')
+    }<td class="view-hint">View picture</td></tr>`).join('')}</tbody></table>`;
+}
+
+/* ── Image popup ── */
+function openView(i) {
+  viewIdx = i;
+  const r = filtered[i]; if (!r) return;
+  const url = imgUrl(r.image_path);
+  document.getElementById('pvImg').innerHTML = url
+    ? `<img src="${esc(url)}" alt="${esc(r.name)}" onerror="this.parentElement.innerHTML='<span class=\\'pv-noimg\\'>No picture available</span>'">`
+    : '<span class="pv-noimg">No picture available</span>';
+  document.getElementById('pvCat').textContent  = r.category || '';
+  document.getElementById('pvName').textContent = r.name || '';
+  const rows = [['brand', r.brand], ['brand_th', r.brand_th], ['size', r.size], ['abv', r.abv],
+                ['price_thb', r.price_thb == null ? null : price(r.price_thb) + ' THB'], ['page_no', r.page_no]];
+  document.getElementById('pvGrid').innerHTML = rows.filter(([, v]) => v != null && v !== '')
+    .map(([k, v]) => `<dt>${esc(colLabel(k))}</dt><dd class="${k === 'price_thb' ? 'pv-price' : ''}">${esc(v)}</dd>`).join('');
+  document.getElementById('pvTags').innerHTML = (r.keywords || []).map(k => `<span class="pv-tag">${esc(k)}</span>`).join('');
+  document.getElementById('pvOverlay').classList.add('open');
+}
+function closeView() { document.getElementById('pvOverlay').classList.remove('open'); viewIdx = -1; }
+function stepView(d) { if (viewIdx < 0 || !filtered.length) return; openView((viewIdx + d + filtered.length) % filtered.length); }
+document.addEventListener('keydown', e => {
+  if (viewIdx < 0) return;
+  if (e.key === 'Escape') closeView();
+  if (e.key === 'ArrowRight') stepView(1);
+  if (e.key === 'ArrowLeft') stepView(-1);
+});
+
+function exportExcel() {
+  if (!filtered.length) return;
+  const rows = filtered.map(r => ({ ...Object.fromEntries(SHOW.map(c => [c, r[c]])), image_url: imgUrl(r.image_path) }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Products');
+  XLSX.writeFile(wb, `Products_${new Date().toISOString().slice(0, 10)}.xlsx`);
+}
+async function logout() { await supabase.auth.signOut(); window.location.href = 'index.html'; }
+checkAuth();
+</script>
+<script src="js/responsive.js?v=1"></script>
+<script src="js/table-scroll.js?v=3"></script>
+</body>
+</html>

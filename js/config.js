@@ -17,6 +17,7 @@ window.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
     'data_u.html':     'Data Universe',
     'contracts.html':  'Contracts',
     'promotions.html': 'Promotions',
+    'products.html':   'Products',
     'roi.html':        'ROI Analysis',
     'offtake.html':    'Off-take 2026',
     'sku.html':        'SKU'
