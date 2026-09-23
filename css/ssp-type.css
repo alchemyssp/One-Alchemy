@@ -488,3 +488,20 @@ body .strip-item .sv, body .strip-item .sl {
 .sidebar .sb-logo-text { width: 100%; text-align: center !important; }
 .sidebar .sb-logo-text h3 { font-size: 28px !important; font-weight: var(--fw-bold) !important; line-height: 1.2 !important; margin: 0 !important; }
 .sidebar .sb-logo-text p  { font-size: 16px !important; font-weight: var(--fw-regular) !important; color: rgba(255,255,255,.85) !important; margin-top: 4px !important; }
+
+/* ── DATA U: table fits the screen; scrollbars always reachable ── */
+body.page-datau .tscroll {
+  max-height: calc(100vh - 150px);
+  overflow: auto !important;
+}
+body.page-datau .tscroll thead th { position: sticky; top: 0; z-index: 2; }
+body.page-datau .tscroll-top {
+  overflow-x: auto; overflow-y: hidden; height: 14px; margin-bottom: 4px;
+}
+body.page-datau .tscroll-top > div { height: 1px; }
+body.page-datau .tscroll::-webkit-scrollbar, body.page-datau .tscroll-top::-webkit-scrollbar { height: 12px; width: 10px; }
+body.page-datau .tscroll::-webkit-scrollbar-thumb, body.page-datau .tscroll-top::-webkit-scrollbar-thumb { background: #F36C60; border-radius: 6px; }
+body.page-datau .tscroll::-webkit-scrollbar-track, body.page-datau .tscroll-top::-webkit-scrollbar-track { background: #F2F2F2; border-radius: 6px; }
+/* Data U: only the outer box scrolls (inner wrapper must not create its own scrollbar) */
+body.page-datau #tableWrap { overflow: visible !important; max-width: none !important; }
+body.page-datau .tcard { overflow: visible !important; }
