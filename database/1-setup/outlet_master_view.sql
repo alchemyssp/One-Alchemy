@@ -8,7 +8,10 @@
 -- (trimmed, case-insensitive).
 -- Read-only. security_invoker keeps the login-only RLS of the source tables.
 -- Re-run this file any time columns are added to "Data Universe".
+-- Updated 2026-09-23: excludes id, Catalogue Status, Contract Flag (row/SKU level); includes Current BDE.
 -- ============================================================
+DROP VIEW IF EXISTS public."Outlet Master";  -- column list changes, so rebuild
+
 DO $$
 DECLARE cols text;
 BEGIN
@@ -16,7 +19,7 @@ BEGIN
     INTO cols
   FROM information_schema.columns
   WHERE table_schema = 'public' AND table_name = 'Data Universe'
-    AND column_name NOT IN ('SKU Code','Principle','Category','Brand','SKU','Product','Size','Pack','SKU Status');
+    AND column_name NOT IN ('id','SKU Code','Principle','Category','Brand','SKU','Product','Size','Pack','SKU Status','Catalogue Status','Contract Flag');
 
   EXECUTE format($v$
     CREATE OR REPLACE VIEW public."Outlet Master" WITH (security_invoker = true) AS
@@ -24,7 +27,11 @@ BEGIN
       SELECT DISTINCT ON (upper(trim(du."Outlet Code"))) du.*
       FROM public."Data Universe" du
       WHERE coalesce(trim(du."Outlet Code"), '') <> ''
-      ORDER BY upper(trim(du."Outlet Code")), du."Update_Date" DESC NULLS LAST, du."Date_Register" DESC NULLS LAST
+      /* dates are stored as text M/D/YYYY — compare them as real dates */
+      ORDER BY upper(trim(du."Outlet Code")),
+        CASE WHEN du."Update_Date"   ~ '^\d{1,2}/\d{1,2}/\d{4}$' THEN to_date(du."Update_Date",   'FMMM/FMDD/YYYY') END DESC NULLS LAST,
+        CASE WHEN du."Date_Register" ~ '^\d{1,2}/\d{1,2}/\d{4}$' THEN to_date(du."Date_Register", 'FMMM/FMDD/YYYY') END DESC NULLS LAST,
+        du.id DESC
     ),
     c AS (
       SELECT upper(trim("CODE OUTLET")) AS code, count(*) AS n

@@ -640,7 +640,7 @@ select.finput{appearance:auto}
     <div class="fmhdr">
       <div>
         <div class="fmtitle">Import Data Universe</div>
-        <div class="fmsub">Add or update records from Excel — duplicate name = replace existing</div>
+        <div class="fmsub">Monthly update — the file replaces all Data Universe rows (a backup of the current data is kept)</div>
       </div>
       <button class="fmx" onclick="closeImport()">✕</button>
     </div>
@@ -657,15 +657,15 @@ select.finput{appearance:auto}
         <div class="imp-step-num">2</div>
         <div style="flex:1">
           <div class="imp-step-title">Upload Excel File</div>
-          <div class="imp-step-desc">Fill in the template then upload. New rows will be <strong style="color:#22C55E">Added</strong>; existing names will be <strong style="color:#F36C60">Updated</strong>.</div>
+          <div class="imp-step-desc">Upload the monthly Data Universe file (.xlsx or .xlsm). The header row and column names are found automatically. Blank Company / Group values keep their current value.</div>
           <div class="imp-dropzone" id="impDropzone"
                onclick="document.getElementById('impFileInput').click()"
                ondragover="impDragOver(event)" ondragleave="impDragLeave(event)" ondrop="impDrop(event)">
             <div class="imp-dz-icon"></div>
             <div class="imp-dz-text" id="impDzText">Click or Drag &amp; Drop Excel file here</div>
-            <div class="imp-dz-sub">.xlsx or .xls only</div>
+            <div class="imp-dz-sub">.xlsx, .xlsm or .xls</div>
           </div>
-          <input type="file" id="impFileInput" accept=".xlsx,.xls" style="display:none" onchange="impFileChosen(event)">
+          <input type="file" id="impFileInput" accept=".xlsx,.xlsm,.xls" style="display:none" onchange="impFileChosen(event)">
         </div>
       </div>
       <div id="impPreviewWrap" style="display:none">
@@ -682,7 +682,7 @@ select.finput{appearance:auto}
     </div>
     <div class="fmftr">
       <button class="btn-cancel" onclick="closeImport()">Cancel</button>
-      <button class="btn-save" id="impDoBtn" style="display:none;background:linear-gradient(135deg,#22C55E,#16A34A)" onclick="doImport()">Import Records</button>
+      <button class="btn-save" id="impDoBtn" style="display:none;background:linear-gradient(135deg,#22C55E,#16A34A)" onclick="doImport()">Replace Data Universe</button>
     </div>
   </div>
 </div>
@@ -2315,12 +2315,12 @@ function exportExcel() {
 /* ============================================================
    IMPORT
    ============================================================ */
-let importRows = [];
+let importRows = [];   /* kept for older helpers */
 
 function openImport() { document.getElementById('importOverlay').classList.add('open'); resetImportUI(); }
 function closeImport() { document.getElementById('importOverlay').classList.remove('open'); resetImportUI(); }
 function resetImportUI() {
-  importRows = [];
+  importRows = []; impPlan = null;
   document.getElementById('impPreviewWrap').style.display = 'none';
   document.getElementById('impDoBtn').style.display = 'none';
   document.getElementById('impDzText').textContent = 'Click or Drag & Drop Excel file here';
@@ -2342,77 +2342,187 @@ function impDragLeave(e) { document.getElementById('impDropzone').classList.remo
 function impDrop(e) { e.preventDefault(); document.getElementById('impDropzone').classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f) processImportFile(f); }
 function impFileChosen(e) { const f = e.target.files[0]; if (f) processImportFile(f); }
 
+/* ============================================================
+   MONTHLY IMPORT — the file REPLACES all Data Universe rows.
+   1) read .xlsx/.xlsm, find the header row, map Excel names → Supabase names
+   2) upload rows to data_u_staging (500 per request)
+   3) queue a job; a Supabase background worker swaps the data
+      (backup kept, blank Company/Group values keep their current value)
+   ============================================================ */
+/* Excel header (normalised) → Supabase column, when the names differ */
+const IMPORT_ALIASES = {
+  area: 'Area of BDE',
+  typecontract: 'Contracts',
+  primarycontract: 'Contract with',
+  contactpersonposition: 'Position',
+  contactpersonphonenumber: 'Phone Number',
+  statusofproduct: 'SKU Status',
+  contract: 'Contract Flag',
+  nameofproduct: 'Product',
+};
+const IMPORT_DATE_COLS = ['Date_Register', 'Update_Date'];
+const IMPORT_INT_COLS  = ['Pack'];
+const nrmCol = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+let impPlan = null;   /* { fileName, rows:[{dbCol:value}], mapping:[[excel,db]], unmapped:[], missing:[] } */
+
+/* Excel serial date → M/D/YYYY (same format as the database) */
+function excelDate(v) {
+  if (v == null || v === '') return null;
+  if (typeof v === 'number' && v > 20000 && v < 80000) {
+    const d = new Date(Math.round((v - 25569) * 86400000));
+    return `${d.getUTCMonth() + 1}/${d.getUTCDate()}/${d.getUTCFullYear()}`;
+  }
+  return String(v).trim() || null;
+}
+
+async function getDbColumns() {
+  let sample = allData[0];
+  if (!sample) { const { data } = await supabase.from(TABLE).select('*').limit(1); sample = (data || [])[0]; }
+  return sample ? Object.keys(sample).filter(c => c !== 'id') : [];
+}
+
 function processImportFile(file) {
-  if (!/\.(xlsx|xls)$/i.test(file.name)) { showToast('Please upload .xlsx or .xls file only', 'err'); return; }
+  if (!/\.(xlsx|xlsm|xls)$/i.test(file.name)) { showToast('Please upload an .xlsx, .xlsm or .xls file', 'err'); return; }
+  document.getElementById('impDzText').textContent = `Reading ${file.name}…`;
   const reader = new FileReader();
-  reader.onload = ev => {
+  reader.onload = async ev => {
     try {
       const wb = XLSX.read(ev.target.result, { type: 'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
-      if (!rows.length) { showToast('File is empty', 'err'); return; }
+      /* visible sheets first; header row = first row (within 40) containing "Outlet Code" */
+      const meta = (wb.Workbook && wb.Workbook.Sheets) || [];
+      const order = wb.SheetNames.slice().sort((a, b) =>
+        ((meta.find(m => m.name === a) || {}).Hidden ? 1 : 0) - ((meta.find(m => m.name === b) || {}).Hidden ? 1 : 0));
+      let sheet = null, grid = null, hdr = -1;
+      for (const name of order) {
+        const g = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: '', raw: true });
+        const i = g.slice(0, 40).findIndex(r => r.some(c => nrmCol(c) === 'outletcode'));
+        if (i >= 0) { sheet = name; grid = g; hdr = i; break; }
+      }
+      if (!grid) { showToast('Could not find a header row with "Outlet Code" in this file', 'err'); resetImportUI(); return; }
+
+      const dbCols = await getDbColumns();
+      const headers = grid[hdr].map(h => String(h ?? '').trim());
+      const hasNameOfProduct = headers.some(h => nrmCol(h) === 'nameofproduct');
+      const mapping = [], unmapped = [], used = new Set();
+      headers.forEach((h, i) => {
+        if (!h) return;
+        const n = nrmCol(h);
+        let db = null;
+        if (n === 'product' && hasNameOfProduct && dbCols.includes('SKU')) db = 'SKU';   /* short SKU name */
+        else db = dbCols.find(c => nrmCol(c) === n) || (IMPORT_ALIASES[n] && dbCols.includes(IMPORT_ALIASES[n]) ? IMPORT_ALIASES[n] : null);
+        if (db && !used.has(db)) { used.add(db); mapping.push([h, db, i]); } else unmapped.push(h);
+      });
+      const missing = dbCols.filter(c => !used.has(c));
+
+      const rows = [];
+      for (let r = hdr + 1; r < grid.length; r++) {
+        const src = grid[r];
+        if (!src.some(v => v !== '' && v != null)) continue;
+        const o = {};
+        mapping.forEach(([, db, i]) => {
+          let v = src[i];
+          if (IMPORT_DATE_COLS.includes(db)) v = excelDate(v);
+          else if (IMPORT_INT_COLS.includes(db)) { const n = parseInt(v, 10); v = Number.isFinite(n) ? n : null; }
+          else { v = v == null ? null : String(v).trim(); if (v === '') v = null; }
+          o[db] = v;
+        });
+        rows.push(o);
+      }
+      if (!rows.length) { showToast('No data rows found under the header', 'err'); resetImportUI(); return; }
+      impPlan = { fileName: file.name, sheet, hdrRow: hdr + 1, rows, mapping, unmapped, missing };
       document.getElementById('impDzText').textContent = `${file.name}  (${rows.length.toLocaleString()} rows)`;
       document.getElementById('impDropzone').className = 'imp-dropzone has-file';
-      buildImportPreview(rows);
-    } catch (err) { showToast('Cannot read file: ' + err.message, 'err'); }
+      await buildImportPreview();
+    } catch (err) { showToast('Cannot read file: ' + err.message, 'err'); resetImportUI(); }
   };
   reader.readAsArrayBuffer(file);
 }
 
-function buildImportPreview(rows) {
-  const nameMap = {};
-  if (labelCol) {
-    allData.forEach(r => {
-      const n = String(r[labelCol] ?? '').trim().toLowerCase();
-      if (n) nameMap[n] = r[pkCol];
-    });
+async function buildImportPreview() {
+  const p = impPlan;
+  const codeOf = r => String(r['Outlet Code'] ?? '').trim().toUpperCase();
+  const fileOutlets = new Set(p.rows.map(codeOf).filter(Boolean));
+  /* current outlets straight from Supabase (not just the rows loaded in the browser) */
+  const current = new Set();
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase.from('Outlet Master').select('Outlet Code').range(from, from + 999);
+    if (error || !data) break;
+    data.forEach(r => current.add(String(r['Outlet Code'] ?? '').trim().toUpperCase()));
+    if (data.length < 1000) break;
   }
-  let addCnt = 0, updCnt = 0;
-  importRows = rows.map(row => {
-    const n = labelCol ? String(row[labelCol] ?? '').trim().toLowerCase() : '';
-    const existId = n ? nameMap[n] : null;
-    if (existId) { updCnt++; return { ...row, _action: 'UPDATE', _id: existId }; }
-    else { addCnt++; return { ...row, _action: 'INSERT', _id: null }; }
-  });
-  document.getElementById('impPreviewCount').textContent = `${rows.length.toLocaleString()} rows ready to import`;
-  document.getElementById('impPreviewBadges').innerHTML = `<span class="imp-badge imp-badge-add">＋${addCnt} New</span> <span class="imp-badge imp-badge-upd">↺ ${updCnt} Update</span>`;
-  const previewCols = Object.keys(rows[0]).filter(c => c !== '_action' && c !== '_id').slice(0, 5);
-  const previewRows = importRows.slice(0, 8);
-  document.getElementById('impPreviewTable').innerHTML = `<thead><tr><th>Status</th>${previewCols.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${previewRows.map(r => `<tr><td>${r._action === 'UPDATE' ? '<span class="imp-badge imp-badge-upd">↺ Replace</span>' : '<span class="imp-badge imp-badge-add">＋ New</span>'}</td>${previewCols.map(c => `<td title="${esc(String(r[c] ?? ''))}">${esc(String(r[c] ?? '').slice(0, 35))}</td>`).join('')}</tr>`).join('')}${rows.length > 8 ? `<tr><td colspan="${previewCols.length + 1}" style="text-align:center;color:#F36C60;font-style:italic;padding:10px">... and ${rows.length - 8} more rows</td></tr>` : ''}</tbody>`;
+  const newOutlets = [...fileOutlets].filter(c => !current.has(c)).length;
+  const goneOutlets = [...current].filter(c => !fileOutlets.has(c)).length;
+  const renamed = p.mapping.filter(([x, db]) => nrmCol(x) !== nrmCol(db));
+
+  document.getElementById('impPreviewCount').textContent =
+    `${p.rows.length.toLocaleString()} rows · ${fileOutlets.size.toLocaleString()} outlets (sheet "${p.sheet}", header row ${p.hdrRow})`;
+  document.getElementById('impPreviewBadges').innerHTML =
+    `<span class="imp-badge imp-badge-add">＋${newOutlets.toLocaleString()} new outlets</span> ` +
+    (goneOutlets ? `<span class="imp-badge imp-badge-upd">${goneOutlets.toLocaleString()} outlets not in file (will be removed)</span>` : '');
+  const li = arr => arr.map(x => `<li>${x}</li>`).join('');
+  document.getElementById('impPreviewTable').innerHTML = `<tbody><tr><td style="white-space:normal;line-height:1.6">
+      <b>Current data:</b> ${allData.length ? allData.length.toLocaleString() + ' rows' : 'see Supabase'} → will be replaced by this file. A backup is kept.<br>
+      <b>Columns matched:</b> ${p.mapping.length} of ${p.mapping.length + p.missing.length}
+      ${renamed.length ? `<br><b>Renamed to Supabase names:</b><ul style="margin:4px 0 4px 18px">${li(renamed.map(([x, db]) => `${esc(x.replace(/\n/g, ' '))} → ${esc(db.replace(/\n/g, ' '))}`))}</ul>` : ''}
+      ${p.missing.length ? `<b>Not in file:</b> ${p.missing.map(c => esc(c.replace(/\n/g, ' '))).join(', ')} <i>(Company / Group keep current values; others stay empty)</i><br>` : ''}
+      ${p.unmapped.length ? `<b>Ignored (no matching Supabase column):</b> ${p.unmapped.map(c => esc(c.replace(/\n/g, ' '))).join(', ')}<br>` : ''}
+      <b>Dates</b> (Date_Register, Update_Date) are converted to M/D/YYYY.
+    </td></tr></tbody>`;
   document.getElementById('impPreviewWrap').style.display = 'block';
   const btn = document.getElementById('impDoBtn');
-  btn.style.display = ''; btn.textContent = `Import ${rows.length.toLocaleString()} Records`; btn.disabled = false;
+  btn.style.display = ''; btn.disabled = false;
+  btn.textContent = `Replace Data Universe with ${p.rows.length.toLocaleString()} rows`;
 }
 
 async function doImport() {
-  if (!importRows.length) { showToast('No data to import', 'err'); return; }
+  if (!impPlan || !impPlan.rows.length) { showToast('No data to import', 'err'); return; }
   const btn = document.getElementById('impDoBtn');
-  const prog = document.getElementById('impProg');
-  const progBar = document.getElementById('impProgBar');
-  const progText = document.getElementById('impProgText');
+  const prog = document.getElementById('impProg'), bar = document.getElementById('impProgBar'), txt = document.getElementById('impProgText');
+  const batch = 'imp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  const rows = impPlan.rows, CHUNK = 500;
   btn.disabled = true; prog.style.display = 'block';
-  let added = 0, updated = 0, errors = 0;
-  const total = importRows.length;
-  for (let i = 0; i < total; i++) {
-    const row = importRows[i];
-    const action = row._action, existId = row._id;
-    const clean = {};
-    Object.entries(row).forEach(([k, v]) => { if (k !== '_action' && k !== '_id') clean[k] = v === '' ? null : v; });
-    if (action === 'UPDATE' && existId) {
-      const { error } = await supabase.from(TABLE).update(clean).eq(pkCol, existId);
-      if (error) errors++; else { updated++; await writeLog('UPDATE', existId, null, clean); }
-    } else {
-      const { error } = await supabase.from(TABLE).insert([clean]);
-      if (error) errors++; else { added++; await writeLog('INSERT', null, null, clean); }
+
+  /* 1) upload to staging */
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const part = rows.slice(i, i + CHUNK).map(r => ({ ...r, batch_id: batch }));
+    const { error } = await supabase.from('data_u_staging').insert(part);
+    if (error) {
+      await supabase.from('data_u_staging').delete().eq('batch_id', batch);
+      txt.textContent = 'Upload failed: ' + error.message;
+      showToast('Upload failed — nothing was changed', 'err'); btn.disabled = false; return;
     }
-    const pct = Math.round(((i + 1) / total) * 100);
-    progBar.style.width = pct + '%';
-    progText.textContent = `Importing... ${i + 1}/${total}`;
+    const done = Math.min(i + CHUNK, rows.length);
+    bar.style.width = Math.round(done / rows.length * 70) + '%';
+    txt.textContent = `Uploading… ${done.toLocaleString()} / ${rows.length.toLocaleString()} rows`;
   }
-  btn.disabled = false;
-  closeImport();
-  showToast(`Import complete: Added ${added} | Updated ${updated}${errors ? ` | Errors ${errors}` : ''}`, errors ? 'inf' : 'ok');
-  loadData();
+
+  /* 2) queue the swap */
+  const { error: qErr } = await supabase.rpc('data_u_request_replace', { p_batch: batch, p_file: impPlan.fileName });
+  if (qErr) {
+    await supabase.from('data_u_staging').delete().eq('batch_id', batch);
+    txt.textContent = qErr.message; showToast('Import not started — nothing was changed', 'err'); btn.disabled = false; return;
+  }
+
+  /* 3) wait for the background worker (runs every minute) */
+  bar.style.width = '75%';
+  txt.textContent = 'Uploaded. Waiting for Supabase to apply the update (up to 1–2 minutes)…';
+  const t0 = Date.now();
+  const poll = setInterval(async () => {
+    const { data: job } = await supabase.from('data_u_import_jobs').select('*').eq('batch_id', batch).maybeSingle();
+    if (!job) return;
+    if (job.status === 'running') { bar.style.width = '90%'; txt.textContent = 'Applying update in Supabase…'; }
+    if (job.status === 'done') {
+      clearInterval(poll); bar.style.width = '100%';
+      await writeLog('IMPORT', null, { rows: job.previous_rows }, { rows: job.new_rows, file: job.file_name });
+      showToast(`Data Universe updated: ${Number(job.previous_rows).toLocaleString()} → ${Number(job.new_rows).toLocaleString()} rows`);
+      closeImport(); loadData(); fetchStatsFromDB();
+    }
+    if (job.status === 'error') {
+      clearInterval(poll); txt.textContent = 'Import stopped: ' + job.message + ' (current data was not changed)';
+      showToast('Import stopped — current data was not changed', 'err'); btn.disabled = false;
+    }
+    if (Date.now() - t0 > 10 * 60 * 1000) { clearInterval(poll); txt.textContent = 'Still processing — check again in a few minutes.'; }
+  }, 5000);
 }
 
 /* ============================================================
