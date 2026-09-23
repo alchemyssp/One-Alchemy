@@ -4,7 +4,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // LINE OA webhook (Supabase Edge Function "line-webhook")
 //   Rich Menu "Outlet Info" / "Product" sets the user's search mode (line_user_mode) and asks for a name;
 //   the next messages are searched ONLY in that mode:
-//     outlet  → search_outlets  → Outlet Info card(s) + the code as text
+//     outlet  → search_outlets  → Outlet Info card(s) only
 //     product → search_products → product card(s)
 //   no mode yet → a short hint with quick-reply buttons (no data sent)
 // Outlet data comes from the "Outlet Master" view, so it is always in sync with Data Universe.
@@ -147,12 +147,8 @@ async function replyOutlets(ev: any, q: string): Promise<boolean> {
   const card = rows.length === 1
     ? { type: "flex", altText: "Outlet Info: " + clean(rows[0].outlet_name), contents: outletBubble(rows[0]) }
     : { type: "flex", altText: "พบร้าน " + rows.length + " รายการ", contents: { type: "carousel", contents: rows.map(outletBubble) } };
-  // plain-text copy of the code(s): long-press / select to copy on phone and PC
-  const codes = rows.length === 1
-    ? clean(rows[0].outlet_code)
-    : rows.map((r) => clean(r.outlet_name) + "\n" + clean(r.outlet_code)).join("\n\n");
-
-  await reply(ev.replyToken, [card, { type: "text", text: codes.slice(0, 5000) }]);
+  // card(s) only — the Copy button on each card copies the Outlet Code
+  await reply(ev.replyToken, [card]);
   await log(ev, q, rows.length);
   return true;
 }
