@@ -15,7 +15,6 @@ MASTER/
 ├── sku.html            ← SKU (สินค้า)
 ├── roi.html            ← ROI Analysis
 ├── offtake.html        ← Off-take 2026
-├── users.html          ← User Management (ผู้ใช้)
 │
 ├── css/
 │   └── ssp-theme.css   ← ธีม / สีของทั้งเว็บ (แก้ที่นี่ที่เดียว)

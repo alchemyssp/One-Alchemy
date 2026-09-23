@@ -9,7 +9,7 @@
 <title>Data Universe — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="js/config.js?v=4"></script>
+<script src="js/config.js?v=6"></script>
 <style>
 /* ============================================================
    BAKED APPLE PALETTE
@@ -451,7 +451,7 @@ select.finput{appearance:auto}
 .btn-secondary:hover{background:linear-gradient(135deg,#B0120A 0%,#B0120A 100%)}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=33">
+<link rel="stylesheet" href="css/ssp-type.css?v=34">
 </head>
 <body class="page-datau">
 
@@ -477,8 +477,6 @@ select.finput{appearance:auto}
     <a href="roi.html">ROI Analysis</a>
     <a href="offtake.html">Off-take 2026</a>
     <a href="sku.html">SKU</a>
-    <div class="nav-section">System</div>
-    <a href="users.html">User Management</a>
   </div>
 
   <div class="sidebar-user">
@@ -578,7 +576,7 @@ select.finput{appearance:auto}
     <!-- Search -->
     <div class="search-wrap">
       <svg class="search-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="searchInput" placeholder="Search all..." oninput="applyFilters()">
+      <input type="text" id="searchInput" placeholder="Search all outlets..." oninput="onSearchInput()">
     </div>
 
     <!-- Team filter -->
@@ -630,7 +628,6 @@ select.finput{appearance:auto}
 
   <!-- Table -->
   <div class="tcard">
-    <div class="tscroll-top" id="tscrollTop"><div></div></div>
     <div class="tscroll" id="tscroll"><div id="tableWrap"><div class="empty-state"><div class="ei"></div><p>Loading...</p></div></div></div>
     <div class="pagi" id="pagiWrap"></div>
   </div>
@@ -1083,6 +1080,7 @@ CREATE POLICY "Users can delete Data Universe"
     buildFilterDropdowns();
     buildColPickerList();
     applyFilters();
+    if ((document.getElementById('searchInput').value || '').trim()) onSearchInput(); /* refresh an active search after reload */
     console.log('[DataU Step4]', { filteredCount: filtered.length, page });
     setupRealtime();
     fetchStatsFromDB();
@@ -1160,8 +1158,7 @@ async function loadParallel(totalCount) {
   rebuildMeta();
   buildFilterDropdowns();
   buildColPickerList();
-  applyFilters();
-  if (cntEl) cntEl.textContent = filtered.length.toLocaleString() + ' records';
+  applyFilters();   /* also updates the records · outlets count */
 }
 
 /* ============================================================
@@ -1176,6 +1173,7 @@ async function fetchStatsFromDB() {
   document.getElementById('statTotal').textContent = Number(data.total   ?? 0).toLocaleString();
   document.getElementById('statNew').textContent    = Number(data.new     ?? 0).toLocaleString();
   document.getElementById('statCurrent').textContent = Number(data.current ?? 0).toLocaleString();
+  document.getElementById('searchInput').placeholder = `Search all ${Number(data.total ?? 0).toLocaleString()} outlets...`;
 }
 
 
@@ -1313,13 +1311,56 @@ function clearFilters() {
 /* ============================================================
    FILTER + SORT
    ============================================================ */
+/* ============================================================
+   SEARCH ALL — runs in Supabase, so it always covers every outlet
+   in the database (not just the rows already loaded in the browser)
+   ============================================================ */
+let searchResults = null;   /* null = no search; array = rows matched by Supabase */
+let searchTimer = null, searchSeq = 0;
+
+function onSearchInput() {
+  clearTimeout(searchTimer);
+  const q = (document.getElementById('searchInput').value || '').trim();
+  if (!q) { searchResults = null; applyFilters(); return; }
+  document.getElementById('rowCount').textContent = 'Searching all outlets…';
+  searchTimer = setTimeout(() => serverSearch(q), 300);
+}
+
+async function serverSearch(q) {
+  const seq = ++searchSeq;
+  /* text columns only (numbers can't use ilike); PostgREST needs quoted names/values */
+  const sample = allData[0] || {};
+  const textCols = cols.filter(c => typeof sample[c] !== 'number' && !/[\n\r"]/.test(c));
+  const term = q.replace(/[\\"]/g, m => '\\' + m).replace(/[%*]/g, '');
+  const orExpr = textCols.map(c => `"${c}".ilike."*${term}*"`).join(',');
+
+  const BATCH = 1000, rows = [];
+  try {
+    for (let from = 0; ; from += BATCH) {
+      const { data, error } = await supabase.from(TABLE).select('*').or(orExpr).range(from, from + BATCH - 1);
+      if (seq !== searchSeq) return;            /* a newer search started */
+      if (error) throw error;
+      rows.push(...(data || []));
+      if (!data || data.length < BATCH) break;
+    }
+  } catch (e) {
+    console.warn('[Search] server search failed, searching loaded rows instead:', e.message || e);
+    searchResults = null; applyFilters(); return;
+  }
+  searchResults = rows.sort((a, b) => (b[pkCol] ?? 0) - (a[pkCol] ?? 0));
+  applyFilters();
+}
+
 function applyFilters() {
-  const q      = (document.getElementById('searchInput').value || '').toLowerCase();
+  const q      = (document.getElementById('searchInput').value || '').toLowerCase().trim();
   const team   = document.getElementById('fltTeam').value;
   const bde    = document.getElementById('fltBDE').value;
   const newCur = document.getElementById('fltNewCur').value;
+  /* while a search is active, filter the Supabase results; otherwise the loaded rows */
+  const source = (q && searchResults) ? searchResults : allData;
+  const clientSearch = q && !searchResults;
 
-  filtered = allData.filter(r => {
+  filtered = source.filter(r => {
     /* Filter by outlet code from URL param (linked from Outlet Master) */
     if (URL_CODE && !Object.values(r).some(v => String(v ?? '').toLowerCase() === URL_CODE.toLowerCase())) return false;
     /* case-insensitive trim comparison for Team and BDE */
@@ -1327,7 +1368,7 @@ function applyFilters() {
     if (bde    && _bdeCol    && String(r[_bdeCol]    ?? '').trim().toLowerCase() !== bde.toLowerCase())   return false;
     /* New/Current: exact match on dynamic value from DB */
     if (newCur && _newCurCol && String(r[_newCurCol] ?? '').trim() !== newCur) return false;
-    if (q && !cols.some(c => String(r[c] ?? '').toLowerCase().includes(q)))   return false;
+    if (clientSearch && !cols.some(c => String(r[c] ?? '').toLowerCase().includes(q))) return false;
     return true;
   });
 
@@ -1343,7 +1384,10 @@ function applyFilters() {
   if (btnClr) btnClr.style.display = hasFilter ? '' : 'none';
 
   page = 1;
-  document.getElementById('rowCount').textContent = filtered.length.toLocaleString() + ' records';
+  const outCol = cols.find(c => c.toLowerCase() === 'outlet name');
+  const outlets = outCol ? new Set(filtered.map(r => r[outCol]).filter(Boolean)).size : 0;
+  document.getElementById('rowCount').textContent =
+    filtered.length.toLocaleString() + ' records' + (outCol ? ' · ' + outlets.toLocaleString() + ' outlets' : '');
   renderTable();
 }
 
@@ -2374,7 +2418,8 @@ async function doImport() {
    REALTIME + EVENTS
    ============================================================ */
 function setupRealtime() {
-  supabase.channel('datau-rt').on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, loadData).subscribe();
+  const refresh = liveReload(loadData);   /* one reload after a burst of changes */
+  supabase.channel('datau-rt').on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, refresh).subscribe();
 }
 async function logout() { await supabase.auth.signOut(); window.location.href = 'index.html'; }
 

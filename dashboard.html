@@ -163,7 +163,7 @@ tbody tr:last-child td{border-bottom:none}
 .t-err{background:#F36C60;color:#fff}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=33">
+<link rel="stylesheet" href="css/ssp-type.css?v=34">
 </head>
 <body class="page-dashboard">
 
@@ -189,8 +189,6 @@ tbody tr:last-child td{border-bottom:none}
     <a href="roi.html">ROI Analysis</a>
     <a href="offtake.html">Off-take 2026</a>
     <a href="sku.html">SKU</a>
-    <div class="nav-section">System</div>
-    <a href="users.html">User Management</a>
   </div>
 
   <div class="sidebar-user">
@@ -421,7 +419,7 @@ async function loadDashboard(){
 /* ── KPIs ── */
 async function loadKPIs(){
   const[ouRes,coRes]=await Promise.all([
-    sb.from('Data Universe').select('*',{count:'exact',head:true}),
+    sb.from('Outlet Master').select('*',{count:'exact',head:true}),  /* one row per outlet */
     sb.from('Contract Master').select('*',{count:'exact',head:true})
   ]);
   document.getElementById('kpiOutlets').textContent=(ouRes.count||0).toLocaleString();

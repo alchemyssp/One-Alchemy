@@ -19,8 +19,7 @@ window.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
     'promotions.html': 'Promotions',
     'roi.html':        'ROI Analysis',
     'offtake.html':    'Off-take 2026',
-    'sku.html':        'SKU',
-    'users.html':      'User Management'
+    'sku.html':        'SKU'
   };
 
   function restoreNav() {
@@ -50,4 +49,11 @@ window.colLabel = function (c) {
   if (!letters || letters !== letters.toUpperCase()) return s;   // not ALL CAPS → as-is
   const KEEP = new Set(['BDE','ROI','SKU','BBC','VAT','THB','TEG','RC','ID','WS','CM','TH','EN']);
   return s.replace(/[A-Z]+/g, w => KEEP.has(w) ? w : w.charAt(0) + w.slice(1).toLowerCase());
+};
+
+/* Realtime refresh helper: many change events in a row (e.g. an import of
+   1,000 rows) cause ONE reload, 2.5 s after the last change. */
+window.liveReload = function (fn, wait) {
+  var t = null;
+  return function () { clearTimeout(t); t = setTimeout(fn, wait || 2500); };
 };

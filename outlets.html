@@ -6,7 +6,7 @@
 <title>Outlet Master — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="js/config.js?v=4"></script>
+<script src="js/config.js?v=6"></script>
 <script src="js/thai_geo.js"></script>
 <style>
 /* ============================================================
@@ -276,7 +276,7 @@ select.finput{appearance:auto}
 .sku-auto{background:#FFFBF0 !important;color:#7B5E00 !important;font-size:11px;font-style:italic}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=33">
+<link rel="stylesheet" href="css/ssp-type.css?v=34">
 </head>
 <body>
 
@@ -301,8 +301,6 @@ select.finput{appearance:auto}
     <a href="roi.html">ROI Analysis</a>
     <a href="offtake.html">Off-take 2026</a>
     <a href="sku.html">SKU</a>
-    <div class="nav-section">System</div>
-    <a href="users.html">User Management</a>
   </div>
   <div class="sidebar-user">
     <div class="sb-user-row">
@@ -350,14 +348,12 @@ select.finput{appearance:auto}
       <svg class="search-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input type="text" id="searchInput" placeholder="Search..." oninput="applyFilters()">
     </div>
-    <button class="btn-add" onclick="openAdd()">＋ Add New Outlet</button>
     <select class="flt" id="fltTeam"     onchange="applyFilters()"><option value="">All Teams</option></select>
     <select class="flt" id="fltBde"      onchange="applyFilters()"><option value="">All BDEs</option></select>
     <select class="flt" id="fltRegion"   onchange="applyFilters()"><option value="">All Regions</option></select>
     <select class="flt" id="fltProvince" onchange="applyFilters()"><option value="">All Provinces</option></select>
     <div class="spacer"></div>
     <!-- RIGHT: Import → Export → Log → Count -->
-    <button class="btn-import" onclick="openImport()">Import</button>
     <button class="btn-export-dark" onclick="exportExcel()">Export</button>
     <button class="btn-secondary" onclick="openLog()">Log History</button>
     <span class="rc-tag" id="rowCount">Loading...</span>
@@ -543,7 +539,7 @@ select.finput{appearance:auto}
 const TABLE     = 'Outlet Master';
 const LOG_TABLE = 'outlet_change_log';
 const PAGE_SIZE = 100;
-const LS_KEY    = 'ssp_outlet_cols_v3';
+const LS_KEY    = 'ssp_outlet_cols_v4';
 
 const DEFAULT_HIDDEN = [
   /company.?name.?en/i, /company.?name.?th/i,
@@ -727,9 +723,10 @@ function buildStats(data){
     :data.length;
   let withC=0;
   if(contractCol){
+    /* "Contract" comes from the Outlet Master view: looked up in Contract Master by Outlet Code */
     withC=data.filter(r=>{
       const v=String(r[contractCol]??'').toLowerCase();
-      return v.includes('yearly')||v.includes('marketing');
+      return v==='with contract'||v==='has contract'||v.includes('yearly')||v.includes('marketing');
     }).length;
   }
   document.getElementById('statTotal').textContent=total.toLocaleString();
@@ -777,6 +774,12 @@ function initVisibleCols(){
   if(saved){try{const arr=JSON.parse(saved);const v=arr.filter(c=>cols.includes(c));if(v.length){visibleCols=v;updateColCount();return;}}catch(e){}}
   visibleCols=cols.filter(c=>!DEFAULT_HIDDEN.some(p=>p.test(c)));
   if(!visibleCols.length)visibleCols=cols.slice(0,8);
+  /* show "Contract" right after the outlet name */
+  if(contractCol){
+    visibleCols=visibleCols.filter(c=>c!==contractCol);
+    const at=visibleCols.indexOf(outletNameCol);
+    visibleCols.splice(at>=0?at+1:0,0,contractCol);
+  }
   saveVisibleCols();
 }
 function saveVisibleCols(){localStorage.setItem(LS_KEY,JSON.stringify(visibleCols));updateColCount();}
@@ -797,6 +800,8 @@ document.addEventListener('click',e=>{const w=document.getElementById('colPicker
 function contractBadge(v){
   const s=String(v??'').toLowerCase();
   if(!s)return'<span style="color:#F36C60">—</span>';
+  if(s==='with contract'||s==='has contract')return`<span class="badge bc-has">With Contract</span>`;
+  if(s==='no contract') return`<span class="badge bc-none">No Contract</span>`;
   const y=s.includes('yearly'),m=s.includes('marketing');
   if(y&&m)return`<span class="badge bc-both">${esc(v)}</span>`;
   if(y) return`<span class="badge bc-yearly">${esc(v)}</span>`;
@@ -820,7 +825,7 @@ function renderTable(){
   const arrow=c=>sortCol===c?(sortAsc?' sa':' sd'):'';
   const lbl=c=>colLabel(c);
   const codeColName=colMap['Outlet Code'];
-  wrap.innerHTML=`<table><thead><tr><th style="width:36px">#</th>${visibleCols.map(c=>`<th class="${arrow(c)}" onclick="sortBy('${esc(c)}')">${esc(lbl(c))}</th>`).join('')}<th>Actions</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td style="color:#F36C60;font-size:12px">${start+i+1}</td>${visibleCols.map(c=>`<td class="${c===outletNameCol?'col-outletname':''}" title="${esc(String(r[c]??''))}">${fv(r[c],c)}</td>`).join('')}<td><div class="td-act"><button class="bte" onclick="openEdit(${r[pkCol]})">Edit</button>${codeColName&&r[codeColName]?`<a class="btu" href="data_u.html?code=${encodeURIComponent(String(r[codeColName]??''))}" title="View Data U for this outlet">Data U</a>`:''}<button class="btd" onclick="openDel(${r[pkCol]})">Delete</button></div></td></tr>`).join('')}</tbody></table>`;
+  wrap.innerHTML=`<table><thead><tr><th style="width:36px">#</th>${visibleCols.map(c=>`<th class="${arrow(c)}" onclick="sortBy('${esc(c)}')">${esc(lbl(c))}</th>`).join('')}<th>Actions</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td style="color:#F36C60;font-size:12px">${start+i+1}</td>${visibleCols.map(c=>`<td class="${c===outletNameCol?'col-outletname':''}" title="${esc(String(r[c]??''))}">${fv(r[c],c)}</td>`).join('')}<td><div class="td-act">${codeColName&&r[codeColName]?`<a class="btu" href="data_u.html?code=${encodeURIComponent(String(r[codeColName]??''))}" title="View Data U for this outlet">Data U</a>`:''}</div></td></tr>`).join('')}</tbody></table>`;
   renderPagi();
 }
 
@@ -1435,7 +1440,12 @@ async function restoreLog(logId,action){
    EXPORT · REALTIME · EVENTS
    ============================================================ */
 function exportExcel(){if(!filtered.length){showToast('No data to export','err');return;}const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(filtered),'Outlet Master');XLSX.writeFile(wb,`Outlet_Master_${new Date().toISOString().slice(0,10)}.xlsx`);showToast('Export downloaded');}
-function setupRealtime(){supabase.channel('outlet-rt').on('postgres_changes',{event:'*',schema:'public',table:TABLE},loadData).subscribe();}
+/* Outlet Master is a view: refresh when its source tables change */
+function setupRealtime(){const refresh=liveReload(loadData);  /* one reload after a burst of changes */
+  supabase.channel('outlet-rt')
+  .on('postgres_changes',{event:'*',schema:'public',table:'Data Universe'},refresh)
+  .on('postgres_changes',{event:'*',schema:'public',table:'Contract Master'},refresh)
+  .subscribe();}
 async function logout(){await supabase.auth.signOut();window.location.href='index.html';}
 /* ============================================================
    IMPORT

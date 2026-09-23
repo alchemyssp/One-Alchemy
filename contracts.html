@@ -8,7 +8,7 @@
 <title>Contract Master — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="js/config.js?v=4"></script>
+<script src="js/config.js?v=6"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Poppins', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
@@ -138,7 +138,7 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
 .cfp-btn-ok:hover { background: #B0120A; }
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=33">
+<link rel="stylesheet" href="css/ssp-type.css?v=34">
 </head>
 <body>
 <nav class="sidebar">
@@ -158,8 +158,6 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
     <a href="roi.html">ROI Analysis</a>
     <a href="offtake.html">Off-take 2026</a>
     <a href="sku.html">SKU</a>
-    <div class="nav-section">System</div>
-    <a href="users.html">User Management</a>
   </div>
   <div class="sidebar-user">
     <div class="sb-user-row">
@@ -350,7 +348,7 @@ async function loadData() {
   /* PHASE 2: load remaining rows silently in background */
   if (first.length === 1000) _bgLoad(1000);
 
-  supabase.channel('cm-live').on('postgres_changes',{event:'*',schema:'public',table:TABLE},loadData).subscribe();
+  supabase.channel('cm-live').on('postgres_changes',{event:'*',schema:'public',table:TABLE},liveReload(loadData)).subscribe();
 }
 
 /* ── PHASE 2: background loading — appends without blocking UI ── */

@@ -505,3 +505,7 @@ body.page-datau .tscroll::-webkit-scrollbar-track, body.page-datau .tscroll-top:
 /* Data U: only the outer box scrolls (inner wrapper must not create its own scrollbar) */
 body.page-datau #tableWrap { overflow: visible !important; max-width: none !important; }
 body.page-datau .tcard { overflow: visible !important; }
+
+/* Outlets: Contract status badges (from Contract Master lookup) */
+.badge.bc-has  { background: #DCFCE7 !important; color: #166534 !important; }
+.badge.bc-none { background: #F2F2F2 !important; color: #555555 !important; }
