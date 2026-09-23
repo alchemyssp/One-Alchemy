@@ -451,7 +451,7 @@ select.finput{appearance:auto}
 .btn-secondary:hover{background:linear-gradient(135deg,#B0120A 0%,#B0120A 100%)}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=36">
+<link rel="stylesheet" href="css/ssp-type.css?v=38">
 </head>
 <body class="page-datau">
 
@@ -577,7 +577,7 @@ select.finput{appearance:auto}
     <!-- Search -->
     <div class="search-wrap">
       <svg class="search-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="searchInput" placeholder="Search all outlets..." oninput="onSearchInput()">
+      <input type="text" id="searchInput" placeholder="Search all outlets..." oninput="onSearchInput()" data-server-search="1">
     </div>
 
     <!-- Team filter -->
@@ -1322,7 +1322,8 @@ let searchTimer = null, searchSeq = 0;
 function onSearchInput() {
   clearTimeout(searchTimer);
   const q = (document.getElementById('searchInput').value || '').trim();
-  if (!q) { searchResults = null; applyFilters(); return; }
+  if (!q) { searchResults = null; applyFilters(); window.searchLoading && searchLoading(false); return; }
+  window.searchLoading && searchLoading(true);   /* blur + Loading… until results arrive */
   document.getElementById('rowCount').textContent = 'Searching all outlets…';
   searchTimer = setTimeout(() => serverSearch(q), 300);
 }
@@ -1346,10 +1347,11 @@ async function serverSearch(q) {
     }
   } catch (e) {
     console.warn('[Search] server search failed, searching loaded rows instead:', e.message || e);
-    searchResults = null; applyFilters(); return;
+    searchResults = null; applyFilters(); window.searchLoading && searchLoading(false); return;
   }
   searchResults = rows.sort((a, b) => (b[pkCol] ?? 0) - (a[pkCol] ?? 0));
   applyFilters();
+  window.searchLoading && searchLoading(false);
 }
 
 function applyFilters() {
@@ -2548,5 +2550,6 @@ checkAuth();
 </script>
 <script src="js/responsive.js?v=1"></script>
 <script src="js/table-scroll.js?v=3"></script>
+<script src="js/search-loading.js?v=1"></script>
 </body>
 </html>

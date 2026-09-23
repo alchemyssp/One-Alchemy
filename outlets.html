@@ -171,8 +171,6 @@ thead th.sd::after{content:' ↓';opacity:.7}
 tbody td{padding:10px 14px;font-size:13px;border-bottom:1px solid #FDE0DC;color:#374151;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;font-weight:400}
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover td{background:#F9FBFE}
-td.col-outletname{background:#FDE0DC}
-tbody tr:hover td.col-outletname{background:#F9FBFE}
 .td-act{display:flex;gap:6px}
 .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
 .bb{background:#F5EDEE;color:#B0120A}
@@ -276,7 +274,7 @@ select.finput{appearance:auto}
 .sku-auto{background:#FFFBF0 !important;color:#7B5E00 !important;font-size:11px;font-style:italic}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=36">
+<link rel="stylesheet" href="css/ssp-type.css?v=38">
 </head>
 <body>
 
@@ -540,12 +538,12 @@ select.finput{appearance:auto}
 const TABLE     = 'Outlet Master';
 const LOG_TABLE = 'outlet_change_log';
 const PAGE_SIZE = 100;
-const LS_KEY    = 'ssp_outlet_cols_v4';
+const LS_KEY    = 'ssp_outlet_cols_v8';
 
 const DEFAULT_HIDDEN = [
   /company.?name.?en/i, /company.?name.?th/i,
-  /group.?code/i, /group.?name/i, /area.?by.?bde/i,
-  /^soi$/i, /^road$/i, /alchemy/i, /contact.?person/i, /wholesell/i,
+  /group.?code/i, /area.?by.?bde/i,
+  /^soi$/i, /^road$/i, /^alchemy(?!\s*outlet\s*type)/i, /contact.?person/i, /wholesell/i,   /* Alchemy Outlet Type stays visible */
 ];
 
 const FORM_SCHEMA = [
@@ -682,12 +680,20 @@ async function loadData(){
     buildStats([]);return;
   }
   /* detect PK column (may not be named 'id' if table was recreated) */
-  pkCol=detectPkCol(allRows[0]);
-  /* sort newest first by PK */
-  allRows.sort((a,b)=>(b[pkCol]??0)-(a[pkCol]??0));
+  /* Outlet Master is a view (one row per outlet): Outlet Code is the key */
+  pkCol=('Outlet Code' in allRows[0])?'Outlet Code':detectPkCol(allRows[0]);
   allData=allRows;
-  cols=Object.keys(allRows[0]).filter(c=>c!==pkCol);
+  /* columns not used on this page */
+  const OMIT=[/^contract\s*count$/i, /^campari\s*outlet\s*segmentation\s*\(old\)$/i];
+  cols=Object.keys(allRows[0]).filter(c=>c!=='id'&&!OMIT.some(rx=>rx.test(c.replace(/\s+/g,' ').trim())));
+  /* "New Or Current" always goes to the last column */
+  const _nc=cols.findIndex(c=>/^new\s*or\s*current$/i.test(c.trim()));
+  if(_nc>=0) cols.push(cols.splice(_nc,1)[0]);
+  /* show "Current BDE" where "BDE" used to be; drop the old BDE column */
+  const _bde=cols.indexOf('BDE'), _cur=cols.indexOf('Current BDE');
+  if(_bde>=0&&_cur>=0){ cols.splice(_cur,1); cols.splice(cols.indexOf('BDE'),1,'Current BDE'); }
   colMap=buildColMap();
+  if(cols.includes('Current BDE')) colMap['BDE']='Current BDE';   /* BDE filter & Team→BDE use Current BDE */
   uniqueVals=buildUniqueVals();
   teamBdeMap=buildCascadeMap(colMap['Team'],colMap['BDE']);
   regionProvMap=buildCascadeMap(colMap['Region'],colMap['Province']);
@@ -775,12 +781,8 @@ function initVisibleCols(){
   if(saved){try{const arr=JSON.parse(saved);const v=arr.filter(c=>cols.includes(c));if(v.length){visibleCols=v;updateColCount();return;}}catch(e){}}
   visibleCols=cols.filter(c=>!DEFAULT_HIDDEN.some(p=>p.test(c)));
   if(!visibleCols.length)visibleCols=cols.slice(0,8);
-  /* show "Contract" right after the outlet name */
-  if(contractCol){
-    visibleCols=visibleCols.filter(c=>c!==contractCol);
-    const at=visibleCols.indexOf(outletNameCol);
-    visibleCols.splice(at>=0?at+1:0,0,contractCol);
-  }
+  /* "Contract" (With / No Contract) is hidden by default — available in Columns; stats still use it */
+  if(contractCol) visibleCols=visibleCols.filter(c=>c!==contractCol);
   saveVisibleCols();
 }
 function saveVisibleCols(){localStorage.setItem(LS_KEY,JSON.stringify(visibleCols));updateColCount();}
@@ -812,6 +814,12 @@ function contractBadge(v){
 function fv(v,col){
   if(v==null||v==='')return'<span style="color:#F36C60">—</span>';
   if(col===contractCol)return contractBadge(v);
+  /* Contracts (type): Yearly / Marketing → yellow, no contract → gray */
+  if(/^contracts$/i.test(String(col).trim())){
+    const t=String(v).toLowerCase();
+    if(/yearly|mkt|marketing/.test(t))return`<span class="badge bc-yellow">${esc(v)}</span>`;
+    if(/no.?contract/.test(t))return`<span class="badge bc-none">${esc(v)}</span>`;
+  }
   if(typeof v==='boolean')return v?'<span class="badge ba">Yes</span>':'<span class="badge bi">No</span>';
   if(typeof v==='number')return`<span style="font-variant-numeric:tabular-nums">${Number(v).toLocaleString('th-TH')}</span>`;
   const s=String(v);
@@ -1627,6 +1635,7 @@ checkAuth();
 </script>
 <script src="js/responsive.js?v=1"></script>
 <script src="js/table-scroll.js?v=3"></script>
+<script src="js/search-loading.js?v=1"></script>
 </body>
 </html>
 
