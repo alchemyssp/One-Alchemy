@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Off-take 2026 — Archive</title>
+<link rel="icon" type="image/png" href="img/logo-64.png">
+<link rel="apple-touch-icon" href="img/logo-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="js/config.js?v=7"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -125,13 +128,13 @@ tr:hover td { background: #F9FBFE; }
 .nav-links a>span{display:inline!important;width:auto!important;max-width:none!important;flex-shrink:1!important;opacity:1!important;color:inherit!important}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=38">
+<link rel="stylesheet" href="css/ssp-type.css?v=42">
 </head>
 <body>
 
 <nav class="sidebar">
   <div class="sb-logo">
-    <div class="sb-logo-icon"></div>
+    <img class="sb-logo-img" src="img/logo-192.png" alt="Archive logo" width="64" height="64">
     <div class="sb-logo-text"><h3>Archive</h3><p>One for All</p></div>
   </div>
   <div class="nav-links">
@@ -163,17 +166,18 @@ tr:hover td { background: #F9FBFE; }
 <div class="main">
   <div class="page-header">
     <div>
-      <h2>Off-take 2026 <span class="dot"></span></h2>
-      <p>Off-take data 2026 — Real-time sync</p>
+      <h2>Off-take Analytics</h2>
+      <p>Actual off-take by SKU — dashboard and raw data from Supabase</p>
     </div>
     <button class="btn btn-export" onclick="exportExcel()">Export Excel</button>
   </div>
 
-  <div class="toolbar">
-    <div class="search-box">
-      <input type="text" id="searchInput" placeholder="Search..." oninput="filterRows()">
-    </div>
-    <span style="font-size:13px;color:#aaa" id="rowCount">Loading...</span>
+  <!-- Analytics dashboard (js/offtake-dashboard.js) -->
+  <div id="otDashboard" class="otd"></div>
+
+  <div class="otd-rawhead">
+    <h3 class="sec-title">Raw data</h3>
+    <span style="font-size:13px;color:#777" id="rowCount">Loading...</span>
   </div>
 
   <div id="infoBar" class="info-bar" style="display:none"></div>
@@ -192,6 +196,7 @@ let allData = [];
 let columns = [];
 let sortCol = '';
 let sortAsc = true;
+let totalRows = 0;   /* rows in Supabase (the table shows the first 2,000) */
 
 async function checkAuth() {
   const { data } = await supabase.auth.getSession();
@@ -231,6 +236,8 @@ async function loadData() {
   }
 
   allData = data;
+  const cnt = await supabase.from('Off-take 2026').select('*', { count: 'exact', head: true });
+  totalRows = cnt.count || data.length;
   columns = Object.keys(data[0]).filter(c => c !== 'id');
   detectAndShowInfo(data);
   renderTable(data);
@@ -260,7 +267,7 @@ function detectAndShowInfo(data) {
 }
 
 function filterRows() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
+  const q = ((document.getElementById('searchInput') || {}).value || '').toLowerCase();
   const filtered = q ? allData.filter(row => columns.some(c => String(row[c] ?? '').toLowerCase().includes(q))) : allData;
   renderTable(filtered);
 }
@@ -272,7 +279,8 @@ function sortBy(col) {
 }
 
 function renderTable(data) {
-  document.getElementById('rowCount').textContent = `${data.length.toLocaleString()} records`;
+  document.getElementById('rowCount').textContent = `${data.length.toLocaleString()} records` +
+    (totalRows > allData.length ? ` (first ${allData.length.toLocaleString()} of ${totalRows.toLocaleString()} rows)` : '');
   const wrap = document.getElementById('tableWrap');
   if (!data.length) {
     wrap.innerHTML = '<div class="empty"><div class="ei"></div><p>No results found</p></div>';
@@ -329,6 +337,8 @@ checkAuth();
 <script src="js/responsive.js?v=1"></script>
 <script src="js/table-scroll.js?v=3"></script>
 <script src="js/search-loading.js?v=1"></script>
+<script src="js/offtake-import.js?v=1"></script>
+<script src="js/offtake-dashboard.js?v=3"></script>
 </body>
 </html>
 

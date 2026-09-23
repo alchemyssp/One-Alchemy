@@ -1,0 +1,10 @@
+-- ============================================================
+-- Off-take Analytics dashboard (applied 2026-09-23)
+--   offtake_facts       view: parsed month (from "24-Jan"), vol, value Inc.VAT (from "1,630.00")
+--   offtake_options()   filter lists (months, companies, principles, brands, wholesalers, teams, BDEs)
+--   offtake_dashboard() KPIs (month, MoM, YoY), monthly series (selected + previous year),
+--                       year totals + YTD, by principle, top 10 brands, top 20 products vs previous year
+-- Used by js/offtake-dashboard.js. The live definitions can be read in Supabase:
+--   select pg_get_functiondef('public.offtake_dashboard'::regproc);
+-- ============================================================
+-- (see migration "offtake_dashboard_functions" in Supabase for the full SQL)

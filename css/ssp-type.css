@@ -549,3 +549,84 @@ body .fit-scroll::-webkit-scrollbar-corner { background: #F2F2F2; }
 @media (prefers-reduced-motion: reduce) { .search-busy::before { animation-duration: 2.4s; } }
 /* Outlets: Contracts type — Yearly / Marketing in yellow */
 .badge.bc-yellow { background: #FEF3C7 !important; color: #92400E !important; }
+
+/* ── LOGO (img/logo-*.png) ── */
+.sidebar .sb-logo { flex-direction: column !important; align-items: center !important; gap: 12px !important; }
+.sidebar .sb-logo-img {
+  display: block; width: 64px; height: 64px; border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.25);
+}
+.login-logo {
+  display: block; width: 88px; height: 88px; margin: 0 auto 14px; border-radius: 22px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+}
+
+/* ── OFF-TAKE IMPORT popup (js/offtake-import.js) ── */
+.oti-actions { display: flex; gap: 10px; align-items: center; }
+.oti-btn-open { background: #B0120A !important; color: #fff !important; padding: 10px 18px; border-radius: 10px; }
+.oti-overlay { position: fixed; inset: 0; z-index: 1300; background: rgba(0,0,0,.4); display: none; align-items: center; justify-content: center; padding: 20px; }
+.oti-overlay.open { display: flex; }
+.oti-modal { background: #fff; border-radius: 18px; width: 640px; max-width: 100%; max-height: calc(100vh - 40px); overflow: auto; }
+.oti-head { display: flex; justify-content: space-between; gap: 16px; padding: 22px 24px 8px; }
+.oti-head p { color: #666; margin-top: 4px; }
+.oti-x, .oti-cancel { background: #F2F2F2; color: #333; border-radius: 10px; padding: 8px 14px; }
+.oti-body { padding: 12px 24px; display: flex; flex-direction: column; gap: 12px; }
+.oti-drop { display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; text-align: center;
+  background: #FAFAFA; border-radius: 14px; padding: 28px 16px; cursor: pointer; }
+.oti-drop.over { background: #FDE0DC; }
+.oti-drop small { color: #888; }
+.oti-sum { color: #111; }
+.oti-note { color: #555; }
+.oti-warn { color: #92400E; background: #FEF3C7; border-radius: 10px; padding: 8px 12px; }
+.oti-months { display: flex; flex-wrap: wrap; gap: 6px; }
+.oti-months span { background: #F2F2F2; border-radius: 16px; padding: 2px 10px; color: #333; }
+.oti-months i { font-style: normal; color: #888; }
+.oti-prog { height: 8px; background: #F2F2F2; border-radius: 6px; overflow: hidden; }
+.oti-prog > div { height: 100%; width: 0; background: #B0120A; transition: width .3s; }
+.oti-msg { color: #555; min-height: 1.4em; }
+.oti-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 24px 22px; }
+.oti-go { background: #B0120A; color: #fff; border-radius: 10px; padding: 10px 18px; }
+.oti-go:disabled { opacity: .6; cursor: default; }
+.oti-toast { position: fixed; right: 20px; bottom: 20px; z-index: 1400; background: #111; color: #fff; padding: 12px 16px; border-radius: 10px; }
+.oti-toast.err { background: #B0120A; }
+
+/* ── OFF-TAKE ANALYTICS DASHBOARD (js/offtake-dashboard.js) ── */
+.otd { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; min-height: 200px; }
+.otd-filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; background: #fff; border-radius: 14px; padding: 14px 16px; }
+.otd-f { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 150px; }
+.otd-f select { width: 100%; padding: 9px 12px; border-radius: 10px; }
+.otd-lbl { color: #666; font-size: var(--t-small) !important; }
+.otd-company { flex: 0 1 auto; }
+.otd-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.otd-chip { display: inline-flex; align-items: center; gap: 6px; background: #F4F4F4; border-radius: 10px; padding: 8px 12px; cursor: pointer; margin: 0 !important; }
+.otd-reset { background: #F2F2F2; color: #333; border-radius: 10px; padding: 9px 16px; }
+.otd-title { margin: 4px 0 0; }
+.otd-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.otd-kpi { padding: 20px 22px !important; border-radius: 18px !important; }
+.otd-chgrow { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; margin-top: 6px; }
+.otd-chgrow > span:nth-child(odd) { opacity: .85; }
+.otd-chg { font-weight: 600 !important; }
+.otd-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.otd-card { padding: 18px 20px !important; min-width: 0; }
+.otd-wide { grid-column: 1 / -1; }
+.otd-chart { position: relative; height: 280px; }
+.otd-tall { height: 340px; }
+.otd-split { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 16px; align-items: start; }
+.otd-mini, .otd-prod { width: 100%; border-collapse: collapse; }
+.otd-mini th, .otd-mini td { padding: 6px 8px !important; text-align: right; }
+.otd-mini th:first-child, .otd-mini td:first-child { text-align: left; }
+.otd-mini thead th { background: #F2F2F2 !important; color: #111 !important; }
+.otd-sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+.otd-tablewrap { overflow-x: auto; }
+.otd-prod td:not(:first-child), .otd-prod th:not(:first-child) { text-align: right; white-space: nowrap; }
+.otd-rawhead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+@media (max-width: 1024px) {
+  .otd-grid, .otd-kpis { grid-template-columns: 1fr; }
+  .otd-split { grid-template-columns: 1fr; }
+}
+/* dashboard fixes: filters as an even grid, year totals as a row above the chart */
+.otd-filters { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.otd-f { min-width: 0; }
+.otd-years { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 4px 0 12px; }
+.otd-year { display: flex; align-items: baseline; gap: 8px; }
+.otd-muted { color: #777; }
