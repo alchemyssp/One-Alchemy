@@ -6,7 +6,7 @@
 <title>SSP — Connection Diagnostic</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js?v=3"></script>
+<script src="../js/config.js?v=3"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans Thai',system-ui,sans-serif;background:#0F172A;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;font-size:14px;color:#E2E8F0}
@@ -87,7 +87,7 @@ h3{font-size:13px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-
   <div class="tips-card">
     <div class="tip"><div class="tip-num">1</div><div>ไปที่ <a href="https://supabase.com" target="_blank">supabase.com</a> → เปิด Project → ถ้าขึ้น <strong>"Project is paused"</strong> ให้กด Restore/Unpause</div></div>
     <div class="tip"><div class="tip-num">2</div><div>ไปที่ <strong>Settings → API</strong> → copy URL และ anon key ใหม่ → แล้วแจ้งมาเพื่ออัปเดต config.js</div></div>
-    <div class="tip"><div class="tip-num">3</div><div>ถ้า Step 3 fail → <a href="index.html">กลับไป Sign In</a> อีกครั้ง session อาจหมดอายุ</div></div>
+    <div class="tip"><div class="tip-num">3</div><div>ถ้า Step 3 fail → <a href="../index.html">กลับไป Sign In</a> อีกครั้ง session อาจหมดอายุ</div></div>
     <div class="tip"><div class="tip-num">4</div><div>ถ้า Step 4–5 fail → ต้องรัน SQL ใน <strong>Supabase SQL Editor</strong> เพื่อเปิด RLS permissions ให้กับ table</div></div>
     <div class="tip"><div class="tip-num">5</div><div>ตรวจว่า XAMPP ยังเปิดอยู่: <strong>Apache</strong> ต้อง status <strong>Running</strong></div></div>
   </div>
@@ -169,7 +169,7 @@ async function runDiag() {
   } catch(e) {
     const msg = e.message;
     if (msg.includes('permission denied') || msg.includes('row-level security')) {
-      setStep(4,'err','RLS blocks access — run setup_log_table.sql in Supabase SQL Editor');
+      setStep(4,'err','RLS blocks access — run database/1-setup/setup_log_table.sql in Supabase SQL Editor');
     } else if (msg.includes('does not exist') || msg.includes('relation')) {
       setStep(4,'err','Table "Outlet Master" not found — check table name in Supabase');
     } else {
@@ -186,7 +186,7 @@ async function runDiag() {
   } catch(e) {
     const msg = e.message;
     if (msg.includes('does not exist') || msg.includes('relation')) {
-      setStep(5,'err','Log table not created yet — run setup_log_table.sql once in Supabase SQL Editor (Log History won\'t work until then)');
+      setStep(5,'err','Log table not created yet — run database/1-setup/setup_log_table.sql once in Supabase SQL Editor (Log History won\'t work until then)');
     } else {
       setStep(5,'err','FAIL — '+msg);
     }

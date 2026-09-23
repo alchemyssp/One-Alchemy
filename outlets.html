@@ -669,7 +669,7 @@ async function loadData(){
   while(true){
     const{data,error}=await supabase.from(TABLE).select('*').range(from,from+BATCH-1);
     if(error){
-      wrap.innerHTML=`<div class="empty-state"><div class="ei">⚠️</div><p>Load failed: ${esc(error.message)}<br><small style="color:#9CC2F3">Run setup_full.sql in Supabase SQL Editor</small></p></div>`;
+      wrap.innerHTML=`<div class="empty-state"><div class="ei">⚠️</div><p>Load failed: ${esc(error.message)}<br><small style="color:#9CC2F3">Run database/1-setup/setup_full.sql in Supabase SQL Editor</small></p></div>`;
       cntEl.textContent='Load failed';return;
     }
     if(!data||!data.length) break;
@@ -1403,7 +1403,7 @@ async function confirmDel(){
 
   if(error){showToast(`Delete failed [pk=${pkCol}]: ${error.message}`,'err');console.error('Delete error',{pkCol,delId,error});return;}
   if(!deleted||!deleted.length){
-    showToast('Delete blocked — RLS DELETE policy missing (run setup_full.sql)','err');
+    showToast('Delete blocked — RLS DELETE policy missing (run database/1-setup/setup_full.sql)','err');
     console.warn('Delete 0 rows. pkCol=',pkCol,'id=',delId);
     return;
   }

@@ -952,7 +952,7 @@ async function loadData() {
     const hint = error.message.includes('does not exist')
       ? '<br><small style="color:#ACCCF5">กรุณาสร้าง table "Data Universe" ใน Supabase และตั้งค่า RLS อนุญาตการอ่าน</small>'
       : (error.message.includes('row-level') || error.message.includes('permission'))
-      ? '<br><small style="color:#ACCCF5">เปิด RLS policy: allow SELECT — ดู setup_data_u.sql</small>'
+      ? '<br><small style="color:#ACCCF5">เปิด RLS policy: allow SELECT — ดู database/1-setup/setup_data_u.sql</small>'
       : '';
     wrap.innerHTML = `<div class="empty-state"><div class="ei">⚠️</div><p>Load failed: ${esc(error.message)}${hint}</p></div>`;
     cntEl.textContent = 'Load failed'; return;
@@ -983,7 +983,7 @@ CREATE POLICY "Users can update Data Universe"
 CREATE POLICY "Users can delete Data Universe"
   ON "Data Universe" FOR DELETE
   USING (auth.uid() IS NOT NULL);</pre>
-        <p style="font-size:11.5px;color:#5090E4;margin-top:8px">ไฟล์ SQL เต็ม: <code style="background:#E8F0FB;padding:2px 6px;border-radius:4px">setup_data_u.sql</code> ในโฟลเดอร์ contracthub</p>
+        <p style="font-size:11.5px;color:#5090E4;margin-top:8px">ไฟล์ SQL เต็ม: <code style="background:#E8F0FB;padding:2px 6px;border-radius:4px">database/1-setup/setup_data_u.sql</code></p>
       </div>
     </div>`;
     cntEl.textContent = '0 records';

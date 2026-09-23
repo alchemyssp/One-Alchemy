@@ -155,7 +155,7 @@ async function checkAuth() {
 async function loadData() {
   const { data, error } = await supabase.from(TABLE).select('*').limit(5000);
   const wrap = document.getElementById('tableWrap');
-  if (error) { wrap.innerHTML = `<div class="empty"><div class="ei">⚠️</div><p>Failed to load: ${error.message}<br><small style="color:#ccc">Run add_rls_existing_tables.sql in Supabase SQL Editor</small></p></div>`; document.getElementById('rowCount').textContent = 'Load failed'; return; }
+  if (error) { wrap.innerHTML = `<div class="empty"><div class="ei">⚠️</div><p>Failed to load: ${error.message}<br><small style="color:#ccc">Run database/1-setup/add_rls_existing_tables.sql in Supabase SQL Editor</small></p></div>`; document.getElementById('rowCount').textContent = 'Load failed'; return; }
   if (!data || !data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">📭</div><p>No promotions found</p></div>'; document.getElementById('rowCount').textContent = '0 records'; return; }
   allData = data; cols = Object.keys(data[0]).filter(c => c !== 'id');
   buildStats(data); buildColFilter(); renderTable(data);

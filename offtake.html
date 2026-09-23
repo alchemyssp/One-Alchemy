@@ -219,7 +219,7 @@ async function loadData() {
       <div class="ei">⚠️</div>
       <p>ไม่สามารถโหลดข้อมูลได้<br>
       <span style="color:#ccc;font-size:12px">${error.message}</span><br>
-      <span style="color:#ccc;font-size:12px">Run add_rls_existing_tables.sql in Supabase SQL Editor</span></p>
+      <span style="color:#ccc;font-size:12px">Run database/1-setup/add_rls_existing_tables.sql in Supabase SQL Editor</span></p>
     </div>`;
     document.getElementById('rowCount').textContent = 'Load failed';
     return;

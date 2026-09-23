@@ -350,7 +350,7 @@ async function loadCalc() {
   ]);
 
   if (!contracts.length) {
-    document.getElementById('roiTbody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#aaa;padding:32px">ไม่พบข้อมูลสัญญา — กรุณารัน add_rls_existing_tables.sql ก่อน</td></tr>';
+    document.getElementById('roiTbody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#aaa;padding:32px">ไม่พบข้อมูลสัญญา — กรุณารัน database/1-setup/add_rls_existing_tables.sql ก่อน</td></tr>';
     return;
   }
 
