@@ -157,8 +157,11 @@ async function replyOutlets(ev: any, q: string): Promise<boolean> {
       then only that kind of data is sent. Mode is kept in line_user_mode. ── */
 type Mode = "outlet" | "product";
 const norm = (s: string) => s.toLowerCase().replace(/[\s._-]+/g, "");
-const OUTLET_TRIGGERS = ["outletinfo", "outlet", "checkoutlet", "เช็คoutlet", "เช็คoutletinfo", "ร้านค้า", "เช็คร้าน", "เช็คร้านค้า"];
-const PRODUCT_TRIGGERS = ["product", "products", "productinfo", "checkproduct", "เช็คproduct", "สินค้า", "เช็คสินค้า"];
+/* texts the Rich Menu buttons may send (compared lower-case, without spaces) */
+const OUTLET_TRIGGERS = ["outletinfo", "outlet", "outlets", "outletlist", "outletslist", "checkoutlet", "เช็คoutlet",
+  "เช็คoutletinfo", "ร้านค้า", "ร้าน", "เช็คร้าน", "เช็คร้านค้า", "ข้อมูลร้านค้า", "เช็คข้อมูลร้านค้า"];
+const PRODUCT_TRIGGERS = ["product", "products", "productlist", "productslist", "productinfo", "checkproduct", "เช็คproduct",
+  "สินค้า", "เช็คสินค้า", "รายการสินค้า", "ข้อมูลสินค้า", "เช็คข้อมูลสินค้า"];
 
 const PROMPT: Record<Mode, string> = {
   outlet: "Outlet Info\nพิมพ์ชื่อร้าน (บางส่วนก็ได้) หรือ Outlet Code ที่ต้องการค้นหาได้เลยค่ะ",
