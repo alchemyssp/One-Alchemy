@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ROI Analysis — SSP</title>
+<title>ROI Analysis — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -148,14 +148,14 @@ tr:hover td { background: #FEF6F7; }
 .nav-links a>span{display:inline!important;width:auto!important;max-width:none!important;flex-shrink:1!important;opacity:1!important;color:inherit!important}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=21">
-<link rel="stylesheet" href="css/ssp-type.css?v=5">
+<link rel="stylesheet" href="css/ssp-type.css?v=9">
 </head>
 <body>
 
 <nav class="sidebar">
   <div class="sb-logo">
-    <div class="sb-logo-icon">🏢</div>
-    <div class="sb-logo-text"><h3>SSP</h3><p>Sales &amp; Promotion</p></div>
+    <div class="sb-logo-icon"></div>
+    <div class="sb-logo-text"><h3>Archive</h3><p>Sales &amp; Promotion</p></div>
   </div>
   <div class="nav-links">
     <div class="nav-section">Main Menu</div>
@@ -187,10 +187,10 @@ tr:hover td { background: #FEF6F7; }
 <div class="main">
   <div class="page-header">
     <div>
-      <h2>📈 ROI Analysis <span class="dot"></span></h2>
+      <h2>ROI Analysis <span class="dot"></span></h2>
       <p>Return on investment per contract — Contract value vs. promotions/discounts given</p>
     </div>
-    <button class="btn-export" onclick="exportExcel()">⬇️ Export Excel</button>
+    <button class="btn-export" onclick="exportExcel()">Export Excel</button>
   </div>
 
   <div class="stats-grid">
@@ -217,15 +217,15 @@ tr:hover td { background: #FEF6F7; }
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('calc')">📊 ROI คำนวณจากสัญญา</button>
-    <button class="tab-btn" onclick="switchTab('raw')">📋 ตาราง Return of Investment</button>
+    <button class="tab-btn active" onclick="switchTab('calc')">ROI คำนวณจากสัญญา</button>
+    <button class="tab-btn" onclick="switchTab('raw')">ตาราง Return of Investment</button>
   </div>
 
   <!-- Calculated ROI Tab -->
   <div id="tabCalc" class="tab-panel active">
     <div class="section">
       <div class="section-head">
-        <h3>📊 ROI% ต่อสัญญา (สูงสุด 15 อันดับ)</h3>
+        <h3>ROI% ต่อสัญญา (สูงสุด 15 อันดับ)</h3>
         <span style="font-size:12px;color:#aaa">เขียวสด = ROI ≥ 70% | เหลือง = 40-70% | แดง = &lt; 40%</span>
       </div>
       <div class="chart-wrap">
@@ -234,7 +234,7 @@ tr:hover td { background: #FEF6F7; }
     </div>
 
     <div class="section">
-      <h3 style="margin-bottom:16px">📄 รายละเอียด ROI ต่อสัญญา</h3>
+      <h3 style="margin-bottom:16px">รายละเอียด ROI ต่อสัญญา</h3>
       <div class="overflow-x">
         <table>
           <thead>
@@ -262,11 +262,11 @@ tr:hover td { background: #FEF6F7; }
   <div id="tabRaw" class="tab-panel">
     <div class="section">
       <div class="section-head">
-        <h3>📋 ข้อมูลจากตาราง "Return of investment"</h3>
+        <h3>ข้อมูลจากตาราง "Return of investment"</h3>
         <span id="rawCount" style="font-size:13px;color:#aaa"></span>
       </div>
       <div id="rawWrap" class="overflow-x">
-        <div class="empty"><div class="ei">⏳</div><p>กำลังโหลด...</p></div>
+        <div class="empty"><div class="ei"></div><p>กำลังโหลด...</p></div>
       </div>
     </div>
   </div>
@@ -500,7 +500,7 @@ async function loadRaw() {
   if (error || !data || !data.length) {
     document.getElementById('rawCount').textContent = '';
     wrap.innerHTML = `<div class="empty">
-      <div class="ei">📭</div>
+      <div class="ei"></div>
       <p>ไม่พบข้อมูลในตาราง "Return of investment"<br>
       <span style="color:#ccc;font-size:12px">${error ? error.message : 'ตารางยังไม่มีข้อมูล หรือยังไม่ได้เปิด RLS Policy'}</span></p>
     </div>`;

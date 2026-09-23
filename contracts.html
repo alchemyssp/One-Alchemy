@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<title>Contract Master — SSP</title>
+<title>Contract Master — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="js/config.js?v=3"></script>
@@ -70,7 +70,7 @@ label { font-family: 'Poppins', system-ui, sans-serif; font-size: 11px; font-wei
 .search-box { flex: 0 0 160px; position: relative; }
 .search-box input { width: 100%; padding: 9px 12px 9px 34px; border: 1.5px solid #E5E7EB; border-radius: 10px; font-size: 13px; font-family: inherit; background: #FAFAFA; }
 .search-box input:focus { outline: none; border-color: #85202A; background: #fff; box-shadow: 0 0 0 3px rgba(0,0,0,0.08); }
-.search-box::before { content: '🔍'; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); }
+.search-box::before { content: ''; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); }
 select.filter { padding: 10px 14px; border: 1.5px solid #E5E7EB; border-radius: 10px; font-size: 13px; font-family: inherit; background: #FAFAFA; color: #555; }
 .btn-exp { padding: 10px 18px; border: 1.5px solid #E5E7EB; border-radius: 10px; font-size: 13px; font-family: inherit; font-weight: 600; cursor: pointer; background: #fff; color: #555; display: flex; align-items: center; gap: 6px; transition: all .2s; }
 .btn-exp:hover { background: #FDF3F4; border-color: #85202A; color: #85202A; }
@@ -138,13 +138,13 @@ th.col-filtered { background: linear-gradient(90deg,#681A22,#D81D30) !important;
 .cfp-btn-ok:hover { background: #7C0F1A; }
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=21">
-<link rel="stylesheet" href="css/ssp-type.css?v=5">
+<link rel="stylesheet" href="css/ssp-type.css?v=9">
 </head>
 <body>
 <nav class="sidebar">
   <div class="sb-logo">
-    <div class="sb-logo-icon">🏢</div>
-    <div class="sb-logo-text"><h3>SSP</h3><p>Sales &amp; Promotion</p></div>
+    <div class="sb-logo-icon"></div>
+    <div class="sb-logo-text"><h3>Archive</h3><p>Sales &amp; Promotion</p></div>
   </div>
   <div class="nav-links">
     <div class="nav-section">Main Menu</div>
@@ -175,10 +175,10 @@ th.col-filtered { background: linear-gradient(90deg,#681A22,#D81D30) !important;
 <div class="main">
   <div class="page-header">
     <div>
-      <h2>📄 Contract Master <span class="dot"></span></h2>
+      <h2>Contract Master <span class="dot"></span></h2>
       <p>Data from "Contract Master" table in Supabase — Real-time sync</p>
     </div>
-    <button class="btn-exp" onclick="exportExcel()">⬇️ Export Excel</button>
+    <button class="btn-exp" onclick="exportExcel()">Export Excel</button>
   </div>
   <div id="statsStrip" class="stats-strip"></div>
   <div class="toolbar">
@@ -200,7 +200,7 @@ th.col-filtered { background: linear-gradient(90deg,#681A22,#D81D30) !important;
     </div>
     <span class="row-count" id="rowCount">Loading...</span>
   </div>
-  <div class="table-card"><div class="overflow-x"><div id="tableWrap"><div class="empty"><div class="ei">⏳</div><p>กำลังโหลด...</p></div></div></div></div>
+  <div class="table-card"><div class="overflow-x"><div id="tableWrap"><div class="empty"><div class="ei"></div><p>กำลังโหลด...</p></div></div></div></div>
 </div>
 <script>
 const TABLE       = 'Contract Master';
@@ -303,7 +303,7 @@ async function fetchPromoCount() {
 /* ── PHASE 1: load first 1 000 rows fast → show immediately ── */
 async function loadData() {
   const wrap = document.getElementById('tableWrap');
-  wrap.innerHTML = '<div class="empty"><div class="ei">⏳</div><p>Loading…</p></div>';
+  wrap.innerHTML = '<div class="empty"><div class="ei"></div><p>Loading…</p></div>';
   _typeFilter = '';
   _promoCount = 0;
   _marketingCount = -1;
@@ -317,12 +317,12 @@ async function loadData() {
   ]);
   _totalCount = exactTotal || 0;
   if (error) {
-    wrap.innerHTML = `<div class="empty"><div class="ei">⚠️</div><p>Error: ${esc(error.message)}</p></div>`;
+    wrap.innerHTML = `<div class="empty"><div class="ei"></div><p>Error: ${esc(error.message)}</p></div>`;
     document.getElementById('rowCount').textContent = 'Load failed';
     return;
   }
   if (!first || !first.length) {
-    wrap.innerHTML = '<div class="empty"><div class="ei">📭</div><p>No data in Contract Master</p></div>';
+    wrap.innerHTML = '<div class="empty"><div class="ei"></div><p>No data in Contract Master</p></div>';
     document.getElementById('rowCount').textContent = '0 records';
     return;
   }
@@ -431,9 +431,9 @@ function buildStats(data) {
     <div class="sl">Yearly Contract</div>
     <div class="sv" style="color:#D81D30">${yearly.toLocaleString()}</div>
   </div>
-  <div class="strip-item" style="border-left-color:#10B981">
+  <div class="strip-item strip-marketing">
     <div class="sl">Marketing Contract</div>
-    <div class="sv" style="color:#065F46">${marketing.toLocaleString()}</div>
+    <div class="sv">${marketing.toLocaleString()}</div>
     <div style="font-size:10px;color:#9CA3AF;margin-top:3px">${mLabel}</div>
   </div>`;
 
@@ -634,7 +634,7 @@ function renderTable(data) {
   _lastFiltered = data;
   document.getElementById('rowCount').textContent = `${data.length.toLocaleString()} records`;
   const wrap = document.getElementById('tableWrap');
-  if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">🔍</div><p>No results found</p></div>'; return; }
+  if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei"></div><p>No results found</p></div>'; return; }
 
   /* sort — newest first by default on dateCol */
   let sorted = [...data];

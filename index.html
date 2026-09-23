@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SSP - Sign In</title>
+<title>Archive — Sign In</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js?v=3"></script>
 <style>
@@ -74,13 +74,13 @@ input:focus { outline: none; border-color: #85202A; background: #fff; box-shadow
 .divider::after { right: 0; }
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=21">
-<link rel="stylesheet" href="css/ssp-type.css?v=5">
+<link rel="stylesheet" href="css/ssp-type.css?v=9">
 </head>
 <body>
 <div class="card">
   <div class="logo">
-    <div class="logo-icon">📋</div>
-    <h1>SSP</h1>
+    <div class="logo-icon"></div>
+    <h1>Archive</h1>
     <p>Sales & Promotion Platform</p>
   </div>
 
@@ -91,7 +91,7 @@ input:focus { outline: none; border-color: #85202A; background: #fff; box-shadow
       <label>Passcode</label>
       <div style="position:relative">
         <input type="password" id="passcode" placeholder="••••••••" onkeydown="if(event.key==='Enter') login()" autocomplete="off" autocapitalize="none" spellcheck="false" style="padding-right:44px">
-        <button type="button" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#999;font-size:16px;padding:0;line-height:1" id="eyeBtn">👁</button>
+        <button type="button" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#999;font-size:16px;padding:0;line-height:1" id="eyeBtn">Show</button>
       </div>
     </div>
     <button class="btn" id="loginBtn" onclick="login()">Sign In</button>
@@ -115,7 +115,7 @@ function togglePw() {
   const inp = document.getElementById('passcode');
   const btn = document.getElementById('eyeBtn');
   inp.type = inp.type === 'password' ? 'text' : 'password';
-  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+  btn.textContent = inp.type === 'password' ? 'Show' : 'Hide';
 }
 
 function showAlert(msg, type = 'error') {

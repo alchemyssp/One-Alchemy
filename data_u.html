@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Data Universe — SSP</title>
+<title>Data Universe — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="js/config.js?v=3"></script>
@@ -451,16 +451,16 @@ select.finput{appearance:auto}
 .btn-secondary:hover{background:linear-gradient(135deg,#961E2A 0%,#7E1D27 100%)}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=21">
-<link rel="stylesheet" href="css/ssp-type.css?v=5">
+<link rel="stylesheet" href="css/ssp-type.css?v=9">
 </head>
 <body>
 
 <!-- SIDEBAR -->
 <nav class="sidebar">
   <div class="sb-logo">
-    <div class="sb-logo-icon">🍸</div>
+    <div class="sb-logo-icon"></div>
     <div class="sb-logo-text">
-      <h3>SSP</h3>
+      <h3>Archive</h3>
       <p>Sales &amp; Promotion</p>
     </div>
   </div>
@@ -500,12 +500,12 @@ select.finput{appearance:auto}
 <!-- MAIN -->
 <div class="main">
   <div class="page-hdr">
-    <h2 class="page-title">●Data Universe <span class="dot-live"></span></h2>
+    <h2 class="page-title">Data Universe <span class="dot-live"></span></h2>
   </div>
 
   <!-- Context banner: shown when filtered by outlet code via URL param -->
   <div id="codeCtx" style="display:none;background:linear-gradient(90deg,#B6202F,#D23040);color:#fff;border-radius:10px;padding:10px 18px;margin:8px 0;align-items:center;gap:14px;flex-wrap:wrap">
-    <span style="font-size:20px">🔗</span>
+    
     <div style="flex:1">
       <div style="font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">Linked Outlet Code</div>
       <div style="font-weight:800;font-size:16px;letter-spacing:1px;font-family:monospace" id="codeCtxValue">—</div>
@@ -520,7 +520,7 @@ select.finput{appearance:auto}
     <!-- ── Total Outlet ── -->
     <div class="kpi-card">
       <div class="kpi-body">
-        <div class="kpi-icon" style="background:rgba(227,29,49,.13)">🏪</div>
+        <div class="kpi-icon" style="background:rgba(227,29,49,.13)"></div>
         <div class="kpi-info">
           <div class="kpi-label">Total Outlet</div>
           <div class="kpi-num"><span id="statTotal">—</span><span class="kpi-unit">outlets</span></div>
@@ -538,7 +538,7 @@ select.finput{appearance:auto}
     <!-- ── New Outlet ── -->
     <div class="kpi-card">
       <div class="kpi-body">
-        <div class="kpi-icon" style="background:rgba(16,185,129,.12)">✨</div>
+        <div class="kpi-icon" style="background:rgba(16,185,129,.12)"></div>
         <div class="kpi-info">
           <div class="kpi-label">New Outlet</div>
           <div class="kpi-num"><span id="statNew">—</span><span class="kpi-unit">outlets</span></div>
@@ -556,7 +556,7 @@ select.finput{appearance:auto}
     <!-- ── Current Outlet ── -->
     <div class="kpi-card">
       <div class="kpi-body">
-        <div class="kpi-icon" style="background:rgba(210,48,64,.10)">📌</div>
+        <div class="kpi-icon" style="background:rgba(210,48,64,.10)"></div>
         <div class="kpi-info">
           <div class="kpi-label">Current Outlet</div>
           <div class="kpi-num"><span id="statCurrent">—</span><span class="kpi-unit">outlets</span></div>
@@ -622,15 +622,15 @@ select.finput{appearance:auto}
     <div class="spacer"></div>
 
     <!-- Action buttons (right side) -->
-    <button class="btn-import" onclick="openImport()">⬇ Import</button>
-    <button class="btn-export-dark" onclick="exportExcel()">⬆ Export</button>
-    <button class="btn-secondary" onclick="openLog()">📜 Log</button>
+    <button class="btn-import" onclick="openImport()">Import</button>
+    <button class="btn-export-dark" onclick="exportExcel()">Export</button>
+    <button class="btn-secondary" onclick="openLog()">Log</button>
     <span class="rc-tag" id="rowCount">Loading...</span>
   </div>
 
   <!-- Table -->
   <div class="tcard">
-    <div class="tscroll"><div id="tableWrap"><div class="empty-state"><div class="ei">⏳</div><p>Loading...</p></div></div></div>
+    <div class="tscroll"><div id="tableWrap"><div class="empty-state"><div class="ei"></div><p>Loading...</p></div></div></div>
     <div class="pagi" id="pagiWrap"></div>
   </div>
 </div>
@@ -640,7 +640,7 @@ select.finput{appearance:auto}
   <div class="form-modal" style="max-width:660px">
     <div class="fmhdr">
       <div>
-        <div class="fmtitle">⬇Import Data Universe</div>
+        <div class="fmtitle">Import Data Universe</div>
         <div class="fmsub">Add or update records from Excel — duplicate name = replace existing</div>
       </div>
       <button class="fmx" onclick="closeImport()">✕</button>
@@ -651,7 +651,7 @@ select.finput{appearance:auto}
         <div style="flex:1">
           <div class="imp-step-title">Download Template</div>
           <div class="imp-step-desc">Download the Excel template with column headers matching the database.</div>
-          <button class="btn-outline" onclick="downloadTemplate()" style="margin-top:10px;font-size:12.5px">⬇️ Download Template (.xlsx)</button>
+          <button class="btn-outline" onclick="downloadTemplate()" style="margin-top:10px;font-size:12.5px">Download Template (.xlsx)</button>
         </div>
       </div>
       <div class="imp-step">
@@ -662,7 +662,7 @@ select.finput{appearance:auto}
           <div class="imp-dropzone" id="impDropzone"
                onclick="document.getElementById('impFileInput').click()"
                ondragover="impDragOver(event)" ondragleave="impDragLeave(event)" ondrop="impDrop(event)">
-            <div class="imp-dz-icon">📂</div>
+            <div class="imp-dz-icon"></div>
             <div class="imp-dz-text" id="impDzText">Click or Drag &amp; Drop Excel file here</div>
             <div class="imp-dz-sub">.xlsx or .xls only</div>
           </div>
@@ -683,7 +683,7 @@ select.finput{appearance:auto}
     </div>
     <div class="fmftr">
       <button class="btn-cancel" onclick="closeImport()">Cancel</button>
-      <button class="btn-save" id="impDoBtn" style="display:none;background:linear-gradient(135deg,#22C55E,#16A34A)" onclick="doImport()">⬆ Import Records</button>
+      <button class="btn-save" id="impDoBtn" style="display:none;background:linear-gradient(135deg,#22C55E,#16A34A)" onclick="doImport()">Import Records</button>
     </div>
   </div>
 </div>
@@ -691,7 +691,7 @@ select.finput{appearance:auto}
 <!-- LOG DRAWER -->
 <div class="log-drawer" id="logDrawer">
   <div class="lhdr">
-    <h3>📜 Log History</h3>
+    <h3>Log History</h3>
     <p>Last 50 changes — Restore to revert</p>
     <button class="lhdr-x" onclick="closeLog()">✕</button>
   </div>
@@ -713,7 +713,7 @@ select.finput{appearance:auto}
     <div class="fmbody" id="addFormBody"></div>
     <div class="fmftr">
       <button class="btn-cancel" onclick="closeAdd()">Cancel</button>
-      <button class="btn-save" onclick="saveAdd()">💾 Save Record</button>
+      <button class="btn-save" onclick="saveAdd()">Save Record</button>
     </div>
     <!-- Discard confirmation shield -->
     <div class="discard-shield" id="addDiscardShield">
@@ -739,7 +739,7 @@ select.finput{appearance:auto}
     <div class="fmbody" id="editFormBody"></div>
     <div class="fmftr">
       <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
-      <button class="btn-save" onclick="saveEdit()">💾 Save Changes</button>
+      <button class="btn-save" onclick="saveEdit()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -747,7 +747,7 @@ select.finput{appearance:auto}
 <!-- DELETE CONFIRM -->
 <div class="overlay" id="delOverlay">
   <div class="confirm-modal">
-    <div style="font-size:52px;margin-bottom:14px">🗑️</div>
+    
     <div style="font-size:16px;font-weight:800;color:#170305;margin-bottom:6px" id="delName">—</div>
     <div style="font-size:13px;color:#E4505F;font-weight:400">This record will be permanently deleted.<br>Restorable from Log History.</div>
     <div style="display:flex;gap:10px;justify-content:center;margin-top:24px">
@@ -770,7 +770,7 @@ select.finput{appearance:auto}
     <div class="fmbody" id="savePreviewBody" style="padding:20px 24px"></div>
     <div class="fmftr">
       <button class="btn-cancel" onclick="closeSavePreview()">แก้ไข</button>
-      <button class="btn-save" id="confirmSaveBtn" onclick="confirmSaveAdd()">💾 ยืนยันบันทึก</button>
+      <button class="btn-save" id="confirmSaveBtn" onclick="confirmSaveAdd()">ยืนยันบันทึก</button>
     </div>
   </div>
 </div>
@@ -906,7 +906,7 @@ async function checkAuth() {
     loadOutletMaster();  /* load Outlet Master lookup in background */
     ensureDuSkuData();   /* preload SKU master for add form combos */
   } catch(e) {
-    document.getElementById('tableWrap').innerHTML = `<div class="empty-state"><div class="ei">⚠️</div><p>Connection error: ${esc(e.message)}<br><small style="color:#F5ACB3">Check your Supabase config in js/config.js</small></p></div>`;
+    document.getElementById('tableWrap').innerHTML = `<div class="empty-state"><div class="ei"></div><p>Connection error: ${esc(e.message)}<br><small style="color:#F5ACB3">Check your Supabase config in js/config.js</small></p></div>`;
   }
 }
 
@@ -918,7 +918,7 @@ let bgLoading = false;
 async function loadData() {
   const wrap = document.getElementById('tableWrap');
   const cntEl = document.getElementById('rowCount');
-  wrap.innerHTML = '<div class="empty-state"><div class="ei">⏳</div><p>Loading…</p></div>';
+  wrap.innerHTML = '<div class="empty-state"><div class="ei"></div><p>Loading…</p></div>';
 
   /* ── Phase 1: first 1,000 rows + total count — both in parallel ── */
   let totalCount = null, first = null, error = null, countError = null;
@@ -932,7 +932,7 @@ async function loadData() {
     first      = r2.data;
     error      = r2.error;
   } catch(ex) {
-    wrap.innerHTML = `<div class="empty-state"><div class="ei">⚠️</div><p>JS Error: ${esc(ex.message)}</p></div>`;
+    wrap.innerHTML = `<div class="empty-state"><div class="ei"></div><p>JS Error: ${esc(ex.message)}</p></div>`;
     cntEl.textContent = 'Error'; return;
   }
 
@@ -954,13 +954,13 @@ async function loadData() {
       : (error.message.includes('row-level') || error.message.includes('permission'))
       ? '<br><small style="color:#F5ACB3">เปิด RLS policy: allow SELECT — ดู database/1-setup/setup_data_u.sql</small>'
       : '';
-    wrap.innerHTML = `<div class="empty-state"><div class="ei">⚠️</div><p>Load failed: ${esc(error.message)}${hint}</p></div>`;
+    wrap.innerHTML = `<div class="empty-state"><div class="ei"></div><p>Load failed: ${esc(error.message)}${hint}</p></div>`;
     cntEl.textContent = 'Load failed'; return;
   }
 
   if (!first || !first.length) {
     const diagLine = `Count query: <b>${totalCount ?? 'null (blocked)'}</b> | Count error: <b>${countError?.message || 'none'}</b> | Session: <b>${session?.user?.email || 'NONE'}</b>`;
-    wrap.innerHTML = `<div class="empty-state"><div class="ei">📭</div>
+    wrap.innerHTML = `<div class="empty-state"><div class="ei"></div>
       <p style="font-size:14px;font-weight:600;color:#961E2A">ไม่พบข้อมูลใน table "Data Universe"</p>
       <div style="margin:10px auto;max-width:560px;background:#F9F9F9;border:1px solid #E5E7EB;border-radius:8px;padding:10px 14px;font-size:12px;color:#374151;text-align:left">${diagLine}</div>
       <p style="margin-top:4px;font-size:12.5px;color:#9CA3AF">เปิด DevTools → Console เพื่อดูข้อมูล debug เพิ่มเติม</p>
@@ -1087,7 +1087,7 @@ CREATE POLICY "Users can delete Data Universe"
     fetchStatsFromDB();
   } catch(renderErr) {
     console.error('[DataU RenderError]', renderErr);
-    wrap.innerHTML = `<div class="empty-state"><div class="ei">⚠️</div>
+    wrap.innerHTML = `<div class="empty-state"><div class="ei"></div>
       <p style="color:#D23040;font-weight:700">Render Error: ${esc(renderErr.message)}</p>
       <pre style="font-size:11px;color:#666;text-align:left;max-width:600px;margin:10px auto;background:#f5f5f5;padding:10px;border-radius:6px;overflow-x:auto">${esc(renderErr.stack || '')}</pre>
     </div>`;
@@ -1422,8 +1422,8 @@ function fv(v, col) {
 function renderTable() {
   const start = (page - 1) * PAGE_SIZE, rows = filtered.slice(start, start + PAGE_SIZE);
   const wrap = document.getElementById('tableWrap');
-  if (!filtered.length) { wrap.innerHTML = '<div class="empty-state"><div class="ei">🔍</div><p>No records match the current filters.</p></div>'; document.getElementById('pagiWrap').innerHTML = ''; return; }
-  if (!visibleCols.length) { wrap.innerHTML = '<div class="empty-state"><div class="ei">👁️</div><p>No columns selected. Use the Columns button to show columns.</p></div>'; document.getElementById('pagiWrap').innerHTML = ''; return; }
+  if (!filtered.length) { wrap.innerHTML = '<div class="empty-state"><div class="ei"></div><p>No records match the current filters.</p></div>'; document.getElementById('pagiWrap').innerHTML = ''; return; }
+  if (!visibleCols.length) { wrap.innerHTML = '<div class="empty-state"><div class="ei"></div><p>No columns selected. Use the Columns button to show columns.</p></div>'; document.getElementById('pagiWrap').innerHTML = ''; return; }
   const arrow = c => sortCol === c ? (sortAsc ? ' sa' : ' sd') : '';
   const lbl = c => c.replace(/_/g, ' ');
   const safeId = v => String(v ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -1604,7 +1604,7 @@ function buildAddForm(prefix, rowData) {
           }).join('')}
         </div>
         <div class="fg-grid" style="margin-top:14px">
-          <div class="add-sub-lbl">📞 Contact Person</div>
+          <div class="add-sub-lbl">Contact Person</div>
           ${FORM_CONTACT.map(d=>buildField(prefix,d,rowData)).join('')}
         </div>
       </div>
@@ -2162,7 +2162,7 @@ function closeSavePreview() {
 async function confirmSaveAdd() {
   const btn = document.getElementById('confirmSaveBtn');
   const orig = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Saving...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = 'Saving...'; }
   const { data: inserted, error } = await supabase.from(TABLE).insert(_pendingInsertRows).select();
   if (btn) { btn.disabled = false; btn.innerHTML = orig; }
   if (error) { showToast('Error: ' + error.message, 'err'); return; }
@@ -2171,7 +2171,7 @@ async function confirmSaveAdd() {
   }
   closeSavePreview();
   _closeAddForce();
-  showToast(`✅ บันทึก ${_pendingInsertRows.length} รายการลงฐานข้อมูลแล้ว`);
+  showToast(`บันทึก ${_pendingInsertRows.length} รายการลงฐานข้อมูลแล้ว`);
   _pendingInsertRows = [];
   loadData();
 }
@@ -2193,7 +2193,7 @@ async function saveEdit() {
   const { error } = await supabase.from(TABLE).update(vals).eq(pkCol, editTarget[pkCol]);
   if (error) { showToast('Error: ' + error.message, 'err'); return; }
   await writeLog('UPDATE', editTarget[pkCol], oldData, vals);
-  closeEdit(); showToast('✅ Changes saved'); loadData();
+  closeEdit(); showToast('Changes saved'); loadData();
 }
 
 /* ============================================================
@@ -2214,7 +2214,7 @@ async function confirmDel() {
   if (error) { showToast('Delete failed: ' + error.message, 'err'); return; }
   if (!deleted || !deleted.length) { showToast('Delete blocked — check RLS DELETE policy', 'err'); return; }
   await writeLog('DELETE', delId, old, null);
-  closeDel(); showToast('🗑️ Record deleted', 'inf'); loadData();
+  closeDel(); showToast('Record deleted', 'inf'); loadData();
 }
 
 /* ============================================================
@@ -2230,7 +2230,7 @@ async function openLog() {
   document.getElementById('logDrawer').classList.add('open');
   const { data } = await supabase.from(LOG_TABLE).select('*').order('changed_at', { ascending: false }).limit(50);
   const body = document.getElementById('logBody');
-  if (!data || !data.length) { body.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#F5ACB3"><div style="font-size:36px;margin-bottom:10px">📭</div><p style="font-size:13px">No changes yet</p></div>'; return; }
+  if (!data || !data.length) { body.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#F5ACB3"><p style="font-size:13px">No changes yet</p></div>'; return; }
   body.innerHTML = data.map(l => {
     const cls = l.action === 'INSERT' ? 'li' : l.action === 'UPDATE' ? 'lu' : 'ld';
     const nm = labelCol && (l.new_data || l.old_data) ? ((l.new_data || l.old_data)[labelCol] || 'Record #' + l.record_id) : 'Record #' + l.record_id;
@@ -2263,7 +2263,7 @@ function exportExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filtered), 'Data Universe');
   XLSX.writeFile(wb, `Data_U_${new Date().toISOString().slice(0, 10)}.xlsx`);
-  showToast('⬇️ Export downloaded');
+  showToast('Export downloaded');
 }
 
 /* ============================================================
@@ -2289,7 +2289,7 @@ function downloadTemplate() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([header]), 'Data Universe');
   XLSX.writeFile(wb, 'DataU_Import_Template.xlsx');
-  showToast('⬇️ Template downloaded');
+  showToast('Template downloaded');
 }
 function impDragOver(e) { e.preventDefault(); document.getElementById('impDropzone').classList.add('drag-over'); }
 function impDragLeave(e) { document.getElementById('impDropzone').classList.remove('drag-over'); }
@@ -2305,7 +2305,7 @@ function processImportFile(file) {
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
       if (!rows.length) { showToast('File is empty', 'err'); return; }
-      document.getElementById('impDzText').textContent = `✅ ${file.name}  (${rows.length.toLocaleString()} rows)`;
+      document.getElementById('impDzText').textContent = `${file.name}  (${rows.length.toLocaleString()} rows)`;
       document.getElementById('impDropzone').className = 'imp-dropzone has-file';
       buildImportPreview(rows);
     } catch (err) { showToast('Cannot read file: ' + err.message, 'err'); }
@@ -2335,7 +2335,7 @@ function buildImportPreview(rows) {
   document.getElementById('impPreviewTable').innerHTML = `<thead><tr><th>Status</th>${previewCols.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${previewRows.map(r => `<tr><td>${r._action === 'UPDATE' ? '<span class="imp-badge imp-badge-upd">↺ Replace</span>' : '<span class="imp-badge imp-badge-add">＋ New</span>'}</td>${previewCols.map(c => `<td title="${esc(String(r[c] ?? ''))}">${esc(String(r[c] ?? '').slice(0, 35))}</td>`).join('')}</tr>`).join('')}${rows.length > 8 ? `<tr><td colspan="${previewCols.length + 1}" style="text-align:center;color:#E4505F;font-style:italic;padding:10px">... and ${rows.length - 8} more rows</td></tr>` : ''}</tbody>`;
   document.getElementById('impPreviewWrap').style.display = 'block';
   const btn = document.getElementById('impDoBtn');
-  btn.style.display = ''; btn.textContent = `⬆ Import ${rows.length.toLocaleString()} Records`; btn.disabled = false;
+  btn.style.display = ''; btn.textContent = `Import ${rows.length.toLocaleString()} Records`; btn.disabled = false;
 }
 
 async function doImport() {
@@ -2365,7 +2365,7 @@ async function doImport() {
   }
   btn.disabled = false;
   closeImport();
-  showToast(`✅ Import complete: Added ${added} | Updated ${updated}${errors ? ` | Errors ${errors}` : ''}`, errors ? 'inf' : 'ok');
+  showToast(`Import complete: Added ${added} | Updated ${updated}${errors ? ` | Errors ${errors}` : ''}`, errors ? 'inf' : 'ok');
   loadData();
 }
 

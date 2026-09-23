@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SKU — SSP</title>
+<title>SKU — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="js/config.js?v=3"></script>
@@ -49,7 +49,7 @@ label{font-family:inherit;font-size:11px;font-weight:700}
 .search-box{flex:0 0 130px;position:relative}
 .search-box input{width:100%;padding:9px 14px 9px 36px;border:1.5px solid #F2E6E7;border-radius:10px;font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
 .search-box input:focus{border-color:#D23040}
-.search-box::before{content:'🔍';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px}
+.search-box::before{content:'';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px}
 .click-hint{font-size:11px;color:#aaa;white-space:nowrap}
 .flt-select{padding:8px 12px;border:1.5px solid #F2E6E7;border-radius:10px;font-size:13px;font-family:inherit;background:#fff;color:#374151;cursor:pointer;outline:none;transition:border-color .15s;min-width:160px}
 .flt-select:focus{border-color:#D23040}
@@ -152,14 +152,14 @@ tbody tr:hover td{background:#FCF3F4}
 .sku-toast.err{background:#7A222B}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=21">
-<link rel="stylesheet" href="css/ssp-type.css?v=5">
+<link rel="stylesheet" href="css/ssp-type.css?v=9">
 </head>
 <body>
 
 <nav class="sidebar">
   <div class="sb-logo">
-    <div class="sb-logo-icon">🏢</div>
-    <div class="sb-logo-text"><h3>SSP</h3><p>Sales &amp; Promotion</p></div>
+    <div class="sb-logo-icon"></div>
+    <div class="sb-logo-text"><h3>Archive</h3><p>Sales &amp; Promotion</p></div>
   </div>
   <div class="nav-links">
     <div class="nav-section">Main Menu</div>
@@ -191,12 +191,12 @@ tbody tr:hover td{background:#FCF3F4}
 <div class="main">
   <div class="page-header">
     <div>
-      <h2>🏷️ SKU Master <span class="dot"></span></h2>
+      <h2>SKU Master <span class="dot"></span></h2>
       <p>Click a row to edit — Real-time sync with Supabase</p>
     </div>
     <div style="display:flex;align-items:center;gap:10px">
       <div class="rt-badge"><span class="rt-dot"></span><span id="rtStatus">Connecting…</span></div>
-      <button class="btn-export" onclick="exportExcel()">⬇️ Export Excel</button>
+      <button class="btn-export" onclick="exportExcel()">Export Excel</button>
     </div>
   </div>
 
@@ -224,14 +224,14 @@ tbody tr:hover td{background:#FCF3F4}
         <div class="cp-list" id="colPickerList"></div>
       </div>
     </div>
-    <span class="click-hint" style="margin-left:auto">✏️ Click row to edit</span>
+    <span class="click-hint" style="margin-left:auto">Click row to edit</span>
     <span style="font-size:12px;color:#aaa" id="rowCount">Loading…</span>
   </div>
 
   <div class="table-card">
     <div class="overflow-x">
       <div id="tableWrap">
-        <div class="empty"><div class="ei">⏳</div><p>Loading…</p></div>
+        <div class="empty"><div class="ei"></div><p>Loading…</p></div>
       </div>
     </div>
     <div id="pagination" class="pagination" style="display:none"></div>
@@ -243,7 +243,7 @@ tbody tr:hover td{background:#FCF3F4}
   <div class="sku-modal">
     <div class="sku-modal-hdr">
       <div>
-        <div class="sku-modal-title">✏️ Edit SKU</div>
+        <div class="sku-modal-title">Edit SKU</div>
         <div class="sku-modal-sub" id="editSub">—</div>
       </div>
       <button class="sku-modal-close" onclick="closeEdit()">✕</button>
@@ -252,7 +252,7 @@ tbody tr:hover td{background:#FCF3F4}
     <div class="sku-modal-ftr">
       <span class="modal-err" id="editErr"></span>
       <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
-      <button class="btn-save" id="editSaveBtn" onclick="saveEdit()">💾 Save</button>
+      <button class="btn-save" id="editSaveBtn" onclick="saveEdit()">Save</button>
     </div>
   </div>
 </div>
@@ -271,7 +271,7 @@ tbody tr:hover td{background:#FCF3F4}
     <div class="sku-modal-ftr">
       <span class="modal-err" id="addErr"></span>
       <button class="btn-cancel" onclick="closeAdd()">Cancel</button>
-      <button class="btn-save" id="addSaveBtn" onclick="saveAdd()">💾 Save</button>
+      <button class="btn-save" id="addSaveBtn" onclick="saveAdd()">Save</button>
     </div>
   </div>
 </div>
@@ -324,12 +324,12 @@ async function loadData() {
   const { data, error } = await supabase.from('SKU').select('*').limit(3000);
   const wrap = document.getElementById('tableWrap');
   if (error) {
-    wrap.innerHTML = `<div class="empty"><div class="ei">⚠️</div><p>${esc(error.message)}</p></div>`;
+    wrap.innerHTML = `<div class="empty"><div class="ei"></div><p>${esc(error.message)}</p></div>`;
     document.getElementById('rowCount').textContent = 'Error';
     return;
   }
   if (!data || !data.length) {
-    wrap.innerHTML = '<div class="empty"><div class="ei">📭</div><p>No SKU data found</p></div>';
+    wrap.innerHTML = '<div class="empty"><div class="ei"></div><p>No SKU data found</p></div>';
     document.getElementById('rowCount').textContent = '0 records';
     return;
   }
@@ -421,7 +421,7 @@ function handleRtEvent(payload) {
     /* Refresh modal if editing this row */
     if (editingRow && editingRow[pkCol] === newRow[pkCol]) {
       editingRow = newRow;
-      showToast('📡 Record updated externally', '');
+      showToast('Record updated externally', '');
     }
   } else if (eventType === 'DELETE') {
     allData = allData.filter(r => r[pkCol] !== oldRow[pkCol]);
@@ -446,7 +446,7 @@ function showKPI(data) {
   kpiEl.innerHTML = `
     <div class="kpi-card">
       <div class="kpi-body">
-        <div class="kpi-icon" style="background:rgba(210,48,64,.13)">🏷️</div>
+        <div class="kpi-icon" style="background:rgba(210,48,64,.13)"></div>
         <div class="kpi-info">
           <div class="kpi-label">Total SKUs</div>
           <div class="kpi-num">${data.length.toLocaleString()}<span class="kpi-unit">items</span></div>
@@ -548,7 +548,7 @@ function renderTable(data) {
   const pgEl = document.getElementById('pagination');
 
   if (!total) {
-    wrap.innerHTML = '<div class="empty"><div class="ei">🔍</div><p>No results found</p></div>';
+    wrap.innerHTML = '<div class="empty"><div class="ei"></div><p>No results found</p></div>';
     pgEl.style.display = 'none';
     return;
   }
@@ -649,7 +649,7 @@ function openEdit(idx) {
   document.getElementById('editBody').innerHTML = html;
   document.getElementById('editErr').textContent = '';
   document.getElementById('editSaveBtn').disabled = false;
-  document.getElementById('editSaveBtn').textContent = '💾 บันทึก';
+  document.getElementById('editSaveBtn').textContent = 'บันทึก';
   document.getElementById('editOverlay').style.display = 'flex';
 }
 
@@ -682,9 +682,9 @@ async function saveEdit() {
   });
 
   if (!pkCol || editingRow[pkCol] == null) {
-    errEl.textContent = '⚠️ Primary key not found — cannot save';
+    errEl.textContent = 'Primary key not found — cannot save';
     btn.disabled = false;
-    btn.textContent = '💾 Save';
+    btn.textContent = 'Save';
     return;
   }
 
@@ -694,10 +694,10 @@ async function saveEdit() {
     .eq(pkCol, editingRow[pkCol]);
 
   btn.disabled = false;
-  btn.textContent = '💾 Save';
+  btn.textContent = 'Save';
 
   if (error) {
-    errEl.textContent = '⚠️ ' + error.message;
+    errEl.textContent = '' + error.message;
     return;
   }
 
@@ -706,7 +706,7 @@ async function saveEdit() {
   if (idx >= 0) allData[idx] = { ...allData[idx], ...updates };
 
   closeEdit();
-  showToast('✅ Saved successfully', 'ok');
+  showToast('Saved successfully', 'ok');
   filterRows();
 }
 
@@ -714,7 +714,7 @@ async function saveEdit() {
    ADD SKU
    ============================================================ */
 function openAdd() {
-  if (!dispCols.length) { showToast('⏳ Please wait for data to load', ''); return; }
+  if (!dispCols.length) { showToast('Please wait for data to load', ''); return; }
 
   const isDate = c => /date|time|created|updated/i.test(c);
   const isWide = c => /remark|note|desc|address|detail|name/i.test(c);
@@ -744,7 +744,7 @@ function openAdd() {
   document.getElementById('addBody').innerHTML = html;
   document.getElementById('addErr').textContent = '';
   document.getElementById('addSaveBtn').disabled = false;
-  document.getElementById('addSaveBtn').textContent = '💾 บันทึก';
+  document.getElementById('addSaveBtn').textContent = 'บันทึก';
   document.getElementById('addOverlay').style.display = 'flex';
 }
 
@@ -769,19 +769,19 @@ async function saveAdd() {
 
   /* Require at least one field filled */
   if (Object.values(newRow).every(v => v == null)) {
-    errEl.textContent = '⚠️ Please fill in at least one field';
+    errEl.textContent = 'Please fill in at least one field';
     btn.disabled = false;
-    btn.textContent = '💾 Save';
+    btn.textContent = 'Save';
     return;
   }
 
   const { data: inserted, error } = await supabase.from('SKU').insert(newRow).select();
 
   btn.disabled = false;
-  btn.textContent = '💾 Save';
+  btn.textContent = 'Save';
 
   if (error) {
-    errEl.textContent = '⚠️ ' + error.message;
+    errEl.textContent = '' + error.message;
     return;
   }
 
@@ -792,7 +792,7 @@ async function saveAdd() {
   }
 
   closeAdd();
-  showToast('✅ SKU added successfully', 'ok');
+  showToast('SKU added successfully', 'ok');
   filterRows();
 }
 

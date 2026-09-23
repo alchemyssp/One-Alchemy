@@ -1,4 +1,4 @@
-# One Alchemy — SSP (Sales & Promotion Platform)
+# One Alchemy — Archive (Sales & Promotion Platform, formerly SSP)
 
 เว็บ HTML + CSS + JavaScript ธรรมดา ใช้ Supabase เป็นฐานข้อมูล / Login และ deploy บน Vercel
 

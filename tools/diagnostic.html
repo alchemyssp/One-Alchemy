@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SSP — Connection Diagnostic</title>
+<title>Archive — Connection Diagnostic</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=3"></script>
 <style>
@@ -39,15 +39,15 @@ h3{font-size:13px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-
 .url-info{background:#2A0F12;border-radius:10px;padding:12px 14px;border:1px solid #334155;margin-bottom:24px;font-size:12px;color:#64748B;word-break:break-all}
 .url-info strong{color:#94A3B8;display:block;margin-bottom:4px}
 </style>
-<link rel="stylesheet" href="../css/ssp-type.css?v=5">
+<link rel="stylesheet" href="../css/ssp-type.css?v=9">
 </head>
 <body>
 <div class="card">
   <div class="logo">
-    <div class="logo-ico">🔍</div>
+    <div class="logo-ico"></div>
     <div class="logo-text">
       <h2>Connection Diagnostic</h2>
-      <p>SSP — Supabase Connection Test</p>
+      <p>Archive — Supabase Connection Test</p>
     </div>
   </div>
 
@@ -59,23 +59,23 @@ h3{font-size:13px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-
   <h3>Diagnostic Steps</h3>
 
   <div class="step wait" id="s1">
-    <div class="step-ico">🔗</div>
+    <div class="step-ico">·</div>
     <div><div class="step-title">1. Supabase Client Init</div><div class="step-msg" id="m1">Waiting...</div></div>
   </div>
   <div class="step wait" id="s2">
-    <div class="step-ico">🌐</div>
+    <div class="step-ico">·</div>
     <div><div class="step-title">2. Network / API Reachable</div><div class="step-msg" id="m2">Waiting...</div></div>
   </div>
   <div class="step wait" id="s3">
-    <div class="step-ico">🔑</div>
+    <div class="step-ico">·</div>
     <div><div class="step-title">3. Auth Session</div><div class="step-msg" id="m3">Waiting...</div></div>
   </div>
   <div class="step wait" id="s4">
-    <div class="step-ico">🏪</div>
+    <div class="step-ico">·</div>
     <div><div class="step-title">4. Outlet Master Table Access</div><div class="step-msg" id="m4">Waiting...</div></div>
   </div>
   <div class="step wait" id="s5">
-    <div class="step-ico">📝</div>
+    <div class="step-ico">·</div>
     <div><div class="step-title">5. Log Table Access</div><div class="step-msg" id="m5">Waiting...</div></div>
   </div>
 
@@ -99,8 +99,8 @@ function setStep(id, status, msg) {
   const m  = document.getElementById('m'+id);
   el.className = 'step ' + status;
   m.textContent = msg;
-  const icons = {ok:'✅', err:'❌', run:'⏳', wait:'⬜'};
-  el.querySelector('.step-ico').textContent = icons[status] || '⬜';
+  const icons = {ok:'✓', err:'✕', run:'…', wait:'·'};
+  el.querySelector('.step-ico').textContent = icons[status] || '·';
 }
 
 async function withTimeout(p, ms=8000) {
@@ -109,7 +109,7 @@ async function withTimeout(p, ms=8000) {
 
 async function runDiag() {
   document.getElementById('runBtn').disabled = true;
-  document.getElementById('runBtn').textContent = '⏳ Running...';
+  document.getElementById('runBtn').textContent = 'Running...';
 
   // Step 1 — client init
   setStep(1,'run','Checking Supabase client...');

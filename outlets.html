@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Outlet Master — SSP</title>
+<title>Outlet Master — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="js/config.js?v=3"></script>
@@ -276,16 +276,16 @@ select.finput{appearance:auto}
 .sku-auto{background:#FFFBF0 !important;color:#7B5E00 !important;font-size:11px;font-style:italic}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=21">
-<link rel="stylesheet" href="css/ssp-type.css?v=5">
+<link rel="stylesheet" href="css/ssp-type.css?v=9">
 </head>
 <body>
 
 <!-- SIDEBAR -->
 <nav class="sidebar">
   <div class="sb-logo">
-    <div class="sb-logo-icon">🏢</div>
+    <div class="sb-logo-icon"></div>
     <div class="sb-logo-text">
-      <h3>SSP</h3>
+      <h3>Archive</h3>
       <p>Sales &amp; Promotion</p>
     </div>
   </div>
@@ -357,9 +357,9 @@ select.finput{appearance:auto}
     <select class="flt" id="fltProvince" onchange="applyFilters()"><option value="">All Provinces</option></select>
     <div class="spacer"></div>
     <!-- RIGHT: Import → Export → Log → Count -->
-    <button class="btn-import" onclick="openImport()">⬆ Import</button>
-    <button class="btn-export-dark" onclick="exportExcel()">⬇ Export</button>
-    <button class="btn-secondary" onclick="openLog()">📜 Log History</button>
+    <button class="btn-import" onclick="openImport()">Import</button>
+    <button class="btn-export-dark" onclick="exportExcel()">Export</button>
+    <button class="btn-secondary" onclick="openLog()">Log History</button>
     <span class="rc-tag" id="rowCount">Loading...</span>
   </div>
 
@@ -379,7 +379,7 @@ select.finput{appearance:auto}
 
   <!-- Table -->
   <div class="tcard">
-    <div class="tscroll"><div id="tableWrap"><div class="empty-state"><div class="ei">⏳</div><p>Loading...</p></div></div></div>
+    <div class="tscroll"><div id="tableWrap"><div class="empty-state"><div class="ei"></div><p>Loading...</p></div></div></div>
     <div class="pagi" id="pagiWrap"></div>
   </div>
 </div>
@@ -389,7 +389,7 @@ select.finput{appearance:auto}
   <div class="form-modal" style="max-width:660px">
     <div class="fmhdr">
       <div>
-        <div class="fmtitle">⬆ Import Outlets</div>
+        <div class="fmtitle">Import Outlets</div>
         <div class="fmsub">Add or update outlets from Excel — <span>duplicate name = replace existing</span></div>
       </div>
       <button class="fmx" onclick="closeImport()">✕</button>
@@ -402,7 +402,7 @@ select.finput{appearance:auto}
         <div style="flex:1">
           <div class="imp-step-title">Download Template</div>
           <div class="imp-step-desc">Download the Excel template with column headers matching your database.</div>
-          <button class="btn-outline" onclick="downloadTemplate()" style="margin-top:10px;font-size:12.5px">⬇️ Download Template (.xlsx)</button>
+          <button class="btn-outline" onclick="downloadTemplate()" style="margin-top:10px;font-size:12.5px">Download Template (.xlsx)</button>
         </div>
       </div>
 
@@ -415,7 +415,7 @@ select.finput{appearance:auto}
           <div class="imp-dropzone" id="impDropzone"
                onclick="document.getElementById('impFileInput').click()"
                ondragover="impDragOver(event)" ondragleave="impDragLeave(event)" ondrop="impDrop(event)">
-            <div class="imp-dz-icon">📂</div>
+            <div class="imp-dz-icon"></div>
             <div class="imp-dz-text" id="impDzText">Click or Drag & Drop Excel file here</div>
             <div class="imp-dz-sub">.xlsx or .xls only</div>
           </div>
@@ -438,7 +438,7 @@ select.finput{appearance:auto}
     </div>
     <div class="fmftr">
       <button class="btn-cancel" onclick="closeImport()">Cancel</button>
-      <button class="btn-save" id="impDoBtn" style="display:none;background:linear-gradient(135deg,#22C55E,#16A34A)" onclick="doImport()">⬆ Import Records</button>
+      <button class="btn-save" id="impDoBtn" style="display:none;background:linear-gradient(135deg,#22C55E,#16A34A)" onclick="doImport()">Import Records</button>
     </div>
   </div>
 </div>
@@ -446,7 +446,7 @@ select.finput{appearance:auto}
 <!-- LOG DRAWER -->
 <div class="log-drawer" id="logDrawer">
   <div class="lhdr">
-    <h3>📜 Log History</h3>
+    <h3>Log History</h3>
     <p>Last 50 changes — Restore to revert</p>
     <button class="lhdr-x" onclick="closeLog()">✕</button>
   </div>
@@ -459,7 +459,7 @@ select.finput{appearance:auto}
     <!-- Discard confirmation shield -->
     <div class="discard-shield" id="addDiscardShield">
       <div class="discard-card">
-        <div class="discard-icon">⚠️</div>
+        <div class="discard-icon"></div>
         <div class="discard-title">Leave without saving?</div>
         <div class="discard-msg">All entered data will be lost.<br>Are you sure you want to leave?</div>
         <div class="discard-btns">
@@ -483,7 +483,7 @@ select.finput{appearance:auto}
     <div class="fmbody" id="addFormBody"></div>
     <div class="fmftr">
       <button class="btn-cancel" onclick="safeCloseAdd()">Cancel</button>
-      <button class="btn-save"   onclick="saveAdd()">💾 Save Outlet</button>
+      <button class="btn-save"   onclick="saveAdd()">Save Outlet</button>
     </div>
   </div>
 </div>
@@ -498,7 +498,7 @@ select.finput{appearance:auto}
     <div class="fmbody" id="editFormBody"></div>
     <div class="fmftr">
       <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
-      <button class="btn-save"   onclick="saveEdit()">💾 Save Changes</button>
+      <button class="btn-save"   onclick="saveEdit()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -516,7 +516,7 @@ select.finput{appearance:auto}
     <div id="addPreviewBody" style="background:#fff;border-radius:12px;padding:0;font-size:13px;line-height:1.5;overflow:hidden"></div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
       <button class="btn-cancel" onclick="closeAddPreview()">← Edit</button>
-      <button class="btn-save" id="addPreviewSaveBtn" onclick="confirmAdd()">✅ Confirm & Save</button>
+      <button class="btn-save" id="addPreviewSaveBtn" onclick="confirmAdd()">Confirm & Save</button>
     </div>
   </div>
 </div>
@@ -524,7 +524,7 @@ select.finput{appearance:auto}
 <!-- DELETE CONFIRM -->
 <div class="overlay" id="delOverlay">
   <div class="confirm-modal">
-    <div style="font-size:52px;margin-bottom:14px">🗑️</div>
+    
     <div style="font-size:16px;font-weight:800;color:#170305;margin-bottom:6px" id="delName">—</div>
     <div style="font-size:13px;color:#BD1728;font-weight:400">This outlet will be permanently deleted.<br>Restorable from Log History.</div>
     <div style="display:flex;gap:10px;justify-content:center;margin-top:24px">
@@ -661,7 +661,7 @@ async function checkAuth(){
 async function loadData(){
   const wrap=document.getElementById('tableWrap');
   const cntEl=document.getElementById('rowCount');
-  wrap.innerHTML='<div class="empty-state"><div class="ei">⏳</div><p id="loadMsg">Loading records...</p></div>';
+  wrap.innerHTML='<div class="empty-state"><div class="ei"></div><p id="loadMsg">Loading records...</p></div>';
 
   /* paginated fetch — bypass Supabase 1000-row PostgREST default limit */
   const BATCH=1000;
@@ -669,7 +669,7 @@ async function loadData(){
   while(true){
     const{data,error}=await supabase.from(TABLE).select('*').range(from,from+BATCH-1);
     if(error){
-      wrap.innerHTML=`<div class="empty-state"><div class="ei">⚠️</div><p>Load failed: ${esc(error.message)}<br><small style="color:#F39CA5">Run database/1-setup/setup_full.sql in Supabase SQL Editor</small></p></div>`;
+      wrap.innerHTML=`<div class="empty-state"><div class="ei"></div><p>Load failed: ${esc(error.message)}<br><small style="color:#F39CA5">Run database/1-setup/setup_full.sql in Supabase SQL Editor</small></p></div>`;
       cntEl.textContent='Load failed';return;
     }
     if(!data||!data.length) break;
@@ -680,7 +680,7 @@ async function loadData(){
     from+=BATCH;
   }
   if(!allRows.length){
-    wrap.innerHTML='<div class="empty-state"><div class="ei">📭</div><p>No outlets found</p></div>';
+    wrap.innerHTML='<div class="empty-state"><div class="ei"></div><p>No outlets found</p></div>';
     cntEl.textContent='0 records';
     buildStats([]);return;
   }
@@ -815,12 +815,12 @@ function fv(v,col){
 function renderTable(){
   const start=(page-1)*PAGE_SIZE,rows=filtered.slice(start,start+PAGE_SIZE);
   const wrap=document.getElementById('tableWrap');
-  if(!filtered.length){wrap.innerHTML='<div class="empty-state"><div class="ei">🔍</div><p>No outlets match the current filters.</p></div>';document.getElementById('pagiWrap').innerHTML='';return;}
-  if(!visibleCols.length){wrap.innerHTML='<div class="empty-state"><div class="ei">👁️</div><p>No columns selected — click ⊞ Columns to show columns.</p></div>';document.getElementById('pagiWrap').innerHTML='';return;}
+  if(!filtered.length){wrap.innerHTML='<div class="empty-state"><div class="ei"></div><p>No outlets match the current filters.</p></div>';document.getElementById('pagiWrap').innerHTML='';return;}
+  if(!visibleCols.length){wrap.innerHTML='<div class="empty-state"><div class="ei"></div><p>No columns selected — click ⊞ Columns to show columns.</p></div>';document.getElementById('pagiWrap').innerHTML='';return;}
   const arrow=c=>sortCol===c?(sortAsc?' sa':' sd'):'';
   const lbl=c=>c.replace(/_/g,' ');
   const codeColName=colMap['Outlet Code'];
-  wrap.innerHTML=`<table><thead><tr><th style="width:36px">#</th>${visibleCols.map(c=>`<th class="${arrow(c)}" onclick="sortBy('${esc(c)}')">${esc(lbl(c))}</th>`).join('')}<th>Actions</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td style="color:#F39CA5;font-size:12px">${start+i+1}</td>${visibleCols.map(c=>`<td class="${c===outletNameCol?'col-outletname':''}" title="${esc(String(r[c]??''))}">${fv(r[c],c)}</td>`).join('')}<td><div class="td-act"><button class="bte" onclick="openEdit(${r[pkCol]})">✏️ Edit</button>${codeColName&&r[codeColName]?`<a class="btu" href="data_u.html?code=${encodeURIComponent(String(r[codeColName]??''))}" title="View Data U for this outlet">📂</a>`:''}<button class="btd" onclick="openDel(${r[pkCol]})">🗑️</button></div></td></tr>`).join('')}</tbody></table>`;
+  wrap.innerHTML=`<table><thead><tr><th style="width:36px">#</th>${visibleCols.map(c=>`<th class="${arrow(c)}" onclick="sortBy('${esc(c)}')">${esc(lbl(c))}</th>`).join('')}<th>Actions</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td style="color:#F39CA5;font-size:12px">${start+i+1}</td>${visibleCols.map(c=>`<td class="${c===outletNameCol?'col-outletname':''}" title="${esc(String(r[c]??''))}">${fv(r[c],c)}</td>`).join('')}<td><div class="td-act"><button class="bte" onclick="openEdit(${r[pkCol]})">Edit</button>${codeColName&&r[codeColName]?`<a class="btu" href="data_u.html?code=${encodeURIComponent(String(r[codeColName]??''))}" title="View Data U for this outlet">Data U</a>`:''}<button class="btd" onclick="openDel(${r[pkCol]})">Delete</button></div></td></tr>`).join('')}</tbody></table>`;
   renderPagi();
 }
 
@@ -1307,22 +1307,22 @@ function saveAdd(){
       </div>
     </div>
     ${divider('Outlet & Company')}
-    ${row('🏪','Outlet Name',name)}
-    ${row('📋','Contract',contract)}
-    ${primaryContract?row('📋','Primary',primaryContract):''}
-    ${row('🏢','Company',company)}
-    ${row('👥','Group',group)}
+    ${row('','Outlet Name',name)}
+    ${row('','Contract',contract)}
+    ${primaryContract?row('','Primary',primaryContract):''}
+    ${row('','Company',company)}
+    ${row('','Group',group)}
     ${divider('Responsible')}
-    ${row('👤','BDE',bde)}
-    ${row('🗂️','Team',team)}
+    ${row('','BDE',bde)}
+    ${row('','Team',team)}
     ${divider('Location')}
-    ${locationLine?row('📍','Area',locationLine):''}
-    ${roadLine?row('🛣️','Road / Soi',roadLine):''}
+    ${locationLine?row('','Area',locationLine):''}
+    ${roadLine?row('','Road / Soi',roadLine):''}
     ${divider('Alchemy Type')}
-    ${row('🍷','Outlet Type',alchType)}
+    ${row('','Outlet Type',alchType)}
     ${alchSub?row('↳','Sub Type',alchSub):''}
-    ${alchImg?row('🖼️','Image',alchImg):''}
-    ${alchVol?row('📊','Volume',alchVol):''}
+    ${alchImg?row('','Image',alchImg):''}
+    ${alchVol?row('','Volume',alchVol):''}
   `.replace(/\n\s*\n/g,'\n');
 
   document.getElementById('addPreviewOverlay').classList.add('open');
@@ -1333,9 +1333,9 @@ function closeAddPreview(){document.getElementById('addPreviewOverlay').classLis
 async function confirmAdd(){
   if(!addPendingVals){closeAddPreview();return;}
   const btn=document.getElementById('addPreviewSaveBtn');
-  btn.disabled=true;btn.textContent='⏳ Saving...';
+  btn.disabled=true;btn.textContent='Saving...';
   const{error}=await supabase.from(TABLE).insert([addPendingVals]);
-  btn.disabled=false;btn.textContent='✅ Confirm & Save';
+  btn.disabled=false;btn.textContent='Confirm & Save';
   if(error){showToast('Error: '+error.message,'err');return;}
   await writeLog('INSERT',null,null,addPendingVals);
   /* Auto link-save to Data U: insert outlet code + name + company name */
@@ -1355,7 +1355,7 @@ async function confirmAdd(){
   const _skuCount=addPendingSkuRows?.length||0;
   addPendingVals=null;addPendingSkuRows=null;
   closeAddPreview();closeAdd();
-  showToast(`✅ Outlet added${_skuCount?` + ${_skuCount} SKU(s) recorded`:''}`);
+  showToast(`Outlet added${_skuCount?` + ${_skuCount} SKU(s) recorded`:''}`);
   loadData();
 }
 function openEdit(id){
@@ -1384,7 +1384,7 @@ async function saveEdit(){
     if(Object.keys(_sync).length)
       supabase.from('Data Universe').update(_sync).eq('Outlet Code',editTarget[_codeCol]); /* fire-and-forget */
   }
-  closeEdit();showToast('✅ Changes saved');loadData();
+  closeEdit();showToast('Changes saved');loadData();
 }
 function openDel(id){
   delTarget=allData.find(r=>r[pkCol]==id);  /* == (not ===) handles number/string mismatch */
@@ -1408,7 +1408,7 @@ async function confirmDel(){
     return;
   }
   await writeLog('DELETE',delId,old,null);
-  closeDel();showToast('🗑️ Outlet deleted','inf');loadData();
+  closeDel();showToast('Outlet deleted','inf');loadData();
 }
 
 /* ============================================================
@@ -1419,7 +1419,7 @@ async function openLog(){
   document.getElementById('logDrawer').classList.add('open');
   const{data}=await supabase.from(LOG_TABLE).select('*').order('changed_at',{ascending:false}).limit(50);
   const body=document.getElementById('logBody');
-  if(!data||!data.length){body.innerHTML='<div style="text-align:center;padding:40px 20px;color:#F39CA5"><div style="font-size:36px;margin-bottom:10px">📭</div><p style="font-size:13px">No changes yet</p></div>';return;}
+  if(!data||!data.length){body.innerHTML='<div style="text-align:center;padding:40px 20px;color:#F39CA5"><p style="font-size:13px">No changes yet</p></div>';return;}
   body.innerHTML=data.map(l=>{const cls=l.action==='INSERT'?'li':l.action==='UPDATE'?'lu':'ld';const nm=outletNameCol&&(l.new_data||l.old_data)?((l.new_data||l.old_data)[outletNameCol]||'Record #'+l.record_id):'Record #'+l.record_id;const ts=new Date(l.changed_at).toLocaleString('th-TH');return`<div class="litem ${cls}"><div class="la">${l.action}</div><div class="ldesc">${esc(nm)}</div><div class="lmeta">by ${esc(l.changed_by)} · ${ts}</div>${l.action!=='INSERT'?`<button class="brst" onclick="restoreLog('${l.id}','${l.action}')">↩ Restore</button>`:''}</div>`;}).join('');
 }
 function closeLog(){document.getElementById('logDrawer').classList.remove('open');}
@@ -1434,7 +1434,7 @@ async function restoreLog(logId,action){
 /* ============================================================
    EXPORT · REALTIME · EVENTS
    ============================================================ */
-function exportExcel(){if(!filtered.length){showToast('No data to export','err');return;}const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(filtered),'Outlet Master');XLSX.writeFile(wb,`Outlet_Master_${new Date().toISOString().slice(0,10)}.xlsx`);showToast('⬇️ Export downloaded');}
+function exportExcel(){if(!filtered.length){showToast('No data to export','err');return;}const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(filtered),'Outlet Master');XLSX.writeFile(wb,`Outlet_Master_${new Date().toISOString().slice(0,10)}.xlsx`);showToast('Export downloaded');}
 function setupRealtime(){supabase.channel('outlet-rt').on('postgres_changes',{event:'*',schema:'public',table:TABLE},loadData).subscribe();}
 async function logout(){await supabase.auth.signOut();window.location.href='index.html';}
 /* ============================================================
@@ -1468,7 +1468,7 @@ function downloadTemplate(){
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([header]),'Outlet Master');
   XLSX.writeFile(wb,'Outlet_Import_Template.xlsx');
-  showToast('⬇️ Template downloaded');
+  showToast('Template downloaded');
 }
 
 function impDragOver(e){e.preventDefault();document.getElementById('impDropzone').classList.add('drag-over');}
@@ -1493,7 +1493,7 @@ function processImportFile(file){
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
       if(!rows.length){showToast('File is empty or could not be read','err');return;}
-      document.getElementById('impDzText').textContent=`✅ ${file.name}  (${rows.length.toLocaleString()} rows)`;
+      document.getElementById('impDzText').textContent=`${file.name}  (${rows.length.toLocaleString()} rows)`;
       document.getElementById('impDropzone').className='imp-dropzone has-file';
       buildImportPreview(rows);
     }catch(err){showToast('Cannot read file: '+err.message,'err');}
@@ -1543,7 +1543,7 @@ function buildImportPreview(rows){
   document.getElementById('impPreviewWrap').style.display='block';
   const btn=document.getElementById('impDoBtn');
   btn.style.display='';
-  btn.textContent=`⬆ Import ${rows.length.toLocaleString()} Records`;
+  btn.textContent=`Import ${rows.length.toLocaleString()} Records`;
   btn.disabled=false;
 }
 
@@ -1588,7 +1588,7 @@ async function doImport(){
 
   btn.disabled=false;
   closeImport();
-  const msg=`✅ Import complete: Added ${added} | Updated ${updated}${errors?` | Errors ${errors}`:''}`;
+  const msg=`Import complete: Added ${added} | Updated ${updated}${errors?` | Errors ${errors}`:''}`;
   showToast(msg,errors?'inf':'ok');
   loadData();
 }

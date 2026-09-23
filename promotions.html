@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Promotions — SSP</title>
+<title>Promotions — Archive</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="js/config.js?v=3"></script>
@@ -68,7 +68,7 @@ label { font-family: 'Poppins', system-ui, sans-serif; font-size: 11px; font-wei
 .search-box { flex: 1; min-width: 200px; position: relative; }
 .search-box input { width: 100%; padding: 10px 16px 10px 40px; border: 1.5px solid #E5E7EB; border-radius: 10px; font-size: 14px; font-family: inherit; background: #FAFAFA; }
 .search-box input:focus { outline: none; border-color: #85202A; background: #fff; box-shadow: 0 0 0 3px rgba(0,0,0,0.08); }
-.search-box::before { content: '🔍'; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); }
+.search-box::before { content: ''; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); }
 select.filter { padding: 10px 14px; border: 1.5px solid #E5E7EB; border-radius: 10px; font-size: 13px; font-family: inherit; background: #FAFAFA; color: #555; }
 .btn-exp { padding: 10px 18px; border: 1.5px solid #E5E7EB; border-radius: 10px; font-size: 13px; font-family: inherit; font-weight: 600; cursor: pointer; background: #fff; color: #555; display: flex; align-items: center; gap: 6px; transition: all .2s; }
 .btn-exp:hover { background: #FDF3F4; border-color: #85202A; color: #85202A; }
@@ -91,13 +91,13 @@ tr:hover td { background: #FEF6F7; }
 .nav-links a>span{display:inline!important;width:auto!important;max-width:none!important;flex-shrink:1!important;opacity:1!important;color:inherit!important}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=21">
-<link rel="stylesheet" href="css/ssp-type.css?v=5">
+<link rel="stylesheet" href="css/ssp-type.css?v=9">
 </head>
 <body>
 <nav class="sidebar">
   <div class="sb-logo">
-    <div class="sb-logo-icon">🏢</div>
-    <div class="sb-logo-text"><h3>SSP</h3><p>Sales &amp; Promotion</p></div>
+    <div class="sb-logo-icon"></div>
+    <div class="sb-logo-text"><h3>Archive</h3><p>Sales &amp; Promotion</p></div>
   </div>
   <div class="nav-links">
     <div class="nav-section">Main Menu</div>
@@ -127,8 +127,8 @@ tr:hover td { background: #FEF6F7; }
 </nav>
 <div class="main">
   <div class="page-header">
-    <div><h2>🎯 Promotion / Trade Deal <span class="dot"></span></h2><p>Data from "Promotion / Trade deal" table in Supabase — Real-time sync</p></div>
-    <button class="btn-exp" onclick="exportExcel()">⬇️ Export Excel</button>
+    <div><h2>Promotion / Trade Deal <span class="dot"></span></h2><p>Data from "Promotion / Trade deal" table in Supabase — Real-time sync</p></div>
+    <button class="btn-exp" onclick="exportExcel()">Export Excel</button>
   </div>
   <div id="statsStrip" class="stats-strip"></div>
   <div class="toolbar">
@@ -136,7 +136,7 @@ tr:hover td { background: #FEF6F7; }
     <select id="colFilter" class="filter" onchange="filterRows()" style="display:none"><option value="">All columns</option></select>
     <span class="row-count" id="rowCount">Loading...</span>
   </div>
-  <div class="table-card"><div class="overflow-x"><div id="tableWrap"><div class="empty"><div class="ei">⏳</div><p>กำลังโหลด...</p></div></div></div></div>
+  <div class="table-card"><div class="overflow-x"><div id="tableWrap"><div class="empty"><div class="ei"></div><p>กำลังโหลด...</p></div></div></div></div>
 </div>
 <script>
 const TABLE = 'Promotion / Trade deal';
@@ -155,8 +155,8 @@ async function checkAuth() {
 async function loadData() {
   const { data, error } = await supabase.from(TABLE).select('*').limit(5000);
   const wrap = document.getElementById('tableWrap');
-  if (error) { wrap.innerHTML = `<div class="empty"><div class="ei">⚠️</div><p>Failed to load: ${error.message}<br><small style="color:#ccc">Run database/1-setup/add_rls_existing_tables.sql in Supabase SQL Editor</small></p></div>`; document.getElementById('rowCount').textContent = 'Load failed'; return; }
-  if (!data || !data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">📭</div><p>No promotions found</p></div>'; document.getElementById('rowCount').textContent = '0 records'; return; }
+  if (error) { wrap.innerHTML = `<div class="empty"><div class="ei"></div><p>Failed to load: ${error.message}<br><small style="color:#ccc">Run database/1-setup/add_rls_existing_tables.sql in Supabase SQL Editor</small></p></div>`; document.getElementById('rowCount').textContent = 'Load failed'; return; }
+  if (!data || !data.length) { wrap.innerHTML = '<div class="empty"><div class="ei"></div><p>No promotions found</p></div>'; document.getElementById('rowCount').textContent = '0 records'; return; }
   allData = data; cols = Object.keys(data[0]).filter(c => c !== 'id');
   buildStats(data); buildColFilter(); renderTable(data);
   supabase.channel('promo-trade').on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, loadData).subscribe();
@@ -184,7 +184,7 @@ function sortBy(c) { if (sortCol === c) sortAsc = !sortAsc; else { sortCol = c; 
 function renderTable(data) {
   document.getElementById('rowCount').textContent = `${data.length.toLocaleString()} records`;
   const wrap = document.getElementById('tableWrap');
-  if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">🔍</div><p>No results found</p></div>'; return; }
+  if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei"></div><p>No results found</p></div>'; return; }
   let sorted = [...data];
   if (sortCol) sorted.sort((a, b) => { const av = a[sortCol], bv = b[sortCol]; if (av == null) return 1; if (bv == null) return -1; return sortAsc ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1); });
   const arrow = c => sortCol === c ? (sortAsc ? ' ↑' : ' ↓') : '';

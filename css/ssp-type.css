@@ -117,11 +117,9 @@ select:focus, textarea:focus {
   box-shadow: 0 2px 12px rgba(0,0,0,0.1) !important;
 }
 
-/* Dashboard: quick-action tiles, activity feed, top bar */
-.qa-btn { background: #FFFFFF !important; box-shadow: none !important; }
-.qa-btn:hover { background: #F5F5F5 !important; box-shadow: none !important; }
-.qa-lbl, .feed-txt, .topbar-uname { color: var(--ink) !important; }
-.feed-meta, .topbar-urole, .qa-lbl { font-size: var(--fs-small) !important; }
+/* Dashboard: activity feed, top bar */
+.feed-txt, .topbar-uname { color: var(--ink) !important; }
+.feed-meta, .topbar-urole { font-size: var(--fs-small) !important; }
 .feed-meta, .topbar-urole { color: var(--ink-soft) !important; }
 
 
@@ -129,9 +127,9 @@ select:focus, textarea:focus {
    no shadow outline, no colored top strip, no separator lines */
 .card, .kpi-card, .stat-card, .table-card, .tcard, .tbl-card, .fscard, .add-card,
 .discard-card, .col-picker-panel, .chart-wrap, .strip-item, .toolbar, .section,
-.modal, .mbox, .sku-modal, .login-card, .qa-btn,
+.modal, .mbox, .sku-modal, .login-card,
 .form-modal, .confirm-modal, .log-drawer, .col-flt-panel, .filter-bar, .sku-row, .topbar,
-.card:hover, .kpi-card:hover, .stat-card:hover, .add-card:hover, .qa-btn:hover {
+.card:hover, .kpi-card:hover, .stat-card:hover, .add-card:hover {
   box-shadow: none !important;
 }
 .stat-card::before, .stat-card::after, .kpi-card::before, .kpi-card::after,
@@ -141,4 +139,22 @@ select:focus, textarea:focus {
 }
 .cfp-sep, .fb-sep, .flt-sep, .stat-sep, .topbar-divider, hr {
   background: transparent !important;
+}
+
+/* ── NO EMOJI: hide the (now empty) icon boxes ── */
+.sb-logo-icon, .logo-icon, .logo-ico, .ei, .kpi-ico, .kpi-icon, .nav-ico,
+.topbar-search-ico, .tsearch-ico, .search-ico, .imp-dz-icon, .discard-icon, .feed-avi {
+  display: none !important;
+}
+/* search boxes no longer need room for a magnifier icon */
+.topbar-search input, .tsearch input, .search-wrap input, .search-box input { padding-left: 14px !important; }
+
+/* Contracts page: Marketing Contract stat in orange */
+.strip-item.strip-marketing .sl,
+.strip-item.strip-marketing .sv { color: #EA580C !important; -webkit-text-fill-color: #EA580C !important; }
+
+/* Dashboard page accent = orange (menu bar stays red like other pages) */
+body.page-dashboard {
+  --gold: #EA580C; --gold-light: #FB923C; --gold-dark: #C2410C;
+  --brand: #EA580C; --brand-deep: #C2410C; --brand-mid: #FB923C; --brand-light: #FFF7ED;
 }
