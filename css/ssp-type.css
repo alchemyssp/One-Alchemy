@@ -359,3 +359,132 @@ thead th, thead th * {
 thead th { padding: 14px 14px !important; }
 /* No forced ALL CAPS anywhere — text shows exactly as written / stored */
 body, body * { text-transform: none !important; }
+
+/* ── RED GRADIENT CARDS: white text, bold headline ── */
+.kpi-card .kpi-lbl, .kpi-card .kpi-label, .stat-card .label, .stat-card .lbl,
+.strip-item .sl, .kpi-card .kpi-title, .stat-card .title {
+  color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important;
+  font-weight: var(--fw-bold) !important;
+}
+
+/* ============================================================
+   RESPONSIVE — everything scales down as the window gets smaller
+   ============================================================ */
+
+/* Fluid type: sizes shrink smoothly with the window (max = desktop spec) */
+:root {
+  --t-h1:    clamp(24px, 1.6vw + 17px, 40px);
+  --t-h2:    clamp(20px, 1.2vw + 14px, 32px);
+  --t-h3:    clamp(17px, 0.7vw + 13px, 24px);
+  --t-body:  clamp(13px, 0.25vw + 12.4px, 16px);
+  --t-small: clamp(11px, 0.2vw + 10.2px, 14px);
+  --t-lh-body: 1.7;
+  --fs-body: var(--t-body); --fs-small: var(--t-small);
+  --fs-section: var(--t-h2); --fs-title: var(--t-h1);
+}
+@media (min-width: 768px) {
+  :root { --t-h1: clamp(24px, 1.6vw + 17px, 40px); --t-h2: clamp(20px, 1.2vw + 14px, 32px);
+          --t-h3: clamp(17px, 0.7vw + 13px, 24px); --t-small: clamp(11px, 0.2vw + 10.2px, 14px); }
+}
+
+/* Laptop (≤1280px): tighter spacing, KPI cards 2 per row, charts stack */
+@media (max-width: 1280px) {
+  .main, .page-main, main { padding: 24px !important; }
+  .content { padding: 20px 24px 40px !important; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .charts-row { grid-template-columns: 1fr !important; }
+  .card, .table-card, .tcard, .tbl-card, .toolbar, .section, .filter-bar { padding: 18px !important; }
+  th, td { padding: 8px 10px !important; }
+  thead th { padding: 11px 10px !important; }
+}
+
+/* Tablet (≤1024px): narrower sidebar, two-column rows stack */
+@media (max-width: 1024px) {
+  .sidebar { width: 210px !important; min-width: 210px !important; }
+  .main, .page-main, main { margin-left: 210px !important; }
+  .bottom-row, .fgrid, .fg-grid, .frow { grid-template-columns: 1fr !important; }
+  .toolbar, .filter-bar, .tbl-top, .page-hdr, .page-header { flex-wrap: wrap !important; gap: 10px !important; }
+}
+
+/* Phone / small window (≤768px): sidebar slides in via the Menu button */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 260px !important; min-width: 260px !important;
+    transform: translateX(-100%); transition: transform .25s ease;
+    z-index: 1000 !important;
+  }
+  body.nav-open .sidebar { transform: translateX(0); }
+  .main, .page-main, main { margin-left: 0 !important; padding: 64px 14px 28px !important; }
+  .content { padding: 16px 0 32px !important; }
+  .topbar { padding: 0 14px 0 96px !important; }
+  .kpi-grid { grid-template-columns: 1fr !important; }
+  .card, .table-card, .tcard, .tbl-card, .toolbar, .section, .filter-bar, .kpi-card, .stat-card { padding: 14px !important; border-radius: 14px !important; }
+  .modal, .form-modal, .confirm-modal, .sku-modal { width: 100% !important; max-width: calc(100vw - 24px) !important; }
+  th, td { padding: 7px 8px !important; }
+  thead th { padding: 9px 8px !important; }
+  .toolbar input, .toolbar select, .filter-bar input, .filter-bar select, .search-wrap, .search-box { max-width: 100% !important; }
+}
+
+/* Menu button + backdrop (created by js/responsive.js; only visible ≤768px) */
+.nav-toggle, .nav-shade { display: none; }
+@media (max-width: 768px) {
+  .nav-toggle {
+    display: block; position: fixed; z-index: 1001;
+    top: calc(12px + env(safe-area-inset-top, 0px)); left: 12px;
+    padding: 8px 16px; border-radius: 10px;
+    background: #B0120A !important; color: #FFFFFF !important;
+    font-weight: var(--fw-medium) !important; cursor: pointer;
+  }
+  body.nav-open .nav-shade { display: block; position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,.35); }
+}
+
+/* Tables never push the page sideways — they scroll inside their box */
+.table-card, .tcard, .tbl-card, #tableWrap, .table-wrap, .tbl-wrap { overflow-x: auto !important; max-width: 100%; }
+body { overflow-x: hidden; }
+
+/* Content column may shrink below its widest child (tables scroll instead) */
+.main, .page-main, main, .content { min-width: 0 !important; }
+@media (max-width: 768px) {
+  .main, .page-main, main { width: 100% !important; max-width: 100vw !important; }
+  .page-hdr, .page-header { flex-direction: column !important; align-items: flex-start !important; }
+  .topbar-search { max-width: none !important; }
+}
+
+/* ── RED CARDS (final): every text & number white, numbers bigger ── */
+body .kpi-card, body .kpi-card *,
+body .stat-card, body .stat-card *,
+body .strip-item, body .strip-item * {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+}
+body .kpi-card .kpi-num, body .kpi-card .kpi-value,
+body .stat-card .stat-num, body .stat-card .value,
+body .strip-item .sv {
+  font-size: clamp(24px, 1.5vw + 14px, 36px) !important;
+  font-weight: var(--fw-bold) !important;
+  line-height: 1.15 !important;
+  background: none !important;
+}
+/* inner number span (Data U) follows the number size; unit text stays small */
+body .kpi-card .kpi-num span:first-child { font-size: inherit !important; font-weight: inherit !important; }
+body .kpi-card .kpi-num span:last-child:not(:first-child) { font-size: var(--t-small) !important; font-weight: var(--fw-regular) !important; }
+body .kpi-card .kpi-num, body .kpi-card .kpi-value, body .kpi-card .kpi-num *,
+body .stat-card .stat-num, body .stat-card .value, body .stat-card .label, body .stat-card .sub,
+body .strip-item .sv, body .strip-item .sl {
+  color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important;
+}
+
+/* ── MAIN SIDEBAR: darker than the cards ──
+   cards = #B0120A → #F36C60 ; sidebar = deep red #6E0B06 → #B0120A */
+.sidebar {
+  background: linear-gradient(180deg, #5C0905 0%, #7E0D07 50%, #B0120A 100%) !important;
+}
+.sidebar .sidebar-user { background: rgba(0,0,0,.22) !important; }
+.sidebar .nav-links a.active, .sidebar .nav-links a.nav-sub.active,
+.sidebar .sb-avatar { color: #7E0D07 !important; }
+
+/* ── SIDEBAR LOGO: "Archive / One for All", bigger and centered ── */
+.sidebar .sb-logo { justify-content: center !important; text-align: center !important; padding: 28px 16px 22px !important; }
+.sidebar .sb-logo-text { width: 100%; text-align: center !important; }
+.sidebar .sb-logo-text h3 { font-size: 28px !important; font-weight: var(--fw-bold) !important; line-height: 1.2 !important; margin: 0 !important; }
+.sidebar .sb-logo-text p  { font-size: 16px !important; font-weight: var(--fw-regular) !important; color: rgba(255,255,255,.85) !important; margin-top: 4px !important; }
