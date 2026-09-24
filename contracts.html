@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="js/contract-dashboard.js?v=5"></script>
-<script src="js/contract-edit.js?v=11"></script>
+<script src="js/contract-edit.js?v=12"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Poppins', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
@@ -145,7 +145,7 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
 .cfp-btn-ok:hover { background: #B0120A; }
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=79">
+<link rel="stylesheet" href="css/ssp-type.css?v=82">
 <script src="js/theme.js?v=1"></script>
 </head>
 <body>
@@ -195,9 +195,11 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
   </div>
   <div id="ctDash" hidden></div>
   <div id="ctRaw" hidden>
-  <div id="statsStrip" class="stats-strip ct-stats"></div>
-  <!-- Yearly only: view-only list of documents on hand (filled in by renderOnDocCard) -->
-  <section class="card otd-card ct-od-card" id="ctOdCard" aria-readonly="true" hidden></section>
+  <div class="ct-top">
+    <div id="statsStrip" class="stats-strip ct-stats"></div>
+    <!-- Yearly only: small view-only card — documents on hand (filled in by renderOnDocCard) -->
+    <section class="ct-od-card" id="ctOdCard" aria-readonly="true" hidden></section>
+  </div>
   <div class="toolbar ct-toolbar">
     <div class="search-box"><input type="text" id="searchInput" placeholder="Search..." oninput="filterRows()"></div>
     <span id="fltExtra" class="flt-extra"></span>
@@ -322,6 +324,7 @@ window.addEventListener('hashchange', showView);
 /* ── PHASE 1: load first 1 000 rows of the chosen file fast → show immediately ── */
 async function loadData() {
   if (!VIEW) { _bgGen++; return ContractDashboard.load(document.getElementById('ctDash')); }
+  setTimeout(loadOutletMaster, 300);   /* lookups for the Add / Edit form, fetched in the background */
   const V = VIEWS[VIEW], view = VIEW;
   const wrap = document.getElementById('tableWrap');
   wrap.innerHTML = '<div class="empty"><div class="ei"></div><p>Loading…</p></div>';
@@ -421,13 +424,17 @@ function renderOnDocCard() {
   const rows = allData.filter(r => { const v = String(r['ON DOC'] ?? '').trim(); return v && v !== '.'; })
     .sort((a, b) => String(onDocCanon(a['ON DOC'])).localeCompare(String(onDocCanon(b['ON DOC']))) || String(a['OUTLET NAME'] ?? '').localeCompare(String(b['OUTLET NAME'] ?? '')));
   box.hidden = false;
-  box.innerHTML = `<h3 class="card-title">Documents on Hand (On Doc) — ${rows.length.toLocaleString()} contract${rows.length === 1 ? '' : 's'}</h3>` +
-    (rows.length ? `<div class="otd-tablewrap ct-od-wrap"><table class="otd-prod ct-od-tbl"><thead><tr><th>Outlet</th><th>Contract of (BDE)</th><th>On hand with</th></tr></thead><tbody>` +
-      rows.map(r => { const h = onDocStyle(r['ON DOC']);
-        return `<tr><td>${esc(r['OUTLET NAME'] || r['CODE OUTLET'] || '')}</td><td>${esc(r['CURRENT BDE'] || r['BDE'] || '—')}</td>` +
-          `<td><span class="ctd-od-tag"${h ? ` style="background:${h.bg};color:${h.fg}"` : ''}>${esc(onDocCanon(r['ON DOC']))}</span></td></tr>`; }).join('') +
-      '</tbody></table></div>'
-      : '<p class="ctd-empty">No documents on hand — every On Doc is blank</p>');
+  /* small table: outlet · BDE · who holds the document (color chip) */
+  const short = v => String(v).replace(/^Wait ?for ?/i, '').replace(/ to sign$/i, '');
+  box.innerHTML = `<div class="ct-od-head"><span>Documents on Hand</span><b>${rows.length.toLocaleString()}</b></div>` +
+    (rows.length ? '<div class="ct-od-wrap"><table class="ct-od-tbl"><thead><tr><th>Outlet</th><th>BDE</th><th>On hand with</th></tr></thead><tbody>' +
+      rows.map(r => {
+        const h = onDocStyle(r['ON DOC']), who = onDocCanon(r['ON DOC']);
+        return `<tr><td title="${esc(r['OUTLET NAME'] || '')}">${esc(r['OUTLET NAME'] || r['CODE OUTLET'] || '')}</td>` +
+          `<td>${esc(r['CURRENT BDE'] || r['BDE'] || '—')}</td>` +
+          `<td><span class="ct-od-chip" title="${esc(who)}"${h ? ` style="background:${h.bg};color:${h.fg} !important;-webkit-text-fill-color:${h.fg} !important"` : ''}>${esc(short(who))}</span></td></tr>`;
+      }).join('') + '</tbody></table></div>'
+      : '<p class="ct-od-none">Nothing on hand</p>');
 }
 
 /* ── Hide / show the Number of Contract column (remembered in this browser) ── */
@@ -771,7 +778,7 @@ checkAuth();
 <script src="js/contract-import.js?v=2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="js/contract-export.js?v=1"></script>
-<script src="js/contract-tools.js?v=2"></script>
+<script src="js/contract-tools.js?v=5"></script>
 </body>
 </html>
 

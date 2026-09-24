@@ -190,20 +190,20 @@ const OM_MAP = {
   'OUTLET NAME': 'Outlet Name', 'CODE OUTLET': 'Outlet Code', 'COMPANY': 'Company Name', 'GROUP NAME': 'Group Name',
   'TEAM': 'Team', 'CURRENT BDE': 'Current BDE', 'BDE': 'BDE', 'AREA': 'Region', 'PROVINCE': 'Province',
 };
-let _om = null;
-async function loadOutletMaster() {
-  if (_om) return _om;
+/* Outlet Master for the lookups: loaded once in the background (pages fetched in parallel) so the form opens at once */
+let _om = null, _omLoading = null;
+function loadOutletMaster() {
+  if (_om) return Promise.resolve(_om);
+  if (_omLoading) return _omLoading;
   const sel = Object.values(OM_MAP).map(c => `"${c}"`).join(',');
-  let rows = [], from = 0;
-  while (true) {
-    const { data, error } = await supabase.from('Outlet Master').select(sel).range(from, from + 999);
-    if (error || !data || !data.length) break;
-    rows = rows.concat(data);
-    if (data.length < 1000) break;
-    from += 1000;
-  }
-  _om = rows;
-  return rows;
+  _omLoading = (async () => {
+    const { count } = await supabase.from('Outlet Master').select('"Outlet Code"', { count: 'exact', head: true });
+    const pages = Math.max(1, Math.ceil((count || 1000) / 1000));
+    const res = await Promise.all(Array.from({ length: pages }, (_, i) => supabase.from('Outlet Master').select(sel).range(i * 1000, i * 1000 + 999)));
+    _om = [].concat(...res.map(r => r.data || []));
+    return _om;
+  })().catch(() => { _omLoading = null; return []; });
+  return _omLoading;
 }
 
 /* dates: stored "1-Mar-26" (same as the Excel import) · shown "1 Mar 26" · picked with a calendar
@@ -265,9 +265,13 @@ async function openRowEdit(id, opts) {
   const row = isNew ? Object.fromEntries(Object.entries(base).filter(([k]) => !DEAL_COLS.includes(k) && k !== 'id')) : base;
   const addDeal = isNew && !!opts.prefill;                        /* adding a trade deal to an existing promotion */
   const multiDeal = isNew && VIEW === 'marketing';                /* new marketing rows: many trade-deal lines */
-  const om = await loadOutletMaster();
-  const omValues = c => [...new Set(om.map(r => r[c]).filter(v => v != null && String(v).trim() !== '').map(v => String(v).trim()))]
-    .sort((a, b) => a.localeCompare(b, 'th'));
+  loadOutletMaster();   /* usually ready already (started when the tab opened); the lists fill in as soon as it arrives */
+  const omCache = {};
+  const omValues = c => {
+    if (!_om) return [];
+    return omCache[c] || (omCache[c] = [...new Set(_om.map(r => r[c]).filter(v => v != null && String(v).trim() !== '').map(v => String(v).trim()))]
+      .sort((a, b) => a.localeCompare(b, 'th')));
+  };
   const optionsFor = c => OM_MAP[c] ? omValues(OM_MAP[c]) : usedValues(c);
   const fields = V.cols.concat(cols.filter(c => !V.cols.includes(c)));
 
@@ -376,7 +380,7 @@ async function openRowEdit(id, opts) {
 
   /* Outlet Name / Outlet Code picked → fill outlet fields from Outlet Master */
   const fillFrom = col => {
-    const o = om.find(r => String(r[OM_MAP[col]] ?? '').trim().toLowerCase() === get(col).toLowerCase());
+    const o = (_om || []).find(r => String(r[OM_MAP[col]] ?? '').trim().toLowerCase() === get(col).toLowerCase());
     if (!o) return;
     Object.keys(OM_MAP).forEach(c => { if (c !== col && inp(c) && o[OM_MAP[c]] != null) inp(c).value = String(o[OM_MAP[c]]).trim(); });
   };
