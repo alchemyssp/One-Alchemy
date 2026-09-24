@@ -41,7 +41,9 @@ window.ContractTools = (function () {
       '<div id="ctmSum" class="ct-msum"></div><div class="otd-tablewrap ct-mwrap"><table class="otd-prod ct-mtbl" id="ctmTbl"></table></div>';
     var foot = '<button class="oti-cancel" type="button" data-close>Close</button>' +
       '<button class="ct-tool" type="button" id="ctmXlsx">Download Excel</button>' +
-      '<button class="oti-go" type="button" id="ctmMail">Send by e-mail</button>';
+      '<button class="ct-tool" type="button" id="ctmCopy">Copy summary</button>' +
+      '<button class="ct-tool" type="button" id="ctmMail">Mail app</button>' +
+      '<button class="oti-go" type="button" id="ctmOutlook">Send with Outlook</button>';
     var ov = modal('ctMonthly', 'Monthly Summary — ' + V.title, 'Contracts that are complete in the chosen month', body, foot);
     var rowsFor = null, contracts = [];
     var fillMonths = function () {
@@ -85,24 +87,53 @@ window.ContractTools = (function () {
       if (!rowsFor.length) { ctToast('No complete contracts in this month', true); return; }
       exportExcel(rowsFor, V.file + '_Complete_' + $('ctmMonth').value);
     };
-    /* e-mail: opens the mail program with the summary filled in (attach the downloaded Excel if needed) */
-    $('ctmMail').onclick = function () {
-      if (!contracts.length) { ctToast('No complete contracts in this month', true); return; }
-      var lines = contracts.slice(0, 60).map(function (g, i) {
+    /* e-mail text (subject + body); the body is also copied, so it can be pasted if a mail window does not open */
+    var mailText = function (maxLines) {
+      var lines = contracts.slice(0, maxLines).map(function (g, i) {
         var r = g[0];
         return (i + 1) + '. ' + (r['OUTLET NAME'] || r['CODE OUTLET'] || '') + ' — ' + (r['Code of Contract'] || '') + ' — ' +
           (r['Promotion'] || '') + ' — ' + dateShow(r['START']) + ' to ' + dateShow(r['END']) + ' — ' + (r['CURRENT BDE'] || r['BDE'] || '');
       });
-      var subject = 'Complete ' + V.title + 's — ' + monthName() + ' (' + contracts.length + ')';
-      var body = 'Hi,\n\n' + contracts.length + ' ' + V.title + (contracts.length === 1 ? ' is' : 's are') + ' complete in ' + monthName() +
-        ' (no On Doc; Status On Doc Signed or blank):\n\n' + lines.join('\n') +
-        (contracts.length > 60 ? '\n… and ' + (contracts.length - 60) + ' more (see the attached Excel).' : '') +
-        '\n\nFull details: Archive → Contract Master → ' + V.title + ' → Monthly summary.\n';
-      var to = $('ctmTo').value.trim();
-      window.location.href = 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      return {
+        subject: 'Complete ' + V.title + 's — ' + monthName() + ' (' + contracts.length + ')',
+        body: 'Hi,\n\n' + contracts.length + ' ' + V.title + (contracts.length === 1 ? ' is' : 's are') + ' complete in ' + monthName() +
+          ' (no On Doc; Status On Doc Signed or blank):\n\n' + lines.join('\n') +
+          (contracts.length > maxLines ? '\n… and ' + (contracts.length - maxLines) + ' more (see the attached Excel).' : '') +
+          '\n\nFull details: Archive → Contract Master → ' + V.title + ' → Monthly summary.\n',
+      };
+    };
+    var ready = function () { if (!contracts.length) { ctToast('No complete contracts in this month', true); return false; } return true; };
+    var copyBody = async function (t) {
+      try { await navigator.clipboard.writeText(t.subject + '\n\n' + t.body); return true; } catch (e) { return false; }
+    };
+    $('ctmCopy').onclick = async function () {
+      if (!ready()) return;
+      ctToast(await copyBody(mailText(1000)) ? 'Summary copied — paste it into any e-mail' : 'Could not copy', !navigator.clipboard);
+    };
+    /* Outlook on the web (Office 365): opens a new e-mail with everything filled in */
+    $('ctmOutlook').onclick = async function () {
+      if (!ready()) return;
+      var t = mailText(150), to = $('ctmTo').value.trim();
+      await copyBody(t);
+      var url = 'https://outlook.office.com/mail/deeplink/compose?to=' + encodeURIComponent(to) +
+        '&subject=' + encodeURIComponent(t.subject) + '&body=' + encodeURIComponent(t.body);
+      var w = window.open(url, '_blank', 'noopener');
+      ctToast(w ? 'Opening Outlook — the summary is also copied' : 'Pop-up blocked — allow pop-ups, or paste the copied summary', !w);
+    };
+    /* the computer's mail program (mailto) — kept short, mail programs refuse very long links */
+    $('ctmMail').onclick = async function () {
+      if (!ready()) return;
+      var n = Math.min(contracts.length, 25), t = mailText(n), to = $('ctmTo').value.trim(), link;
+      while (true) {
+        link = 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent(t.subject) + '&body=' + encodeURIComponent(t.body);
+        if (link.length < 1900 || n <= 3) break;
+        n = Math.max(3, n - 3); t = mailText(n);
+      }
+      await copyBody(mailText(1000));
+      window.location.href = link;
+      ctToast('If no mail window opens, paste the copied summary into your e-mail');
     };
   }
-
   /* ── History (7 days) + Restore ── */
   var ACTION = { INSERT: 'Added', UPDATE: 'Edited', DELETE: 'Deleted' };
   async function history() {
