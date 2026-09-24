@@ -1,0 +1,153 @@
+{
+    "dataSheet": "xl\/worksheets\/sheet1.xml",
+    "tables": [],
+    "sheetName": "Data_Yearly Contracts",
+    "rowOpen": "<row>",
+    "columns": [
+        {
+            "col": "A",
+            "name": "Number of Contract",
+            "style": 87
+        },
+        {
+            "col": "B",
+            "name": "Outlet Code",
+            "style": 92
+        },
+        {
+            "col": "C",
+            "name": "Region",
+            "style": 87
+        },
+        {
+            "col": "D",
+            "name": "Company",
+            "style": 87
+        },
+        {
+            "col": "E",
+            "name": "Province",
+            "style": 87
+        },
+        {
+            "col": "F",
+            "name": "Field",
+            "style": 87
+        },
+        {
+            "col": "G",
+            "name": "Company Name",
+            "style": 89
+        },
+        {
+            "col": "H",
+            "name": "Outlet Name",
+            "style": 124
+        },
+        {
+            "col": "I",
+            "name": "Group Name",
+            "style": 87
+        },
+        {
+            "col": "J",
+            "name": "Team",
+            "style": 87
+        },
+        {
+            "col": "K",
+            "name": "Current BDE",
+            "style": 92
+        },
+        {
+            "col": "L",
+            "name": "BDE",
+            "style": 87
+        },
+        {
+            "col": "M",
+            "name": "Contract Type",
+            "style": 87
+        },
+        {
+            "col": "N",
+            "name": "Total Target (ROI)",
+            "style": 218
+        },
+        {
+            "col": "O",
+            "name": "Aperol Target (Liter)",
+            "style": 219
+        },
+        {
+            "col": "P",
+            "name": "Start Dat",
+            "style": 116
+        },
+        {
+            "col": "Q",
+            "name": "End Date",
+            "style": 102
+        },
+        {
+            "col": "R",
+            "name": "Status",
+            "style": 102
+        },
+        {
+            "col": "S",
+            "name": "TYPE",
+            "style": 101
+        },
+        {
+            "col": "T",
+            "name": "Received Date",
+            "style": 112
+        },
+        {
+            "col": "U",
+            "name": "ROI",
+            "style": 108
+        },
+        {
+            "col": "V",
+            "name": "SCAN",
+            "style": 109
+        },
+        {
+            "col": "W",
+            "name": "Status On Doc",
+            "style": 101
+        },
+        {
+            "col": "X",
+            "name": "On Doc",
+            "style": 107
+        },
+        {
+            "col": "Y",
+            "name": "Remark",
+            "style": 104
+        },
+        {
+            "col": "AA",
+            "name": "Key",
+            "style": 101
+        },
+        {
+            "col": "AB",
+            "name": "Code Check",
+            "style": 100
+        },
+        {
+            "col": "AC",
+            "name": "Assigned No. (locked)",
+            "style": 100
+        },
+        {
+            "col": "AD",
+            "name": "Next Available No.",
+            "style": 100
+        }
+    ]
+}

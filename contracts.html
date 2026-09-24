@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="js/contract-dashboard.js?v=5"></script>
-<script src="js/contract-edit.js?v=10"></script>
+<script src="js/contract-edit.js?v=11"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Poppins', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
@@ -145,7 +145,7 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
 .cfp-btn-ok:hover { background: #B0120A; }
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=72">
+<link rel="stylesheet" href="css/ssp-type.css?v=77">
 <script src="js/theme.js?v=1"></script>
 </head>
 <body>
@@ -195,8 +195,10 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
   </div>
   <div id="ctDash" hidden></div>
   <div id="ctRaw" hidden>
-  <div id="statsStrip" class="stats-strip"></div>
-  <div class="toolbar">
+  <div id="statsStrip" class="stats-strip ct-stats"></div>
+  <!-- Yearly only: view-only list of documents on hand (filled in by renderOnDocCard) -->
+  <section class="card otd-card ct-od-card" id="ctOdCard" aria-readonly="true" hidden></section>
+  <div class="toolbar ct-toolbar">
     <div class="search-box"><input type="text" id="searchInput" placeholder="Search..." oninput="filterRows()"></div>
     <span id="fltExtra" class="flt-extra"></span>
     <select id="fltTeam"       class="filter" onchange="filterRows()" style="display:none"><option value="">All Teams</option></select>
@@ -214,8 +216,14 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
         <div class="cp-list" id="colPickerList"></div>
       </div>
     </div>
-    <button type="button" class="btn-add-row" onclick="openRowEdit(null)">+ Add</button>
+  </div>
+  <!-- actions for this file (own row so the search / filter row stays one line) -->
+  <div class="ct-actions">
     <span class="row-count" id="rowCount">Loading...</span>
+    <button type="button" class="ct-tool" id="btnHideCode" onclick="toggleHideCode()" aria-pressed="false">Hide Number of Contract</button>
+    <button type="button" class="ct-tool" onclick="ContractTools.monthly()">Monthly summary</button>
+    <button type="button" class="ct-tool" onclick="ContractTools.history()">History</button>
+    <button type="button" class="btn-add-row" onclick="openRowEdit(null)">+ Add</button>
   </div>
   <div class="table-card"><div class="overflow-x"><div id="tableWrap"><div class="empty"><div class="ei"></div><p>กำลังโหลด...</p></div></div></div></div>
   </div>
@@ -318,6 +326,7 @@ async function loadData() {
   const wrap = document.getElementById('tableWrap');
   wrap.innerHTML = '<div class="empty"><div class="ei"></div><p>Loading…</p></div>';
   document.getElementById('statsStrip').innerHTML = '';
+  document.getElementById('ctOdCard').hidden = true;
   _typeFilter = '';
   colFilters = {};
   document.getElementById('searchInput').value = '';
@@ -385,21 +394,49 @@ function _detectCols() {
   statusCol = 'Active/Inactive';
   typeCol = null;
   dateCol = 'START';
-  sortCol = 'START';
-  sortAsc = false;   /* newest start first */
+  /* Yearly: latest added rows first (row id grows with every insert / import row) · Marketing: newest start first */
+  sortCol = VIEW === 'yearly' ? 'id' : '__group';
+  sortAsc = false;   /* newest first */
 }
 
 /* ── stats strip (raw view) ── */
+/* one contract = its Number of Contract; Marketing rows without a number: same outlet + period + promotion */
+const groupKey = r => [r['CODE OUTLET'], r['Promotion'], r['START'], r['END']].map(v => String(v ?? '').trim()).join('|');
+const ctKey = r => String(r['Code of Contract'] ?? '').trim() || groupKey(r);
 function buildStats(data) {
-  const n = (f) => data.filter(f).length;
-  const active = n(r => String(r['Active/Inactive'] ?? '').trim().toLowerCase() === 'active');
+  renderOnDocCard();
+  const all = new Set(), act = new Set();
+  data.forEach(r => { const k = ctKey(r); all.add(k); if (String(r['Active/Inactive'] ?? '').trim().toLowerCase() === 'active') act.add(k); });
   const outlets = new Set(data.map(r => r['CODE OUTLET']).filter(Boolean)).size;
-  const contracts = new Set(data.map(r => r['Code of Contract']).filter(Boolean)).size;
-  const total = _totalCount > 0 ? _totalCount : data.length;
-  const item = (l, v) => `<div class="strip-item"><div class="sl">${l}</div><div class="sv">${Number(v).toLocaleString()}</div></div>`;
+  const item = (l, v, cls) => `<div class="ct-stat ${cls}"><div class="ct-stat-l">${l}</div><div class="ct-stat-v">${Number(v).toLocaleString()}</div></div>`;
   document.getElementById('statsStrip').innerHTML =
-    item('Rows', total) + (contracts ? item('Contracts', contracts) : '') +
-    item('Active rows', active) + item('Inactive rows', data.length - active) + item('Outlets', outlets);
+    item('Active Contract', act.size, 'on') + item('Inactive Contract', all.size - act.size, 'off') +
+    item('Total Contract', all.size, 'tot') + item('Outlets', outlets, 'out');
+}
+
+/* ── Documents on Hand (Yearly tab, view only): outlet · whose contract (BDE) · who holds the document (On Doc) ── */
+function renderOnDocCard() {
+  const box = document.getElementById('ctOdCard');
+  if (VIEW !== 'yearly') { box.hidden = true; return; }
+  const rows = allData.filter(r => { const v = String(r['ON DOC'] ?? '').trim(); return v && v !== '.'; })
+    .sort((a, b) => String(onDocCanon(a['ON DOC'])).localeCompare(String(onDocCanon(b['ON DOC']))) || String(a['OUTLET NAME'] ?? '').localeCompare(String(b['OUTLET NAME'] ?? '')));
+  box.hidden = false;
+  box.innerHTML = `<h3 class="card-title">Documents on Hand (On Doc) — ${rows.length.toLocaleString()} contract${rows.length === 1 ? '' : 's'}</h3>` +
+    (rows.length ? `<div class="otd-tablewrap ct-od-wrap"><table class="otd-prod ct-od-tbl"><thead><tr><th>Outlet</th><th>Contract of (BDE)</th><th>On hand with</th></tr></thead><tbody>` +
+      rows.map(r => { const h = onDocStyle(r['ON DOC']);
+        return `<tr><td>${esc(r['OUTLET NAME'] || r['CODE OUTLET'] || '')}</td><td>${esc(r['CURRENT BDE'] || r['BDE'] || '—')}</td>` +
+          `<td><span class="ctd-od-tag"${h ? ` style="background:${h.bg};color:${h.fg}"` : ''}>${esc(onDocCanon(r['ON DOC']))}</span></td></tr>`; }).join('') +
+      '</tbody></table></div>'
+      : '<p class="ctd-empty">No documents on hand — every On Doc is blank</p>');
+}
+
+/* ── Hide / show the Number of Contract column (remembered in this browser) ── */
+let _hideCode = false;
+try { _hideCode = localStorage.getItem('ct_hide_code') === '1'; } catch (e) {}
+function toggleHideCode() {
+  _hideCode = !_hideCode;
+  try { localStorage.setItem('ct_hide_code', _hideCode ? '1' : '0'); } catch (e) {}
+  filterRows(true);
 }
 
 function buildSummary(data) { /* removed — stats strip is the single source */ }
@@ -610,7 +647,12 @@ function renderTable(data) {
 
   /* sort — newest first by default on dateCol */
   let sorted = [...data];
-  if (sortCol) {
+  if (sortCol === '__group') {
+    /* Marketing: rows of one promotion together (trade deals in the order they were added), latest promotion first */
+    const top = {};
+    sorted.forEach(r => { const k = groupKey(r); top[k] = Math.max(top[k] || 0, r.id || 0); });
+    sorted.sort((a, b) => (top[groupKey(b)] - top[groupKey(a)]) || String(groupKey(a)).localeCompare(String(groupKey(b))) || (a.id - b.id));
+  } else if (sortCol) {
     sorted.sort((a,b) => {
       if (a[sortCol] == null) return 1; if (b[sortCol] == null) return -1;
       /* "1-Mar-19" / "19-Mar" dates sort by date, other values as text */
@@ -620,27 +662,28 @@ function renderTable(data) {
     });
   }
 
-  const vc   = visibleCols.length ? visibleCols : cols;
+  const vc   = (visibleCols.length ? visibleCols : cols).filter(c => !(_hideCode && c === 'Code of Contract'));
+  const hb = document.getElementById('btnHideCode');
+  if (hb) { hb.textContent = _hideCode ? 'Show Number of Contract' : 'Hide Number of Contract'; hb.setAttribute('aria-pressed', String(_hideCode)); }
   const arr  = c => c === sortCol ? (sortAsc ? ' ↑' : ' ↓') : '';
   const isOC = c => c === outletCodeCol;
   const isDC = c => c === dateCol;
 
-  const thStyle = c => {
-    let st = '';
-    if (isDC(c)) st = 'background:linear-gradient(90deg,#14532D,#047857)';
-    else if (colFilters[c] && colFilters[c].size > 0) st = 'background:linear-gradient(90deg,#B0120A,#B0120A)';
-    return st ? ` style="${st}"` : '';
-  };
+  const KEY_COLS = ['CODE OUTLET', 'OUTLET NAME'];   /* shaded darker gray */
+  const thStyle = c => (KEY_COLS.includes(c) ? ' class="ct-keycol"' : '');
   /* row highlight = On Doc color (js/contract-edit.js); applied to every cell so it wins over hover / zebra */
   const hlCss = hl => hl ? `background:${hl.bg} !important;color:${hl.fg} !important;-webkit-text-fill-color:${hl.fg} !important;` : '';
   const tdStyle = (c, hl) => {
-    const st = (isOC(c) ? 'font-weight:700;' : '') + hlCss(hl);
-    return st ? ` style="${st}"` : '';
+    const st = hlCss(hl);
+    return (KEY_COLS.includes(c) ? ' class="ct-keycol"' : '') + (st ? ` style="${st}"` : '');
   };
-  /* On Doc cell = dropdown chip; other cells = formatted value */
-  const cell = (row, c) => c === 'ON DOC'
-    ? `<button type="button" class="od-chip" onclick="openOnDoc(event, ${row.id})">${row[c] ? esc(row[c]) : 'Select…'}</button>`
-    : fv(row[c], c);
+  /* On Doc cell = dropdown chip · Number of Contract = click to copy · Received ROI / Scan = check box · other = value */
+  const cell = (row, c) => {
+    if (c === 'ON DOC') return `<button type="button" class="od-chip" onclick="openOnDoc(event, ${row.id})">${row[c] ? esc(onDocCanon(row[c])) : 'Select…'}</button>`;
+    if (c === 'Code of Contract' && row[c]) return `<button type="button" class="ct-copy" title="Click to copy" onclick="ctCopy(this.dataset.v)" data-v="${esc(row[c])}">${esc(row[c])}</button>`;
+    if (c === 'ROI' || c === 'SCAN') { const on = isOn(c, row[c]); return `<span class="ct-box${on ? ' on' : ''}" role="img" aria-label="${on ? 'Yes' : 'No'}"></span>`; }
+    return fv(row[c], c);
+  };
   const mkTh = c => {
     const sc     = c.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     const fltActive = colFilters[c] && colFilters[c].size > 0;
@@ -656,9 +699,12 @@ function renderTable(data) {
     `<table><thead><tr><th class="ce-col"><span class="th-lbl">Edit</span></th>` +
     vc.map(c => mkTh(c)).join('') +
     `</tr></thead><tbody>` +
-    sorted.slice(0, _shown).map(row => {
+    sorted.slice(0, _shown).map((row, i, list) => {
       const hl = onDocStyle(row['ON DOC']);
-      return `<tr${hl ? ' class="od-row"' : ''}><td class="ce-col"${tdStyle('', hl)}><button type="button" class="ce-btn" onclick="openRowEdit(${row.id})">Edit</button></td>` +
+      /* Marketing: a divider where one promotion ends and the next begins */
+      const newGroup = VIEW === 'marketing' && i > 0 && groupKey(row) !== groupKey(list[i - 1]);
+      const cls = [hl ? 'od-row' : '', newGroup ? 'grp-start' : ''].filter(Boolean).join(' ');
+      return `<tr${cls ? ` class="${cls}"` : ''}><td class="ce-col"${hlCss(hl) ? ` style="${hlCss(hl)}"` : ''}><button type="button" class="ce-btn" onclick="openRowEdit(${row.id})">Edit</button></td>` +
         vc.map(c => `<td${tdStyle(c, hl)} title="${esc(String(row[c]??''))}">${cell(row, c)}</td>`).join('') + `</tr>`;
     }).join('') +
     `</tbody></table>` +
@@ -678,8 +724,7 @@ function showMoreRows(n) {
 /* ── cell formatter ── */
 function fv(v, col) {
   if (v === null || v === undefined || String(v).trim() === '') return '<span style="color:#D1D5DB">—</span>';
-  if (col === outletCodeCol)
-    return `<span class="oc-chip" style="font-family:monospace;font-size:12px;background:#FDE0DC;padding:2px 7px;border-radius:5px;color:#B0120A;font-weight:700">${esc(String(v))}</span>`;
+  if (col === outletCodeCol) return `<span class="oc-code">${esc(String(v))}</span>`;
   /* Start / End / Received date: "1-Mar-26" → "1 Mar 26", month-only "26-Mar" → "Mar 26" */
   if ((col === 'START' || col === 'END' || col === 'RECEIVED DATE') && /^(\d{1,2}-[A-Za-z]{3}-\d{2}|\d{2}-[A-Za-z]{3})$/.test(String(v).trim()))
     return `<span style="font-variant-numeric:tabular-nums;white-space:nowrap">${esc(dateShow(v))}</span>`;
@@ -695,14 +740,18 @@ function fv(v, col) {
 }
 
 /* ── export ── */
-function exportExcel() {
-  const src = _lastFiltered.length ? _lastFiltered : allData;
-  if (!src.length) { alert('No data to export'); return; }
-  const vc   = visibleCols.length ? visibleCols : cols;
-  const rows = src.map(r => { const o={}; vc.forEach(c => { o[label(c)]=r[c]??''; }); return o; });
-  const wb   = XLSX.utils.book_new(), name = VIEWS[VIEW] ? VIEWS[VIEW].file : 'Contract_Master';
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), name.replace(/_/g, ' '));
-  XLSX.writeFile(wb, `${name}_${new Date().toISOString().slice(0,10)}.xlsx`);
+/* rows shown (search / filters apply), in the order they were added — written into the original Excel layout */
+async function exportExcel(rowsOverride, nameOverride) {
+  if (!VIEW) return;
+  const src = (rowsOverride || (_lastFiltered.length ? _lastFiltered : allData)).slice().sort((a, b) => (a.id || 0) - (b.id || 0));
+  if (!src.length) { ctToast('No data to export', true); return; }
+  const btn = document.querySelector('.btn-exp'), old = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Preparing…'; }
+  try {
+    await ContractExport.run(VIEW, src, (nameOverride || VIEWS[VIEW].file) + '_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+    ctToast('Exported ' + src.length.toLocaleString() + ' rows');
+  } catch (e) { ctToast('Export failed: ' + e.message, true); }
+  if (btn) { btn.disabled = false; btn.textContent = old; }
 }
 
 async function logout() { await supabase.auth.signOut(); window.location.href='index.html'; }
@@ -719,7 +768,10 @@ checkAuth();
 <script src="js/responsive.js?v=1"></script>
 <script src="js/table-scroll.js?v=3"></script>
 <script src="js/search-loading.js?v=1"></script>
-<script src="js/contract-import.js?v=1"></script>
+<script src="js/contract-import.js?v=2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="js/contract-export.js?v=1"></script>
+<script src="js/contract-tools.js?v=1"></script>
 </body>
 </html>
 

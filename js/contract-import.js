@@ -166,6 +166,9 @@
       map.forEach(function (m) {
         var c = m[0], v = src[m[1]];
         o[c] = (c === 'START' || c === 'END') ? dayText(v) : c === 'RECEIVED DATE' ? monthText(v) : text(v);
+        /* one spelling per value: TYPE in capitals ("New Outlet" → NEW OUTLET), On Doc aliases → the legend text */
+        if (c === 'TYPE OF CONTRACT' && o[c]) o[c] = o[c].toUpperCase();
+        if (c === 'ON DOC' && o[c] && typeof onDocCanon === 'function') o[c] = onDocCanon(o[c]);
       });
       var key = JSON.stringify(o);
       if (seen[key]) { dups++; continue; }

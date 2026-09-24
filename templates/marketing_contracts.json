@@ -1,0 +1,170 @@
+{
+    "dataSheet": "xl\/worksheets\/sheet3.xml",
+    "tables": [
+        "xl\/tables\/table1.xml"
+    ],
+    "sheetName": "Data_Marketing Contracts",
+    "rowOpen": "<row ht=\"15\" customHeight=\"1\">",
+    "columns": [
+        {
+            "col": "A",
+            "name": "Code of Contract",
+            "style": 71
+        },
+        {
+            "col": "B",
+            "name": "Outlet Code",
+            "style": 71
+        },
+        {
+            "col": "C",
+            "name": "Region",
+            "style": 71
+        },
+        {
+            "col": "D",
+            "name": "Company",
+            "style": 71
+        },
+        {
+            "col": "E",
+            "name": "Province",
+            "style": 71
+        },
+        {
+            "col": "F",
+            "name": "Company Name",
+            "style": 71
+        },
+        {
+            "col": "G",
+            "name": "Outlet Name",
+            "style": 72
+        },
+        {
+            "col": "H",
+            "name": "Team",
+            "style": 71
+        },
+        {
+            "col": "I",
+            "name": "Current BDE",
+            "style": 72
+        },
+        {
+            "col": "J",
+            "name": "BDE",
+            "style": 71
+        },
+        {
+            "col": "K",
+            "name": "Promotion",
+            "style": 71
+        },
+        {
+            "col": "L",
+            "name": "Trade Deal",
+            "style": 71
+        },
+        {
+            "col": "M",
+            "name": "Start Dat",
+            "style": 73
+        },
+        {
+            "col": "N",
+            "name": "End Date",
+            "style": 73
+        },
+        {
+            "col": "O",
+            "name": "Status",
+            "style": 71
+        },
+        {
+            "col": "P",
+            "name": "# Priority SKUs",
+            "style": 71
+        },
+        {
+            "col": "Q",
+            "name": "Total Sku",
+            "style": 71
+        },
+        {
+            "col": "R",
+            "name": "Principle",
+            "style": 71
+        },
+        {
+            "col": "S",
+            "name": "Brands",
+            "style": 71
+        },
+        {
+            "col": "T",
+            "name": "Received Date",
+            "style": 73
+        },
+        {
+            "col": "U",
+            "name": "SCAN",
+            "style": 71
+        },
+        {
+            "col": "V",
+            "name": "Status Doc.",
+            "style": 71
+        },
+        {
+            "col": "W",
+            "name": "On Doc.",
+            "style": 71
+        },
+        {
+            "col": "X",
+            "name": "Remark",
+            "style": 71
+        },
+        {
+            "col": "Y",
+            "name": "",
+            "style": 86
+        },
+        {
+            "col": "Z",
+            "name": "KEY (helper)",
+            "style": 39
+        },
+        {
+            "col": "AA",
+            "name": "SEQ (helper)",
+            "style": 39
+        },
+        {
+            "col": "AB",
+            "name": "DEDUP KEY (helper)",
+            "style": 39
+        },
+        {
+            "col": "AC",
+            "name": "DEDUP RANK (helper)",
+            "style": 70
+        },
+        {
+            "col": "AD",
+            "name": "",
+            "style": 71
+        },
+        {
+            "col": "AE",
+            "name": "",
+            "style": 71
+        },
+        {
+            "col": "BQ",
+            "name": "",
+            "style": 71
+        }
+    ]
+}

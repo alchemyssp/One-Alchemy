@@ -103,10 +103,6 @@ window.ContractDashboard = (function () {
       '    <div class="otd-tablewrap"><table class="otd-prod" id="ctdYcCt"></table></div></div></section>' +
       '  <section class="card otd-card otd-wide"><h3 class="card-title">Marketing — Top 10 Active Promotions</h3>' +
       '    <div class="otd-tablewrap"><table class="otd-prod" id="ctdPromo"></table></div></section>' +
-      '  <section class="card otd-card otd-wide" aria-readonly="true"><h3 class="card-title" id="ctdOdTitle">Documents on Hand (On Doc)</h3>' +
-      '    <div class="ctd-legend"><span>View only — who holds each contract document now. Change On Doc on the Yearly / Marketing tabs.</span></div>' +
-      '    <div class="ctd-od-chips" id="ctdOdChips"></div>' +
-      '    <div class="otd-tablewrap ctd-exp-wrap"><table class="otd-prod" id="ctdOd"></table></div></section>' +
       '  <section class="card otd-card otd-wide"><h3 class="card-title" id="ctdExpTitle">Expiring in the Next 90 Days</h3>' +
       '    <div class="otd-tablewrap ctd-exp-wrap"><table class="otd-prod" id="ctdExp"></table></div></section>' +
       '</div>';
@@ -158,9 +154,7 @@ window.ContractDashboard = (function () {
     themed(); lastBox = box;
     if (!box.dataset.ready) { skeleton(box); box.dataset.ready = '1'; }
     box.classList.add('ctd-loading');
-    var both = await Promise.all([supabase.rpc('contract_dashboard'), supabase.rpc('contract_on_doc')]);
-    var r = both[0];
-    drawOnDoc(both[1].data || []);
+    var r = await supabase.rpc('contract_dashboard');
     box.classList.remove('ctd-loading');
     if (r.error) { box.insertAdjacentHTML('afterbegin', '<div class="oti-warn">Dashboard failed: ' + esc(r.error.message) + '</div>'); return; }
     var d = r.data || {}, k = d.kpi || {};
@@ -186,33 +180,6 @@ window.ContractDashboard = (function () {
         '<span class="ctd-tag ' + x.kind + '">' + (x.kind === 'yearly' ? 'Yearly' : 'Marketing') + '</span>',
         esc(x.outlet_name), esc(x.outlet), esc(x.detail), esc(x.bde)];
     }));
-  }
-  /* ── Documents on hand: read-only list of contracts whose On Doc is set, with a count per holder ── */
-  var odFilter = '';
-  function drawOnDoc(list) {
-    var style = function (v) { return window.onDocStyle ? onDocStyle(v) : null; };
-    var chip = function (v, n) {
-      var h = style(v), st = h ? ' style="background:' + h.bg + ';color:' + h.fg + '"' : '';
-      return '<button type="button" class="ctd-od-chip' + (odFilter === v ? ' on' : '') + '" data-v="' + esc(v) + '"' + st + '>' + esc(v || 'All') + ' <b>' + fmt(n) + '</b></button>';
-    };
-    var counts = {};
-    list.forEach(function (x) { counts[x.on_doc] = (counts[x.on_doc] || 0) + 1; });
-    var keys = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
-    if (odFilter && !counts[odFilter]) odFilter = '';
-    $('ctdOdTitle').textContent = 'Documents on Hand (On Doc) — ' + fmt(list.length) + ' contracts';
-    $('ctdOdChips').innerHTML = chip('', list.length) + keys.map(function (k) { return chip(k, counts[k]); }).join('');
-    $('ctdOdChips').querySelectorAll('.ctd-od-chip').forEach(function (b) {
-      b.onclick = function () { odFilter = b.dataset.v; drawOnDoc(list); };
-    });
-    var rows = list.filter(function (x) { return !odFilter || x.on_doc === odFilter; });
-    table('ctdOd', ['On Doc (with)', 'Contract', 'Number of Contract', 'Outlet', 'Outlet Code', 'Promotion / Contract Type', 'Start Date', 'Current BDE'], rows.map(function (x) {
-      var h = style(x.on_doc);
-      return ['<span class="ctd-od-tag"' + (h ? ' style="background:' + h.bg + ';color:' + h.fg + '"' : '') + '>' + esc(x.on_doc) + '</span>',
-        '<span class="ctd-tag ' + x.kind + '">' + (x.kind === 'yearly' ? 'Yearly' : 'Marketing') + '</span>',
-        esc(/\|/.test(x.code) ? '' : x.code), esc(x.outlet_name), esc(x.outlet), esc(x.promotion),
-        esc(typeof dateShow === 'function' ? dateShow(x.start_text) : x.start_text), esc(x.bde)];
-    }));
-    if (!rows.length) $('ctdOd').querySelector('tbody').innerHTML = '<tr><td colspan="8" class="ctd-empty">No documents waiting — every On Doc is blank</td></tr>';
   }
   return { load: load };
 })();
