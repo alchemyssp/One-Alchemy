@@ -26,15 +26,20 @@
   };
 
   function buildPicker() {
-    var box = document.querySelector('.sidebar-user');
-    if (!box || document.querySelector('.theme-pick')) return;
+    /* top-right of the page: inside the top bar when the page has one (Dashboard), else a small fixed pill */
+    if (!document.querySelector('.sidebar') || document.querySelector('.theme-pick')) return;
+    var bar = document.querySelector('.topbar-right');
     var pick = document.createElement('div');
     pick.className = 'theme-pick'; pick.setAttribute('role', 'group'); pick.setAttribute('aria-label', 'Color theme');
     pick.innerHTML = '<span>Theme</span>' + THEMES.map(function (t) {
       return '<button type="button" data-theme="' + t.id + '" title="' + t.name + '" aria-label="' + t.name + '"' +
         ' style="background:linear-gradient(135deg,' + t.dots[0] + ' 0 50%,' + t.dots[1] + ' 50% 100%)"></button>';
     }).join('');
-    box.parentNode.insertBefore(pick, box);
+    if (bar) { pick.classList.add('in-bar'); bar.insertBefore(pick, bar.firstChild); }
+    else {   /* its own small row at the top-right of the page, so it never covers the page buttons */
+      var main = document.querySelector('.main') || document.body;
+      pick.classList.add('top-row'); main.insertBefore(pick, main.firstChild);
+    }
     pick.querySelectorAll('button').forEach(function (b) {
       b.onclick = function () {
         try { localStorage.setItem(KEY, b.dataset.theme); } catch (e) {}

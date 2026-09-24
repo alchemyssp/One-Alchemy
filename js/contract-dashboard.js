@@ -96,7 +96,7 @@ window.ContractDashboard = (function () {
       '    <div class="ctd-legend"><span>Pin size = active contracts · hover or tap a pin for details</span></div>' +
       '    <div id="ctdMap" class="ctd-map" role="img" aria-label="Map of Thailand with contract locations"></div>' +
       '    <div class="ctd-unmapped" id="ctdUnmapped"></div></section>' +
-      '  <section class="card otd-card"><h3 class="card-title">Marketing — Active Contracts by Principle</h3>' +
+      '  <section class="card otd-card"><h3 class="card-title">Marketing Active Contracts by Principle</h3>' +
       '    <div class="otd-chart"><canvas id="ctdPrin" aria-label="Active marketing contracts by principle"></canvas></div></section>' +
       '  <section class="card otd-card"><h3 class="card-title">Yearly — Active Contracts by Type</h3>' +
       '    <div class="ctd-two"><div class="otd-tablewrap"><table class="otd-prod" id="ctdYcType"></table></div>' +
@@ -166,9 +166,17 @@ window.ContractDashboard = (function () {
     draw('ctdTeam', pair((d.by_team || []).filter(function (x) { return x.name !== '(blank)'; }), true));
     drawMap(d.by_location || []);
     var pr = (d.mkt_principle || []).slice(0, 10);
+    /* bars: dark grey gradient (lighter at the base → dark at the end); principle names in the theme red */
+    var greyBar = function (ctx) {
+      var a = ctx.chart.chartArea; if (!a) return '#374151';
+      var g = ctx.chart.ctx.createLinearGradient(a.left, 0, a.right, 0);
+      g.addColorStop(0, '#6B7280'); g.addColorStop(1, '#1F2328'); return g;
+    };
+    var prOpts = barOpts(true);
+    prOpts.scales.y = Object.assign({}, prOpts.scales.y, { ticks: { color: window.themeColor ? themeColor('--c1', '#B0120A') : '#B0120A', autoSkip: false, font: { weight: '600' } } });
     draw('ctdPrin', { type: 'bar',
-      data: { labels: pr.map(function (x) { return x.name; }), datasets: [{ label: 'Marketing', data: pr.map(function (x) { return x.contracts; }), backgroundColor: MKT, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 18 }] },
-      options: barOpts(true) });
+      data: { labels: pr.map(function (x) { return x.name; }), datasets: [{ label: 'Marketing', data: pr.map(function (x) { return x.contracts; }), backgroundColor: greyBar, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 18 }] },
+      options: prOpts });
     table('ctdYcType', ['Type', 'Contracts'], (d.yc_types || []).map(function (x) { return [esc(x.name), fmt(x.contracts)]; }));
     table('ctdYcCt', ['Contract Type', 'Contracts'], (d.yc_contract_types || []).map(function (x) { return [esc(x.name), fmt(x.contracts)]; }));
     table('ctdPromo', ['Promotion', 'Active contracts', 'Outlets'], (d.mkt_promotions || []).map(function (x) { return [esc(x.name), fmt(x.contracts), fmt(x.outlets)]; }));

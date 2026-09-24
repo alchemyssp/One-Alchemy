@@ -4,13 +4,13 @@
 (function () {
   var KEY = 'sb_offtake_cmp_v1', TTL = 10 * 60 * 1000;
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  var PREV = '#D99500';
+  var PREV = '#FFD166';
 
   function client() {
     if (window.__sbClient) return window.__sbClient;                     /* dashboard.html keeps its own client */
     return window.supabase && typeof window.supabase.rpc === 'function' ? window.supabase : null;
   }
-  function cur() { return window.themeColor ? themeColor('--c1', '#B0120A') : '#B0120A'; }
+  function cur() { return '#FFFFFF'; }   /* white on the see-through card (theme red would vanish on the red sidebar) */
   function short(v) { var a = Math.abs(v); return a >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : a >= 1e3 ? Math.round(v / 1e3) + 'K' : String(Math.round(v)); }
 
   async function fetchData(sb) {
@@ -43,23 +43,23 @@
     };
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="' + H + '" role="img" aria-label="Off-take value Inc.VAT by month, ' +
       (d.Y - 1) + ' vs ' + d.Y + ', highest ' + short(max) + ' THB">' +
-      '<line x1="0" x2="' + W + '" y1="' + (H - 1) + '" y2="' + (H - 1) + '" stroke="rgba(0,0,0,.08)"/>' +
+      '<line x1="0" x2="' + W + '" y1="' + (H - 1) + '" y2="' + (H - 1) + '" stroke="rgba(255,255,255,.25)"/>' +
       path(a, PREV) + path(b, cur()) + '</svg>';
   }
 
   function render(box, d) {
     var yy = function (y) { return String(y).slice(2); };
-    box.innerHTML = '<div class="sbo-head"><b>Off-take Compare ' + yy(d.Y - 1) + '-' + yy(d.Y) + '</b>' +
+    box.innerHTML = '<div class="sbo-head"><b>Sales ' + yy(d.Y - 1) + ' Vs ' + yy(d.Y) + '</b>' +
       '<span class="sbo-leg"><i style="background:' + PREV + '"></i>' + yy(d.Y - 1) + '<i style="background:' + cur() + '"></i>' + yy(d.Y) + '</span></div>' +
       svg(d);
   }
 
   async function init() {
-    var pick = document.querySelector('.theme-pick'), sb = client();
+    var pick = document.querySelector('.sidebar-user'), sb = client();   /* card sits just above the user box */
     if (!pick || !sb || document.querySelector('.sbo-card')) return;
     var box = document.createElement('a');
     box.className = 'sbo-card'; box.href = 'offtake.html'; box.title = 'Open Off-take 2026';
-    box.innerHTML = '<div class="sbo-head"><b>Off-take Compare</b></div><div class="sbo-wait">Coming in 3 2 1 ...</div>';
+    box.innerHTML = '<div class="sbo-head"><b>Sales 25 Vs 26</b></div><div class="sbo-wait">Coming in 3 2 1 ...</div>';
     pick.parentNode.insertBefore(box, pick);
     var d = null;
     try { d = await fetchData(sb); } catch (e) {}
