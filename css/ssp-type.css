@@ -1027,7 +1027,6 @@ body .toolbar.ct-toolbar { flex-wrap: nowrap !important; overflow-x: auto; gap: 
 .ct-toolbar .row-count { white-space: nowrap; margin-left: auto; }
 /* key columns (Outlet Code, Outlet Name): darker gray */
 html body #ctRaw td.ct-keycol { background-color: #E6E8EB; font-weight: var(--fw-medium) !important; }
-html body #ctRaw th.ct-keycol:not(.__) { background: #E6E8EB !important; }
 html body #ctRaw tr:hover > td.ct-keycol { background: var(--c3) !important; }
 .oc-code { font-variant-numeric: tabular-nums; }
 /* Number of Contract: click to copy */
