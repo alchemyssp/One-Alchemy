@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="js/contract-dashboard.js?v=5"></script>
-<script src="js/contract-edit.js?v=12"></script>
+<script src="js/contract-edit.js?v=13"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Poppins', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
@@ -145,8 +145,9 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
 .cfp-btn-ok:hover { background: #B0120A; }
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=82">
+<link rel="stylesheet" href="css/ssp-type.css?v=94">
 <script src="js/theme.js?v=1"></script>
+<script src="js/sidebar-offtake.js?v=1" defer></script>
 </head>
 <body>
 <nav class="sidebar">
@@ -221,13 +222,13 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
   </div>
   <!-- actions for this file (own row so the search / filter row stays one line) -->
   <div class="ct-actions">
-    <span class="row-count" id="rowCount">Loading...</span>
-    <button type="button" class="ct-tool" id="btnHideCode" onclick="toggleHideCode()" aria-pressed="false">Hide Number of Contract</button>
+    <span class="ct-count"><span class="row-count" id="rowCount">Loading...</span>
+      <button type="button" class="ct-tool ct-hide-btn" id="btnHideCols" onclick="toggleHideCode()" aria-pressed="false">Hide columns</button></span>
     <button type="button" class="ct-tool" onclick="ContractTools.monthly()">Monthly summary</button>
     <button type="button" class="ct-tool" onclick="ContractTools.history()">History</button>
     <button type="button" class="btn-add-row" onclick="openRowEdit(null)">+ Add</button>
   </div>
-  <div class="table-card"><div class="overflow-x"><div id="tableWrap"><div class="empty"><div class="ei"></div><p>กำลังโหลด...</p></div></div></div></div>
+  <div class="table-card"><div class="overflow-x"><div id="tableWrap" data-min-h="560"><div class="empty"><div class="ei"></div><p>กำลังโหลด...</p></div></div></div></div>
   </div>
 </div>
 <script>
@@ -417,7 +418,7 @@ function buildStats(data) {
     item('Total Contract', all.size, 'tot') + item('Outlets', outlets, 'out');
 }
 
-/* ── Documents on Hand (Yearly tab, view only): outlet · whose contract (BDE) · who holds the document (On Doc) ── */
+/* ── Documents Processing (Yearly tab, view only): outlet · whose contract (BDE) · who holds the document (On Doc) ── */
 function renderOnDocCard() {
   const box = document.getElementById('ctOdCard');
   if (VIEW !== 'yearly') { box.hidden = true; return; }
@@ -426,7 +427,7 @@ function renderOnDocCard() {
   box.hidden = false;
   /* small table: outlet · BDE · who holds the document (color chip) */
   const short = v => String(v).replace(/^Wait ?for ?/i, '').replace(/ to sign$/i, '');
-  box.innerHTML = `<div class="ct-od-head"><span>Documents on Hand</span><b>${rows.length.toLocaleString()}</b></div>` +
+  box.innerHTML = `<div class="ct-od-head"><span>Documents Processing</span><b>${rows.length.toLocaleString()}</b></div>` +
     (rows.length ? '<div class="ct-od-wrap"><table class="ct-od-tbl"><thead><tr><th>Outlet</th><th>BDE</th><th>On hand with</th></tr></thead><tbody>' +
       rows.map(r => {
         const h = onDocStyle(r['ON DOC']), who = onDocCanon(r['ON DOC']);
@@ -437,12 +438,13 @@ function renderOnDocCard() {
       : '<p class="ct-od-none">Nothing on hand</p>');
 }
 
-/* ── Hide / show the Number of Contract column (remembered in this browser) ── */
+/* ── Hide columns: short view with only the key columns (remembered in this browser) ── */
+const SHORT_COLS = ['CODE OUTLET', 'OUTLET NAME', 'CURRENT BDE', 'TEAM', 'Promotion', 'Total Target (ROI)', 'START', 'END', 'RECEIVED DATE', 'ON DOC'];
 let _hideCode = false;
-try { _hideCode = localStorage.getItem('ct_hide_code') === '1'; } catch (e) {}
+try { _hideCode = localStorage.getItem('ct_short_cols') === '1'; } catch (e) {}
 function toggleHideCode() {
   _hideCode = !_hideCode;
-  try { localStorage.setItem('ct_hide_code', _hideCode ? '1' : '0'); } catch (e) {}
+  try { localStorage.setItem('ct_short_cols', _hideCode ? '1' : '0'); } catch (e) {}
   filterRows(true);
 }
 
@@ -669,9 +671,10 @@ function renderTable(data) {
     });
   }
 
-  const vc   = (visibleCols.length ? visibleCols : cols).filter(c => !(_hideCode && c === 'Code of Contract'));
-  const hb = document.getElementById('btnHideCode');
-  if (hb) { hb.textContent = _hideCode ? 'Show Number of Contract' : 'Hide Number of Contract'; hb.setAttribute('aria-pressed', String(_hideCode)); }
+  const vcAll = visibleCols.length ? visibleCols : cols;
+  const vc   = _hideCode ? SHORT_COLS.filter(c => cols.includes(c)) : vcAll;
+  const hb = document.getElementById('btnHideCols');
+  if (hb) { hb.textContent = _hideCode ? 'Show all columns' : 'Hide columns'; hb.setAttribute('aria-pressed', String(_hideCode)); }
   const arr  = c => c === sortCol ? (sortAsc ? ' ↑' : ' ↓') : '';
   const isOC = c => c === outletCodeCol;
   const isDC = c => c === dateCol;
@@ -679,14 +682,17 @@ function renderTable(data) {
   const KEY_COLS = ['CODE OUTLET', 'OUTLET NAME'];   /* shaded darker gray */
   const thStyle = c => (KEY_COLS.includes(c) ? ' class="ct-keycol"' : '');
   /* row highlight = On Doc color (js/contract-edit.js); applied to every cell so it wins over hover / zebra */
-  const hlCss = hl => hl ? `background:${hl.bg} !important;color:${hl.fg} !important;-webkit-text-fill-color:${hl.fg} !important;` : '';
+  const hlCss = hl => hl ? `background:${hl.tint} !important;color:#1F2937 !important;-webkit-text-fill-color:#1F2937 !important;` : '';
+  const hlEdit = hl => hl ? `background:linear-gradient(90deg, ${hl.bg} 0 5px, ${hl.tint} 5px) !important;` : '';
   const tdStyle = (c, hl) => {
     const st = hlCss(hl);
     return (KEY_COLS.includes(c) ? ' class="ct-keycol"' : '') + (st ? ` style="${st}"` : '');
   };
   /* On Doc cell = dropdown chip · Number of Contract = click to copy · Received ROI / Scan = check box · other = value */
   const cell = (row, c) => {
-    if (c === 'ON DOC') return `<button type="button" class="od-chip" onclick="openOnDoc(event, ${row.id})">${row[c] ? esc(onDocCanon(row[c])) : 'Select…'}</button>`;
+    if (c === 'ON DOC') { const h = onDocStyle(row[c]);
+      const st = h ? ` style="background:linear-gradient(135deg, ${h.bg} 0%, ${h.soft} 100%) !important;color:${h.fg} !important;-webkit-text-fill-color:${h.fg} !important"` : '';
+      return `<button type="button" class="od-chip"${st} onclick="openOnDoc(event, ${row.id})">${row[c] ? esc(onDocCanon(row[c])) : 'Select…'}</button>`; }
     if (c === 'Code of Contract' && row[c]) return `<button type="button" class="ct-copy" title="Click to copy" onclick="ctCopy(this.dataset.v)" data-v="${esc(row[c])}">${esc(row[c])}</button>`;
     if (c === 'ROI' || c === 'SCAN') { const on = isOn(c, row[c]); return `<span class="ct-box${on ? ' on' : ''}" role="img" aria-label="${on ? 'Yes' : 'No'}"></span>`; }
     return fv(row[c], c);
@@ -711,7 +717,7 @@ function renderTable(data) {
       /* Marketing: a divider where one promotion ends and the next begins */
       const newGroup = VIEW === 'marketing' && i > 0 && groupKey(row) !== groupKey(list[i - 1]);
       const cls = [hl ? 'od-row' : '', newGroup ? 'grp-start' : ''].filter(Boolean).join(' ');
-      return `<tr${cls ? ` class="${cls}"` : ''}><td class="ce-col"${hlCss(hl) ? ` style="${hlCss(hl)}"` : ''}><button type="button" class="ce-btn" onclick="openRowEdit(${row.id})">Edit</button></td>` +
+      return `<tr${cls ? ` class="${cls}"` : ''}><td class="ce-col"${hl ? ` style="${hlEdit(hl)}"` : ''}><button type="button" class="ce-btn" onclick="openRowEdit(${row.id})">Edit</button></td>` +
         vc.map(c => `<td${tdStyle(c, hl)} title="${esc(String(row[c]??''))}">${cell(row, c)}</td>`).join('') + `</tr>`;
     }).join('') +
     `</tbody></table>` +
@@ -773,7 +779,7 @@ document.addEventListener('click', e => {
 checkAuth();
 </script>
 <script src="js/responsive.js?v=1"></script>
-<script src="js/table-scroll.js?v=3"></script>
+<script src="js/table-scroll.js?v=5"></script>
 <script src="js/search-loading.js?v=1"></script>
 <script src="js/contract-import.js?v=2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>

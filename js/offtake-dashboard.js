@@ -98,12 +98,12 @@
       /* glow under the ring */
       c.save(); c.filter = 'blur(28px)';
       var glow = c.createRadialGradient(cx, cy + depth, 0, cx, cy + depth, rx * 1.1);
-      glow.addColorStop(0, 'rgba(130, 90, 255, 0.55)'); glow.addColorStop(1, 'rgba(130, 90, 255, 0)');
+      glow.addColorStop(0, 'rgba(200, 205, 214, 0.30)'); glow.addColorStop(1, 'rgba(200, 205, 214, 0)');
       c.fillStyle = glow; c.beginPath(); c.ellipse(cx, cy + depth * 0.9, rx * 1.05, ry * 1.1, 0, 0, Math.PI * 2); c.fill(); c.restore();
 
       /* 1) inner wall of the hole: its back half (π..2π) is visible through the hole */
       c.save(); c.beginPath(); c.ellipse(cx, cy, irx, iry, 0, 0, Math.PI * 2); c.clip();
-      c.fillStyle = '#1A1133'; c.fillRect(cx - irx, cy - iry, irx * 2, iry * 2 + depth);
+      c.fillStyle = '#23272E'; c.fillRect(cx - irx, cy - iry, irx * 2, iry * 2 + depth);
       sl.forEach(function (s) {
         var o = off(s), p = pair(s);
         [[s.a0, s.a1], [s.a0 + Math.PI * 2, s.a1 + Math.PI * 2]].forEach(function (r) {

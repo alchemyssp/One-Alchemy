@@ -3,7 +3,7 @@
    down to reach the horizontal scrollbar.
    Works on every page with a data table; styles live in css/ssp-type.css. */
 (function () {
-  var MIN_H = 320;
+  var MIN_H = 560;   /* at least ~15 rows of the compact table */
 
   /* the element that actually scrolls: .tscroll if present, else the table wrapper */
   function findBoxes() {
@@ -22,7 +22,8 @@
     /* leave room for pagination / footer that sits below the box */
     var after = 0, n = box.parentElement && box.parentElement.lastElementChild;
     if (n && n !== box && box.parentElement.contains(box)) after = n.offsetHeight + 16;
-    var h = Math.max(MIN_H, window.innerHeight - top - after - 16);
+    /* a page can ask for a taller minimum (data-min-h, e.g. Contracts: at least 15 rows) */
+    var h = Math.max(+box.dataset.minH || MIN_H, window.innerHeight - top - after - 16);
     var px = h + 'px';
     if (box.style.maxHeight !== px) box.style.maxHeight = px;
   }

@@ -42,9 +42,14 @@ function _fgFor(hex) {
   const L = [r, g, b].map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
   return (0.2126 * L[0] + 0.7152 * L[1] + 0.0722 * L[2]) > 0.3 ? '#111111' : '#FFFFFF';
 }
+/* mix the color with white (t = share of the color) → soft shade of the same color */
+function _odMix(hex, t) {
+  const n = parseInt(hex.slice(1), 16);
+  return '#' + [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(255 - (255 - v) * t).toString(16).padStart(2, '0')).join('');
+}
 function onDocStyle(v) {
   const bg = _odMap[_odKey(onDocCanon(v))];
-  return bg ? { bg, fg: _fgFor(bg) } : null;
+  return bg ? { bg, fg: _fgFor(bg), tint: _odMix(bg, 0.22), tint2: _odMix(bg, 0.10), soft: _odMix(bg, 0.55) } : null;
 }
 
 /* ── small toast + copy ── */
