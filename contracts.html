@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="js/contract-dashboard.js?v=5"></script>
-<script src="js/contract-edit.js?v=9"></script>
+<script src="js/contract-edit.js?v=10"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Poppins', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
@@ -145,7 +145,7 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
 .cfp-btn-ok:hover { background: #B0120A; }
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=71">
+<link rel="stylesheet" href="css/ssp-type.css?v=72">
 <script src="js/theme.js?v=1"></script>
 </head>
 <body>
@@ -541,8 +541,12 @@ function buildFilters() {
   if (oc) oc.style.display = outletCodeCol ? '' : 'none';
 }
 
-/* ── filter + sort + render ── */
-function filterRows() {
+/* ── filter + sort + render ──
+   only the first ROW_STEP rows are drawn ("Show more" adds more); a new search / filter starts again at ROW_STEP */
+const ROW_STEP = 200;
+let _shown = ROW_STEP;
+function filterRows(keepShown) {
+  if (keepShown !== true) _shown = ROW_STEP;
   const q         = document.getElementById('searchInput').value.trim().toLowerCase();
   const ocQ       = (document.getElementById('fltOutletCode').value || '').trim().toLowerCase();
   const teamVal   = document.getElementById('fltTeam').value;
@@ -652,12 +656,23 @@ function renderTable(data) {
     `<table><thead><tr><th class="ce-col"><span class="th-lbl">Edit</span></th>` +
     vc.map(c => mkTh(c)).join('') +
     `</tr></thead><tbody>` +
-    sorted.map(row => {
+    sorted.slice(0, _shown).map(row => {
       const hl = onDocStyle(row['ON DOC']);
       return `<tr${hl ? ' class="od-row"' : ''}><td class="ce-col"${tdStyle('', hl)}><button type="button" class="ce-btn" onclick="openRowEdit(${row.id})">Edit</button></td>` +
         vc.map(c => `<td${tdStyle(c, hl)} title="${esc(String(row[c]??''))}">${cell(row, c)}</td>`).join('') + `</tr>`;
     }).join('') +
-    `</tbody></table>`;
+    `</tbody></table>` +
+    (sorted.length > _shown
+      ? `<div class="ct-more"><span>Showing ${_shown.toLocaleString()} of ${sorted.length.toLocaleString()} rows</span>` +
+        `<button type="button" onclick="showMoreRows(${ROW_STEP})">Show ${Math.min(ROW_STEP, sorted.length - _shown).toLocaleString()} more</button>` +
+        `<button type="button" onclick="showMoreRows(Infinity)">Show all</button></div>`
+      : '');
+}
+function showMoreRows(n) {
+  const y = window.scrollY;
+  _shown = n === Infinity ? Number.MAX_SAFE_INTEGER : _shown + n;
+  renderTable(_lastFiltered);
+  window.scrollTo(0, y);
 }
 
 /* ── cell formatter ── */

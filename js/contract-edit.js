@@ -53,7 +53,7 @@ function _patchRow(row) {
   const i = allData.findIndex(r => r.id === row.id);
   if (i >= 0) allData[i] = row; else allData.unshift(row);
   buildStats(allData);
-  filterRows();
+  filterRows(true);   /* keep the rows already shown */
 }
 async function ctDelete(id) {
   const { error } = await supabase.from(TABLE).delete().eq('id', id);
@@ -67,7 +67,7 @@ function _dropRow(id) {
   allData.splice(i, 1);
   if (_totalCount > 0) _totalCount--;
   buildStats(allData);
-  filterRows();
+  filterRows(true);   /* keep the rows already shown */
 }
 async function ctSave(id, fields) {
   const q = id == null

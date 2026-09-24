@@ -201,7 +201,6 @@ label { margin-bottom: 6px !important; display: inline-block; }
 
 body.page-datau thead th {
   background: linear-gradient(90deg, var(--g1) 0%, var(--g2) 100%) !important;
-  background-attachment: fixed;
   color: #FFFFFF !important;
 }
 body.page-datau thead th * { color: #FFFFFF !important; }
@@ -524,7 +523,7 @@ body .fit-scroll::-webkit-scrollbar-corner { background: #F2F2F2; }
 
 /* ── SEARCH LOADING: blur the table + "Loading…" while searching (js/search-loading.js) ── */
 .search-busy { position: relative !important; }
-.search-busy > * { filter: blur(3px); pointer-events: none; transition: filter .15s ease; }
+.search-busy > * { opacity: .45; pointer-events: none; transition: opacity .15s ease; }   /* (was blur: too slow on big tables) */
 .search-busy::after {
   content: 'Loading…';
   position: absolute; inset: 0; z-index: 20;
@@ -783,13 +782,12 @@ body .card, body .kpi-card, body .stat-card, body .strip-item, body .table-card,
 body .section, body .otd-card, body .add-card, body .fscard, body .otd-filters, body .toolbar, body .filter-bar {
   box-shadow: 0 1px 2px rgba(17, 17, 17, 0.04), 0 6px 20px rgba(17, 17, 17, 0.06) !important;
 }
-body .card, body .kpi-card, body .stat-card, body .strip-item, body .table-card, body .tcard, body .tbl-card,
-body .section, body .otd-card, body .add-card, body .fscard {
+/* lift on hover only for the small summary cards — big cards holding tables / charts stay still
+   (moving a card with thousands of rows repaints the whole table on every mouse move) */
+body .kpi-card, body .stat-card, body .strip-item, body .add-card, body .fscard, body .otm-card {
   transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s ease !important;
-  will-change: transform;
 }
-body .card:hover, body .kpi-card:hover, body .stat-card:hover, body .strip-item:hover, body .table-card:hover,
-body .tcard:hover, body .tbl-card:hover, body .section:hover, body .otd-card:hover, body .add-card:hover, body .fscard:hover {
+body .kpi-card:hover, body .stat-card:hover, body .strip-item:hover, body .add-card:hover, body .fscard:hover {
   transform: translateY(-4px) !important;
   box-shadow: 0 2px 4px rgba(17, 17, 17, 0.04), 0 14px 32px rgba(17, 17, 17, 0.10) !important;
 }
@@ -984,3 +982,12 @@ body .oti-modal button.oti-go.ce-danger { background: #9F1239 !important; backgr
 .ctd-od-chip.on { box-shadow: 0 0 0 2px #111; }
 .ctd-od-tag { display: inline-block; padding: 3px 10px; border-radius: 999px; background: #F2F2F2; color: #333; font-size: var(--t-small) !important; }
 #ctdOd td, #ctdOd th { text-align: left !important; white-space: normal !important; }
+
+/* ── SPEED (2026-09-24): no fixed page backgrounds (they repaint the whole page on every scroll),
+      no blur behind popups (expensive over big tables) ── */
+html body { background-attachment: scroll !important; }
+body .overlay, body .add-overlay, body .sku-overlay, body .discard-shield { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.ct-more { display: flex; justify-content: center; gap: 10px; padding: 14px; }
+.ct-more button { background: #F2F2F2; color: #333; border-radius: 10px; padding: 8px 16px; }
+.ct-more button:hover { background: var(--c3); color: var(--c1); }
+.ct-more span { align-self: center; color: #777; }
