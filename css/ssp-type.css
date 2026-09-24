@@ -683,3 +683,137 @@ body .kpi-card .otd-chg.flat { background: #FEF3C7 !important; color: #92400E !i
 .otd-prod thead th:last-child  { border-top-right-radius: 18px; }
 .otd-prod tbody tr:last-child td:first-child { border-bottom-left-radius: 18px; }
 .otd-prod tbody tr:last-child td:last-child  { border-bottom-right-radius: 18px; }
+/* outlets buying the selected brand */
+.otd-bo-wrap { max-height: 520px; overflow: auto !important; }
+.otd-bo-wrap thead th { position: sticky; top: 0; z-index: 1; }
+.otd-bo-name { white-space: normal !important; min-width: 220px; text-align: left !important; }
+#otdBoTbl td:nth-child(2), #otdBoTbl td:nth-child(3), #otdBoTbl td:nth-child(4), #otdBoTbl td:nth-child(5),
+#otdBoTbl th:nth-child(2), #otdBoTbl th:nth-child(3), #otdBoTbl th:nth-child(4), #otdBoTbl th:nth-child(5) { text-align: left !important; }
+.otd-bo-vol { white-space: nowrap; }
+.otd-bo-bar { display: inline-block; width: 70px; height: 6px; margin-right: 8px; vertical-align: middle; background: #F2F2F2; border-radius: 4px; overflow: hidden; }
+.otd-bo-bar i { display: block; height: 100%; background: #B0120A; border-radius: 4px; }
+body tr.otd-dim td { color: #9A9A9A !important; -webkit-text-fill-color: #9A9A9A !important; }
+
+/* ── Principle card: dark neon infographic style ── */
+body section.card.otd-neon { background: radial-gradient(120% 90% at 50% 40%, #3A2475 0%, #231646 55%, #170F31 100%) !important; color: #fff !important; }
+body section.card.otd-neon .card-title { color: #fff !important; -webkit-text-fill-color: #fff !important; }
+.otd-neon .otd-legend button { color: #fff; }
+.otd-neon .otd-legend button:hover { background: rgba(255,255,255,.08); }
+.otd-neon .otd-lg-val { color: #C9C3E6; }
+.otd-neon .otd-lg-bar { background: rgba(255,255,255,.12); }
+.otd-neon .otd-dot { box-shadow: 0 0 8px rgba(255,255,255,.35); }
+.otd-neon .otd-pie-tip { background: #fff; color: #1A1133; }
+/* month picker */
+.otd-mp { position: relative; min-width: 220px; }
+.otd-mp-btn { width: 100%; text-align: left; padding: 9px 36px 9px 12px; border-radius: 10px; background: #F4F4F4; color: #111; position: relative; }
+.otd-mp-btn::after { content: '▾'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #555; display: block !important; }
+.otd-mp-panel { position: absolute; z-index: 40; top: calc(100% + 6px); left: 0; width: 320px; max-height: 420px; overflow: auto;
+  background: #fff; border-radius: 16px; box-shadow: 0 12px 32px rgba(0,0,0,.14); padding: 10px; }
+.otd-mp-tools { display: flex; gap: 6px; margin-bottom: 8px; }
+.otd-mp-tools button { background: #F2F2F2; color: #333; border-radius: 8px; padding: 5px 10px; }
+.otd-mp-tools .otd-mp-done { margin-left: auto; background: #B0120A; color: #fff; }
+.otd-mp-yhead { display: flex; align-items: center; gap: 6px; padding: 6px 4px; }
+.otd-mp-yhead label { display: inline-flex; align-items: center; gap: 6px; margin: 0 !important; cursor: pointer; }
+.otd-mp-tog { background: transparent; color: #555; width: 22px; }
+.otd-mp-cnt { margin-left: auto; color: #B0120A; font-size: var(--t-small) !important; }
+.otd-mp-months { display: none; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 2px 4px 8px 32px; }
+.otd-mp-year.open .otd-mp-months { display: grid; }
+.otd-mp-m { display: inline-flex; align-items: center; gap: 5px; margin: 0 !important; padding: 4px 6px; border-radius: 8px; cursor: pointer; }
+.otd-mp-m:hover { background: #F5F5F5; }
+/* neon ring: more room */
+.otd-neon .otd-pie { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+.otd-neon .otd-pie-canvas { height: 380px; }
+
+/* ── ALL TABLES: rounded corners (every page) ── */
+body table { border-collapse: separate !important; border-spacing: 0 !important; }
+body table thead tr:first-child th:first-child { border-top-left-radius: 18px; }
+body table thead tr:first-child th:last-child  { border-top-right-radius: 18px; }
+body table tbody tr:last-child td:first-child  { border-bottom-left-radius: 18px; }
+body table tbody tr:last-child td:last-child   { border-bottom-right-radius: 18px; }
+/* table boxes clip to the same curve */
+body .table-card, body .tcard, body .tbl-card, body .fit-scroll, body .otd-tablewrap, body .imp-pwrap, body .overflow-x, body #rawWrap {
+  border-radius: 18px;
+}
+body .table-card, body .tcard, body .tbl-card { overflow: hidden !important; }
+
+/* ── Off-take filter bar: tidy two-row layout ──
+   row 1: Year, Month (wide) · Company · Reset   |   row 2: Principle · Brand · Wholesaler · Team · BDE */
+.otd-filters {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 18px 16px !important;
+  padding: 20px 22px !important;
+  align-items: end !important;
+}
+.otd-filters .otd-mp      { grid-column: 1 / span 2; grid-row: 1; }
+.otd-filters .otd-company { grid-column: 3 / span 2; grid-row: 1; }
+.otd-filters .otd-reset   { grid-column: 5; grid-row: 1; justify-self: end; align-self: end; }
+.otd-f { gap: 6px !important; min-width: 0 !important; margin: 0 !important; }
+.otd-lbl { color: #6B6B6B !important; font-weight: var(--fw-medium) !important; letter-spacing: .01em !important; }
+/* one control height everywhere */
+.otd-filters select, .otd-mp-btn, .otd-chip, .otd-reset { height: 44px; box-sizing: border-box; }
+.otd-filters select { padding: 0 36px 0 14px !important; border-radius: 12px !important; background-color: #F5F5F7 !important; cursor: pointer; }
+.otd-filters select:hover, .otd-mp-btn:hover { background-color: #EEEEF1 !important; }
+.otd-mp-btn { display: flex; align-items: center; padding: 0 38px 0 14px !important; border-radius: 12px !important; background: #F5F5F7 !important;
+  font-weight: var(--fw-medium) !important; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.otd-chips { gap: 10px !important; }
+.otd-chip { padding: 0 16px !important; border-radius: 12px !important; background: #F5F5F7 !important; display: inline-flex; align-items: center; gap: 8px; }
+.otd-chip:has(input:checked) { background: #FDE0DC !important; color: #B0120A !important; }
+.otd-chip input { accent-color: #B0120A; }
+.otd-reset { padding: 0 22px !important; border-radius: 12px !important; background: #F2F2F2 !important; color: #333 !important; min-width: 110px; }
+.otd-reset:hover { background: #E8E8E8 !important; }
+@media (max-width: 1100px) {
+  .otd-filters { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .otd-filters .otd-mp      { grid-column: 1 / -1; grid-row: auto; }
+  .otd-filters .otd-company { grid-column: 1; grid-row: auto; }
+  .otd-filters .otd-reset   { grid-column: 2; grid-row: auto; justify-self: stretch; }
+}
+@media (max-width: 560px) {
+  .otd-filters { grid-template-columns: 1fr !important; }
+  .otd-filters .otd-company, .otd-filters .otd-reset { grid-column: 1; }
+}
+
+/* ── Light gray page background (every page) ── */
+:root { --page-bg: #F2F3F5; }
+html, body, body .main, body .page-main, body main { background: var(--page-bg) !important; background-image: none !important; }
+
+/* ── Cards: soft, layered gray shadow + gentle lift on hover ──
+   (neutral gray only, low opacity, so it reads as depth, not an outline) */
+body .card, body .kpi-card, body .stat-card, body .strip-item, body .table-card, body .tcard, body .tbl-card,
+body .section, body .otd-card, body .add-card, body .fscard, body .otd-filters, body .toolbar, body .filter-bar {
+  box-shadow: 0 1px 2px rgba(17, 17, 17, 0.04), 0 6px 20px rgba(17, 17, 17, 0.06) !important;
+}
+body .card, body .kpi-card, body .stat-card, body .strip-item, body .table-card, body .tcard, body .tbl-card,
+body .section, body .otd-card, body .add-card, body .fscard {
+  transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s ease !important;
+  will-change: transform;
+}
+body .card:hover, body .kpi-card:hover, body .stat-card:hover, body .strip-item:hover, body .table-card:hover,
+body .tcard:hover, body .tbl-card:hover, body .section:hover, body .otd-card:hover, body .add-card:hover, body .fscard:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 2px 4px rgba(17, 17, 17, 0.04), 0 14px 32px rgba(17, 17, 17, 0.10) !important;
+}
+/* red cards: same depth, a touch warmer so it doesn't look muddy on the gradient */
+body .kpi-card, body .stat-card, body .strip-item { box-shadow: 0 1px 2px rgba(17,17,17,.05), 0 8px 22px rgba(120, 20, 10, 0.12) !important; }
+body .kpi-card:hover, body .stat-card:hover, body .strip-item:hover { box-shadow: 0 2px 4px rgba(17,17,17,.05), 0 16px 34px rgba(120, 20, 10, 0.18) !important; }
+/* popups never move */
+body .modal, body .form-modal, body .sku-modal, body .oti-modal, body .pv-card { transform: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  body .card:hover, body .kpi-card:hover, body .stat-card:hover, body .strip-item:hover, body .table-card:hover,
+  body .tcard:hover, body .tbl-card:hover, body .section:hover, body .otd-card:hover, body .add-card:hover, body .fscard:hover { transform: none !important; }
+}
+
+/* ── Outlet Master summary: 3 separate white→gray cards, black text ── */
+.otm-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 18px; }
+body .otm-card {
+  background: linear-gradient(160deg, #FFFFFF 0%, #F6F6F7 55%, #E9EAEC 100%) !important;
+  border-radius: 24px; padding: 20px 22px;
+  box-shadow: 0 1px 2px rgba(17,17,17,.04), 0 6px 20px rgba(17,17,17,.06);
+  transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease;
+}
+body .otm-card:hover { transform: translateY(-4px); box-shadow: 0 2px 4px rgba(17,17,17,.04), 0 14px 32px rgba(17,17,17,.10); }
+body .otm-lbl { display: flex; align-items: center; gap: 8px; color: #333 !important; -webkit-text-fill-color: #333 !important; font-weight: var(--fw-bold) !important; }
+body .otm-num { margin-top: 8px; color: #111 !important; -webkit-text-fill-color: #111 !important; font-size: clamp(24px, 1.5vw + 14px, 36px) !important; font-weight: var(--fw-bold) !important; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.otm-card .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+@media (max-width: 768px) { .otm-stats { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { body .otm-card:hover { transform: none; } }

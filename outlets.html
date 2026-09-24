@@ -276,7 +276,7 @@ select.finput{appearance:auto}
 .sku-auto{background:#FFFBF0 !important;color:#7B5E00 !important;font-size:11px;font-style:italic}
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=49">
+<link rel="stylesheet" href="css/ssp-type.css?v=57">
 </head>
 <body>
 
@@ -326,19 +326,19 @@ select.finput{appearance:auto}
   </div>
 
   <!-- Stat card: With Contract (Yearly/Marketing) · No Contract · Total -->
-  <div class="stat-card">
-    <div class="stat-item">
-      <div class="stat-dot-row"><span class="dot dot-green"></span><span class="stat-lbl">With Contract</span></div>
-      <div class="stat-num" id="statWith">—</div>
+  <!-- summary: 3 separate white→gray cards -->
+  <div class="otm-stats">
+    <div class="otm-card">
+      <div class="otm-lbl"><span class="dot dot-green"></span>With Contract</div>
+      <div class="otm-num" id="statWith">—</div>
     </div>
-    <div class="stat-item">
-      <div class="stat-dot-row"><span class="dot dot-rose"></span><span class="stat-lbl">No Contract</span></div>
-      <div class="stat-num" id="statNo">—</div>
+    <div class="otm-card">
+      <div class="otm-lbl"><span class="dot dot-rose"></span>No Contract</div>
+      <div class="otm-num" id="statNo">—</div>
     </div>
-    <div class="stat-sep"></div>
-    <div class="stat-item">
-      <div class="stat-total-lbl">Total Outlets</div>
-      <div class="stat-num" id="statTotal">—</div>
+    <div class="otm-card">
+      <div class="otm-lbl">Total Outlets</div>
+      <div class="otm-num" id="statTotal">—</div>
     </div>
   </div>
 
