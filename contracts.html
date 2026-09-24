@@ -10,7 +10,12 @@
 <link rel="apple-touch-icon" href="img/logo-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="js/config.js?v=7"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="js/contract-dashboard.js?v=5"></script>
+<script src="js/contract-edit.js?v=9"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Poppins', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
@@ -140,7 +145,8 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
 .cfp-btn-ok:hover { background: #B0120A; }
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=57">
+<link rel="stylesheet" href="css/ssp-type.css?v=71">
+<script src="js/theme.js?v=1"></script>
 </head>
 <body>
 <nav class="sidebar">
@@ -181,9 +187,18 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
     </div>
     <button class="btn-exp" onclick="exportExcel()">Export Excel</button>
   </div>
+  <!-- views: Dashboard (both contracts) | raw data of each file -->
+  <div class="ct-tabs" role="tablist">
+    <a href="#" class="ct-tab" data-view="" role="tab">Dashboard</a>
+    <a href="#yearly" class="ct-tab" data-view="yearly" role="tab">Yearly Contract</a>
+    <a href="#marketing" class="ct-tab" data-view="marketing" role="tab">Marketing Contract</a>
+  </div>
+  <div id="ctDash" hidden></div>
+  <div id="ctRaw" hidden>
   <div id="statsStrip" class="stats-strip"></div>
   <div class="toolbar">
     <div class="search-box"><input type="text" id="searchInput" placeholder="Search..." oninput="filterRows()"></div>
+    <span id="fltExtra" class="flt-extra"></span>
     <select id="fltTeam"       class="filter" onchange="filterRows()" style="display:none"><option value="">All Teams</option></select>
     <select id="fltBde"        class="filter" onchange="filterRows()" style="display:none"><option value="">All BDEs</option></select>
     <input  id="fltOutletCode" class="filter" type="text" placeholder="Outlet Code…" oninput="filterRows()" style="display:none;padding:9px 12px;border:1.5px solid #E5E7EB;border-radius:10px;background:#FAFAFA;width:130px">
@@ -199,25 +214,23 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
         <div class="cp-list" id="colPickerList"></div>
       </div>
     </div>
+    <button type="button" class="btn-add-row" onclick="openRowEdit(null)">+ Add</button>
     <span class="row-count" id="rowCount">Loading...</span>
   </div>
   <div class="table-card"><div class="overflow-x"><div id="tableWrap"><div class="empty"><div class="ei"></div><p>กำลังโหลด...</p></div></div></div></div>
+  </div>
 </div>
 <script>
 const TABLE       = 'Contract Master';
-const PROMO_TABLE = 'Promotion / Trade deal';
 let allData = [], cols = [], visibleCols = [], _lastFiltered = [];
 let sortCol = '', sortAsc = false;
 let teamCol = null, bdeCol = null, outletCodeCol = null, statusCol = null, typeCol = null, dateCol = null;
 let _typeFilter = '';
-let _promoCount = 0;
 let _totalCount = 0;
-let _marketingCount = -1;
 let colFilters = {}; /* col → Set of allowed values; empty/absent = no filter */
 
 /* ── helpers ── */
 function esc(v)  { return String(v ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function label(c){ return colLabel(c); }
 function fNum(n) { return Number(n).toLocaleString('th-TH', { maximumFractionDigits: 0 }); }
 function norm(s) { return String(s).toLowerCase().replace(/[^a-z0-9]/g,''); }
 function findCol(rx, fb) { return cols.find(c => rx.test(c)) || (fb ? cols.find(c => fb.test(c)) : null) || null; }
@@ -232,90 +245,88 @@ async function checkAuth() {
   const dn = (p && p.username) || u.email.split('@')[0];
   document.getElementById('userName').textContent = dn;
   document.getElementById('userAvatar').textContent = dn.charAt(0).toUpperCase();
+  showView();
+}
+
+
+/* ── views: '' = dashboard, 'yearly' / 'marketing' = raw rows of that file ──
+   cols   = column order of the Excel file (Contract Master names); other columns show only if they hold data
+   labels = header names as in the Excel file
+   extra  = extra dropdown filters for that file */
+const VIEWS = {
+  yearly: {
+    title: 'Yearly Contract', pattern: '%year%', file: 'Yearly_Contracts',
+    cols: ['Code of Contract', 'CODE OUTLET', 'AREA', 'Company Code', 'PROVINCE', 'Field', 'COMPANY', 'OUTLET NAME', 'GROUP NAME',
+           'TEAM', 'CURRENT BDE', 'BDE', 'Promotion', 'Total Target (ROI)', 'TARGET APEROL (L.)', 'START', 'END', 'Active/Inactive',
+           'TYPE OF CONTRACT', 'RECEIVED DATE', 'ROI', 'SCAN', 'STATUS OF DOC', 'ON DOC', 'REMARK'],
+    labels: { 'Code of Contract': 'Number of Contract', 'CODE OUTLET': 'Outlet Code', 'AREA': 'Region', 'Company Code': 'Company',
+              'COMPANY': 'Company Name', 'Promotion': 'Contract Type', 'TARGET APEROL (L.)': 'Aperol Target (Liter)', 'START': 'Start Date',
+              'END': 'End Date', 'Active/Inactive': 'Status', 'TYPE OF CONTRACT': 'TYPE', 'RECEIVED DATE': 'Received Date',
+              'STATUS OF DOC': 'Status On Doc', 'ON DOC': 'On Doc', 'ROI': 'Received ROI' },
+    extra: [['AREA', 'Regions'], ['Promotion', 'Contract Types'], ['TYPE OF CONTRACT', 'Types']],
+  },
+  marketing: {
+    title: 'Marketing Contract', pattern: '%market%', file: 'Marketing_Contracts',
+    cols: ['Code of Contract', 'CODE OUTLET', 'AREA', 'Company Code', 'PROVINCE', 'COMPANY', 'OUTLET NAME', 'TEAM', 'CURRENT BDE', 'BDE',
+           'Promotion', 'Trade Deal', 'START', 'END', 'Active/Inactive', 'Priority SKUs', 'Total Sku', 'Principle', 'Brand',
+           'RECEIVED DATE', 'SCAN', 'STATUS OF DOC', 'ON DOC', 'REMARK'],
+    labels: { 'CODE OUTLET': 'Outlet Code', 'AREA': 'Region', 'Company Code': 'Company', 'COMPANY': 'Company Name', 'START': 'Start Date',
+              'END': 'End Date', 'Active/Inactive': 'Status', 'Priority SKUs': '# Priority SKUs', 'Brand': 'Brands',
+              'RECEIVED DATE': 'Received Date', 'STATUS OF DOC': 'Status Doc.', 'ON DOC': 'On Doc.' },
+    extra: [['AREA', 'Regions'], ['Principle', 'Principles'], ['Promotion', 'Promotions'], ['Brand', 'Brands']],
+  },
+};
+let VIEW = '';
+const viewFromHash = () => { const h = location.hash.replace('#', ''); return VIEWS[h] ? h : ''; };
+function label(c) { return (VIEWS[VIEW] && VIEWS[VIEW].labels[c]) || colLabel(c); }
+
+/* "1-Mar-19" / "19-Mar" → sortable number; anything else sorts as text */
+const MON3 = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+function sortKey(v) {
+  const s = String(v ?? '').trim();
+  let m = s.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{2})$/);
+  if (m && MON3[m[2].toLowerCase()]) return (2000 + +m[3]) * 10000 + MON3[m[2].toLowerCase()] * 100 + +m[1];
+  m = s.match(/^(\d{2})-([A-Za-z]{3})$/);
+  if (m && MON3[m[2].toLowerCase()]) return (2000 + +m[1]) * 10000 + MON3[m[2].toLowerCase()] * 100;
+  return s.toLowerCase();
+}
+
+/* ── switch view (tabs / hash) ── */
+let _liveOn = false;
+function showView() {
+  VIEW = viewFromHash();
+  document.querySelectorAll('.ct-tab').forEach(a => a.classList.toggle('active', a.dataset.view === VIEW));
+  document.getElementById('ctDash').hidden = !!VIEW;
+  document.getElementById('ctRaw').hidden = !VIEW;
+  const exp = document.querySelector('.btn-exp'); if (exp) exp.hidden = !VIEW;
+  const add = document.querySelector('.btn-add-row'); if (add && VIEW) add.textContent = '+ Add ' + VIEWS[VIEW].title;
+  document.querySelector('.page-header p').textContent = VIEW
+    ? VIEWS[VIEW].title + ' — raw data from the Excel file (Contract Master in Supabase)'
+    : 'Summary of Yearly and Marketing contracts — real-time from Supabase';
   loadData();
+  if (!_liveOn) {
+    _liveOn = true;
+    supabase.channel('cm-live').on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, p => ctLive(p)).subscribe();
+  }
 }
+window.addEventListener('hashchange', showView);
 
-/* ── count distinct promotions from Promotion / Trade deal table ──
-   Fetches the first row to detect which column holds the promotion name,
-   then counts distinct values of that column across all rows.            */
-/* Count unique (Outlet Code + Promotion Name) pairs from Promotion/Trade deal table.
-   Each pair = 1 marketing contract. 1 promotion can have many trade deal rows,
-   so we deduplicate by combining both keys.                                        */
-async function fetchPromoCount() {
-  try {
-    const { data: sample, error: sErr } = await supabase.from(PROMO_TABLE).select('*').limit(1);
-    /* If table inaccessible, don't silently return 0 — try count query */
-    if (sErr || !sample || !sample.length) {
-      if (sErr) {
-        const { count } = await supabase.from(PROMO_TABLE).select('*', { count: 'exact', head: true });
-        return count || 0;
-      }
-      return 0;
-    }
-
-    const allCols = Object.keys(sample[0]);
-    console.log('[Marketing] Promotion/Trade deal columns:', allCols);
-
-    /* Detect outlet code column */
-    const outletCol = allCols.find(c => /outlet.?code/i.test(c))
-                   || allCols.find(c => /^outlet$/i.test(c))
-                   || null;
-
-    /* Detect promotion name column — try many naming variants */
-    const promoCol  = allCols.find(c => /^promotion.?name$/i.test(c))
-                   || allCols.find(c => /^promo(tion)?.?name$/i.test(c))
-                   || allCols.find(c => /^promotion$/i.test(c))
-                   || allCols.find(c => /^promo$/i.test(c))
-                   || allCols.find(c => /^campaign.?name$/i.test(c))
-                   || allCols.find(c => /^campaign$/i.test(c))
-                   || allCols.find(c => /^trade.?deal.?name$/i.test(c))
-                   || allCols.find(c => /promo/i.test(c) && !/outlet|code|id|status|type|bde|team|date|month/i.test(c))
-                   || null;
-
-    console.log('[Marketing] outletCol:', outletCol, '| promoCol:', promoCol);
-
-    if (!outletCol && !promoCol) {
-      const { count } = await supabase.from(PROMO_TABLE).select('*', { count: 'exact', head: true });
-      return count || 0;
-    }
-
-    /* Fetch outlet + promo columns in batches, count distinct (outlet, promo) pairs */
-    const selParts = [outletCol, promoCol].filter(Boolean);
-    const selStr = selParts.map(c => /[^a-zA-Z0-9_]/.test(c) ? `"${c.replace(/"/g,'""')}"` : c).join(',');
-
-    const seen = new Set();
-    let from = 0;
-    while (true) {
-      const { data, error: bErr } = await supabase.from(PROMO_TABLE).select(selStr).range(from, from + 999);
-      if (bErr || !data || !data.length) break;
-      data.forEach(r => {
-        const oc = outletCol ? String(r[outletCol] ?? '').trim() : '';
-        const pn = promoCol  ? String(r[promoCol]  ?? '').trim() : '';
-        const key = `${oc}|${pn}`;
-        if (oc || pn) seen.add(key);
-      });
-      if (data.length < 1000) break;
-      from += 1000;
-    }
-    return seen.size;
-  } catch (e) { return 0; }
-}
-
-/* ── PHASE 1: load first 1 000 rows fast → show immediately ── */
+/* ── PHASE 1: load first 1 000 rows of the chosen file fast → show immediately ── */
 async function loadData() {
+  if (!VIEW) { _bgGen++; return ContractDashboard.load(document.getElementById('ctDash')); }
+  const V = VIEWS[VIEW], view = VIEW;
   const wrap = document.getElementById('tableWrap');
   wrap.innerHTML = '<div class="empty"><div class="ei"></div><p>Loading…</p></div>';
+  document.getElementById('statsStrip').innerHTML = '';
   _typeFilter = '';
-  _promoCount = 0;
-  _marketingCount = -1;
   colFilters = {};
+  document.getElementById('searchInput').value = '';
 
-  /* run all three in parallel: first batch, exact total count, promo count */
   const [{ data: first, error }, { count: exactTotal }] = await Promise.all([
-    supabase.from(TABLE).select('*').range(0, 999),
-    supabase.from(TABLE).select('*', { count: 'exact', head: true }),
-    fetchPromoCount().then(n => { _promoCount = n; })
+    supabase.from(TABLE).select('*').ilike('Type', V.pattern).range(0, 999),
+    supabase.from(TABLE).select('*', { count: 'exact', head: true }).ilike('Type', V.pattern),
   ]);
+  if (view !== VIEW) return;   /* user switched tab meanwhile */
   _totalCount = exactTotal || 0;
   if (error) {
     wrap.innerHTML = `<div class="empty"><div class="ei"></div><p>Error: ${esc(error.message)}</p></div>`;
@@ -323,24 +334,13 @@ async function loadData() {
     return;
   }
   if (!first || !first.length) {
-    wrap.innerHTML = '<div class="empty"><div class="ei"></div><p>No data in Contract Master</p></div>';
+    wrap.innerHTML = `<div class="empty"><div class="ei"></div><p>No ${esc(V.title)} rows yet — use Import to upload the file</p></div>`;
     document.getElementById('rowCount').textContent = '0 records';
     return;
   }
 
   allData = first;
   _detectCols();
-
-  /* If Promotion table failed → get exact marketing count from Contract Master server-side */
-  if (_promoCount === 0 && typeCol) {
-    try {
-      const { count: mc } = await supabase.from(TABLE)
-        .select('*', { count: 'exact', head: true })
-        .ilike(typeCol, '%market%');
-      if (mc) _promoCount = mc;
-    } catch(e) {}
-  }
-
   visibleCols = [...cols];
   updateColCount();
   buildStats(allData);
@@ -350,100 +350,56 @@ async function loadData() {
 
   /* PHASE 2: load remaining rows silently in background */
   if (first.length === 1000) _bgLoad(1000);
-
-  supabase.channel('cm-live').on('postgres_changes',{event:'*',schema:'public',table:TABLE},liveReload(loadData)).subscribe();
 }
 
 /* ── PHASE 2: background loading — appends without blocking UI ── */
 let _bgGen = 0;
 async function _bgLoad(from) {
-  const gen = ++_bgGen;
-
+  const gen = ++_bgGen, V = VIEWS[VIEW];
   while (true) {
     if (gen !== _bgGen) break;
-    const { data } = await supabase.from(TABLE).select('*').range(from, from + 999);
+    const { data } = await supabase.from(TABLE).select('*').ilike('Type', V.pattern).range(from, from + 999);
     if (!data || !data.length) break;
+    if (gen !== _bgGen) return;
     allData.push(...data);
     from += 1000;
     document.getElementById('rowCount').textContent = `${allData.length.toLocaleString()} records loaded…`;
     if (data.length < 1000) break;
   }
-
   if (gen !== _bgGen) return;
-  /* Rebuild filters with full dataset, refresh stats and table */
   buildStats(allData);
   buildFilters();
   filterRows();
   document.getElementById('rowCount').textContent = `${allData.length.toLocaleString()} records`;
 }
 
-/* ── detect key columns ── */
+/* ── key columns: the file's columns in file order, then any other column that holds data ── */
 function _detectCols() {
-  cols = Object.keys(allData[0]).filter(c => c !== 'id');
-  outletCodeCol = findCol(/^outlet.?code$/i,             /outlet.*code/i);
-  teamCol       = findCol(/^team$/i,                     /\bteam\b/i);
-  bdeCol        = findCol(/^bde$/i,                      /\bbde\b/i);
-  statusCol     = findCol(/^status$/i,                   /status/i);
-  typeCol       = findCol(/^(contract.?type|type)$/i,    /type/i);
-  /* Date col for default sort: prefer received/month, then any date-like column */
-  dateCol = findCol(/receiv|month.?receiv|receiv.*month/i, null)
-         || findCol(/^month$/i,  /\bmonth\b/i)
-         || findCol(/^date$/i,   /\bdate\b/i)
-         || findCol(/created_at|updated_at/, null)
-         || cols.find(c => allData[0] && /^\d{4}-\d{2}/.test(String(allData[0][c] ?? '')))
-         || null;
-  sortCol  = dateCol || '';
-  sortAsc  = false; /* newest first */
-  /* Pin outlet code first */
-  if (outletCodeCol) cols = [outletCodeCol, ...cols.filter(c => c !== outletCodeCol)];
+  const V = VIEWS[VIEW], keys = Object.keys(allData[0]);
+  const hasData = c => allData.some(r => r[c] != null && String(r[c]).trim() !== '');
+  cols = V.cols.filter(c => keys.includes(c))
+    .concat(keys.filter(c => c !== 'id' && c !== 'Type' && !V.cols.includes(c) && hasData(c)));
+  outletCodeCol = 'CODE OUTLET';
+  teamCol = 'TEAM';
+  bdeCol = 'CURRENT BDE';
+  statusCol = 'Active/Inactive';
+  typeCol = null;
+  dateCol = 'START';
+  sortCol = 'START';
+  sortAsc = false;   /* newest start first */
 }
 
-/* ── stats strip ── */
+/* ── stats strip (raw view) ── */
 function buildStats(data) {
-  /* single pass: count by type */
-  const counts = {};
-  if (typeCol) {
-    data.forEach(r => {
-      const t = String(r[typeCol] ?? '').trim() || '(blank)';
-      counts[t] = (counts[t] || 0) + 1;
-    });
-  }
-
-  let yearly = 0, marketingFromCM = 0;
-  Object.entries(counts).forEach(([t, n]) => {
-    if (/year|annual/i.test(t)) yearly          += n;
-    if (/market/i.test(t))      marketingFromCM += n;
-  });
-
-  /* Freeze marketing count on first call per load — prevents Phase 2 from changing the number */
-  if (_marketingCount < 0) {
-    _marketingCount = _promoCount > 0 ? _promoCount : marketingFromCM;
-  }
-  const marketing = _marketingCount;
-  const mLabel    = _promoCount > 0 ? 'Distinct outlet × promotion' : 'From Contract Master';
-  const total     = _totalCount > 0 ? _totalCount : data.length;
-
-  let html = `
-  <div class="strip-item" style="border-left-color:#B0120A">
-    <div class="sl">Total Contracts</div>
-    <div class="sv">${total.toLocaleString()}</div>
-  </div>
-  <div class="strip-item" style="border-left-color:#F36C60">
-    <div class="sl">Yearly Contract</div>
-    <div class="sv" style="color:#B0120A">${yearly.toLocaleString()}</div>
-  </div>
-  <div class="strip-item strip-marketing">
-    <div class="sl">Marketing Contract</div>
-    <div class="sv">${marketing.toLocaleString()}</div>
-    <div style="font-size:10px;color:#9CA3AF;margin-top:3px">${mLabel}</div>
-  </div>`;
-
-  if (outletCodeCol) {
-    const u = new Set(data.map(r => r[outletCodeCol]).filter(Boolean)).size;
-    html += `<div class="strip-item"><div class="sl">Unique Outlets</div><div class="sv">${u.toLocaleString()}</div></div>`;
-  }
-
-  document.getElementById('statsStrip').innerHTML = html;
+  const n = (f) => data.filter(f).length;
+  const active = n(r => String(r['Active/Inactive'] ?? '').trim().toLowerCase() === 'active');
+  const outlets = new Set(data.map(r => r['CODE OUTLET']).filter(Boolean)).size;
+  const contracts = new Set(data.map(r => r['Code of Contract']).filter(Boolean)).size;
+  const total = _totalCount > 0 ? _totalCount : data.length;
+  const item = (l, v) => `<div class="strip-item"><div class="sl">${l}</div><div class="sv">${Number(v).toLocaleString()}</div></div>`;
+  document.getElementById('statsStrip').innerHTML =
+    item('Rows', total) + (contracts ? item('Contracts', contracts) : '') +
+    item('Active rows', active) + item('Inactive rows', data.length - active) + item('Outlets', outlets);
 }
 
 function buildSummary(data) { /* removed — stats strip is the single source */ }
@@ -573,6 +529,14 @@ function buildFilters() {
   mkSelect(bdeCol,    'fltBde',    'BDEs');
   mkSelect(statusCol, 'fltStatus', 'Status');
   mkSelect(typeCol,   'fltType',   'Types');
+  /* per-file extra filters (Region, Principle, Promotion …) keep their choice while data refreshes */
+  const ex = document.getElementById('fltExtra'), V = VIEWS[VIEW];
+  const keep = {}; ex.querySelectorAll('select').forEach(s => { keep[s.dataset.col] = s.value; });
+  ex.innerHTML = (V ? V.extra : []).filter(([c]) => cols.includes(c)).map(([c, l]) => {
+    const vals = [...new Set(allData.map(r => r[c]).filter(v => v != null && String(v).trim() !== ''))].sort((a,b) => String(a).localeCompare(String(b),'th'));
+    return `<select class="filter" data-col="${esc(c)}" onchange="filterRows()"><option value="">All ${esc(l)}</option>` +
+      vals.map(v => `<option value="${esc(v)}"${keep[c] === String(v) ? ' selected' : ''}>${esc(v)}</option>`).join('') + '</select>';
+  }).join('');
   const oc = document.getElementById('fltOutletCode');
   if (oc) oc.style.display = outletCodeCol ? '' : 'none';
 }
@@ -593,6 +557,9 @@ function filterRows() {
   if (bdeVal    && bdeCol)    f = f.filter(r => String(r[bdeCol]??'')    === bdeVal);
   if (statusVal && statusCol) f = f.filter(r => String(r[statusCol]??'') === statusVal);
   if (typeVal   && typeCol)   f = f.filter(r => String(r[typeCol]??'')   === typeVal);
+  document.querySelectorAll('#fltExtra select').forEach(s => {
+    if (s.value) f = f.filter(r => String(r[s.dataset.col] ?? '') === s.value);
+  });
 
   /* column-level filters (Excel style) */
   Object.entries(colFilters).forEach(([col, vals]) => {
@@ -641,9 +608,10 @@ function renderTable(data) {
   let sorted = [...data];
   if (sortCol) {
     sorted.sort((a,b) => {
-      const av = a[sortCol], bv = b[sortCol];
-      if (av == null) return 1; if (bv == null) return -1;
-      /* date strings: compare lexicographically (ISO format works) */
+      if (a[sortCol] == null) return 1; if (b[sortCol] == null) return -1;
+      /* "1-Mar-19" / "19-Mar" dates sort by date, other values as text */
+      const av = sortKey(a[sortCol]), bv = sortKey(b[sortCol]);
+      if (av === bv) return 0;
       return sortAsc ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
     });
   }
@@ -655,15 +623,20 @@ function renderTable(data) {
 
   const thStyle = c => {
     let st = '';
-    if (isOC(c)) st = 'position:sticky;left:0;z-index:2;background:linear-gradient(90deg,#500A11,#B0120A)';
-    else if (isDC(c)) st = 'background:linear-gradient(90deg,#14532D,#047857)';
+    if (isDC(c)) st = 'background:linear-gradient(90deg,#14532D,#047857)';
     else if (colFilters[c] && colFilters[c].size > 0) st = 'background:linear-gradient(90deg,#B0120A,#B0120A)';
     return st ? ` style="${st}"` : '';
   };
-  const tdStyle = c => {
-    if (isOC(c)) return ' style="position:sticky;left:0;background:#fff;border-right:2px solid #FDE0DC;font-weight:700"';
-    return '';
+  /* row highlight = On Doc color (js/contract-edit.js); applied to every cell so it wins over hover / zebra */
+  const hlCss = hl => hl ? `background:${hl.bg} !important;color:${hl.fg} !important;-webkit-text-fill-color:${hl.fg} !important;` : '';
+  const tdStyle = (c, hl) => {
+    const st = (isOC(c) ? 'font-weight:700;' : '') + hlCss(hl);
+    return st ? ` style="${st}"` : '';
   };
+  /* On Doc cell = dropdown chip; other cells = formatted value */
+  const cell = (row, c) => c === 'ON DOC'
+    ? `<button type="button" class="od-chip" onclick="openOnDoc(event, ${row.id})">${row[c] ? esc(row[c]) : 'Select…'}</button>`
+    : fv(row[c], c);
   const mkTh = c => {
     const sc     = c.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     const fltActive = colFilters[c] && colFilters[c].size > 0;
@@ -676,12 +649,14 @@ function renderTable(data) {
   };
 
   wrap.innerHTML =
-    `<table><thead><tr>` +
+    `<table><thead><tr><th class="ce-col"><span class="th-lbl">Edit</span></th>` +
     vc.map(c => mkTh(c)).join('') +
     `</tr></thead><tbody>` +
-    sorted.map(row =>
-      `<tr>${vc.map(c => `<td${tdStyle(c)} title="${esc(String(row[c]??''))}">${fv(row[c],c)}</td>`).join('')}</tr>`
-    ).join('') +
+    sorted.map(row => {
+      const hl = onDocStyle(row['ON DOC']);
+      return `<tr${hl ? ' class="od-row"' : ''}><td class="ce-col"${tdStyle('', hl)}><button type="button" class="ce-btn" onclick="openRowEdit(${row.id})">Edit</button></td>` +
+        vc.map(c => `<td${tdStyle(c, hl)} title="${esc(String(row[c]??''))}">${cell(row, c)}</td>`).join('') + `</tr>`;
+    }).join('') +
     `</tbody></table>`;
 }
 
@@ -689,7 +664,10 @@ function renderTable(data) {
 function fv(v, col) {
   if (v === null || v === undefined || String(v).trim() === '') return '<span style="color:#D1D5DB">—</span>';
   if (col === outletCodeCol)
-    return `<span style="font-family:monospace;font-size:12px;background:#FDE0DC;padding:2px 7px;border-radius:5px;color:#B0120A;font-weight:700">${esc(String(v))}</span>`;
+    return `<span class="oc-chip" style="font-family:monospace;font-size:12px;background:#FDE0DC;padding:2px 7px;border-radius:5px;color:#B0120A;font-weight:700">${esc(String(v))}</span>`;
+  /* Start / End / Received date: "1-Mar-26" → "1 Mar 26", month-only "26-Mar" → "Mar 26" */
+  if ((col === 'START' || col === 'END' || col === 'RECEIVED DATE') && /^(\d{1,2}-[A-Za-z]{3}-\d{2}|\d{2}-[A-Za-z]{3})$/.test(String(v).trim()))
+    return `<span style="font-variant-numeric:tabular-nums;white-space:nowrap">${esc(dateShow(v))}</span>`;
   if (typeof v === 'number')
     return `<span class="col-num">${Number(v).toLocaleString('th-TH')}</span>`;
   if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v))
@@ -706,10 +684,10 @@ function exportExcel() {
   const src = _lastFiltered.length ? _lastFiltered : allData;
   if (!src.length) { alert('No data to export'); return; }
   const vc   = visibleCols.length ? visibleCols : cols;
-  const rows = src.map(r => { const o={}; vc.forEach(c => { o[c]=r[c]??''; }); return o; });
-  const wb   = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Contract Master');
-  XLSX.writeFile(wb, `Contract_Master_${new Date().toISOString().slice(0,10)}.xlsx`);
+  const rows = src.map(r => { const o={}; vc.forEach(c => { o[label(c)]=r[c]??''; }); return o; });
+  const wb   = XLSX.utils.book_new(), name = VIEWS[VIEW] ? VIEWS[VIEW].file : 'Contract_Master';
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), name.replace(/_/g, ' '));
+  XLSX.writeFile(wb, `${name}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 async function logout() { await supabase.auth.signOut(); window.location.href='index.html'; }
@@ -726,6 +704,7 @@ checkAuth();
 <script src="js/responsive.js?v=1"></script>
 <script src="js/table-scroll.js?v=3"></script>
 <script src="js/search-loading.js?v=1"></script>
+<script src="js/contract-import.js?v=1"></script>
 </body>
 </html>
 

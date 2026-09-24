@@ -118,6 +118,24 @@ function outletBubble(o: any) {
   };
 }
 
+/* ── "Not found" card: red title, what was searched, gray hint ── */
+function notFound(q: string, what: string, hint: string) {
+  return {
+    type: "flex", altText: "ไม่พบข้อมูล: " + q, quickReply: quickMenu,
+    contents: {
+      type: "bubble", size: "kilo",
+      body: {
+        type: "box", layout: "vertical", spacing: "sm", paddingAll: "18px",
+        contents: [
+          { type: "text", text: "ไม่พบข้อมูล", weight: "bold", size: "md", color: RED },
+          { type: "text", text: "ค้นหา \"" + q + "\" ไม่พบ " + what + " ที่ตรงกัน", size: "sm", color: "#333333", wrap: true },
+          { type: "text", text: hint, size: "xs", color: MUTED, wrap: true, margin: "sm" },
+        ],
+      },
+    },
+  };
+}
+
 async function reply(token: string, messages: unknown[]) {
   const res = await fetch("https://api.line.me/v2/bot/message/reply", {
     method: "POST",
@@ -239,13 +257,13 @@ async function handleEvent(ev: any): Promise<boolean> {
 
   if (mode === "outlet") {
     if (await replyOutlets(ev, q)) return true;
-    await reply(ev.replyToken, [text("ไม่พบร้าน \"" + q + "\"\nลองพิมพ์ชื่อร้านบางส่วน หรือ Outlet Code อีกครั้งค่ะ", true)]);
+    await reply(ev.replyToken, [notFound(q, "outlet", "ลองพิมพ์ชื่อโรงแรม เช่น Hilton, Marriott")]);
     await log(ev, q, 0);
     return true;
   }
 
   if (await searchProducts(ev, q)) return true;
-  await reply(ev.replyToken, [text("ไม่พบสินค้า \"" + q + "\"\nลองพิมพ์ชื่อสินค้า หรือแบรนด์ อีกครั้งค่ะ", true)]);
+  await reply(ev.replyToken, [notFound(q, "สินค้า", "ลองพิมพ์ชื่อสินค้า หรือชื่อแบรนด์")]);
   await log(ev, q, 0);
   return true;
 }

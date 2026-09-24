@@ -4,7 +4,8 @@
    Colors: previous year light yellow #F8D77A fading to cream #FFF3D6 (bars) / #D99500 (line), selected year #B0120A; the light
    colors are under 3:1 on white, so values are also shown as text / in tables and tooltips. */
 (function () {
-  var PREV = '#F8D77A', CUR = '#B0120A', PREV_LINE = '#D99500',   /* previous year: light yellow bars (user choice; lighter than the validator band, so totals are shown as text) / yellow line */
+  var PREV = '#F8D77A', CUR = window.themeColor ? themeColor('--c1', '#B0120A') : '#B0120A', PREV_LINE = '#D99500',   /* CUR follows the color theme */
+        /* previous year: light yellow bars (user choice; lighter than the validator band, so totals are shown as text) / yellow line */
       INK = '#111111', MUTED = '#666666', GRID = '#EEEEEE';
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var MONTHS_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -477,6 +478,9 @@
           '</td><td>' + fmt(r.val) + '</td><td>' + fmt(r.vol_ytd) + '</td></tr>';
       }).join('') : '<tr><td colspan="8" style="text-align:center;color:#777">No outlets bought this brand in this period</td></tr>') + '</tbody>';
   }
+
+  /* color theme changed (js/theme.js) → redraw with the new main color */
+  window.addEventListener('themechange', function () { CUR = themeColor('--c1', '#B0120A'); if (opts) load(); });
 
   function start() { if (window.Chart) init(); else setTimeout(start, 100); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
