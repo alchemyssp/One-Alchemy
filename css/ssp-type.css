@@ -1004,27 +1004,6 @@ body .overlay, body .add-overlay, body .sku-overlay, body .discard-shield { back
 body table.ct-od-tbl { min-width: 0 !important; }
 .ct-od-tbl td, .ct-od-tbl th { text-align: left !important; white-space: normal !important; }
 
-/* ══ TABLE STYLE (2026-09-24): soft / minimal — light header with gray labels and a dotted line, airy rows,
-      rounded hover highlight in the theme tint. Colors stay the theme colors. ══ */
-html body table thead th:not(.__), html body table thead th:not(.__) * {
-  background: transparent !important; background-image: none !important;
-  color: #6B7280 !important; -webkit-text-fill-color: #6B7280 !important;
-}
-html body table thead th:not(.__) {
-  font-weight: var(--fw-medium) !important; font-size: var(--t-small) !important;
-  border-bottom: 1px dashed #D1D5DB !important; padding: 12px 14px !important; text-transform: none !important;
-}
-html body table thead th:not(.__):hover { color: #111 !important; -webkit-text-fill-color: #111 !important; }
-html body table thead tr:first-child th:not(.__) { border-radius: 0 !important; }
-html body table tbody td { border-bottom: 0 !important; padding-top: 12px !important; padding-bottom: 12px !important; }
-html body table tbody tr:nth-child(even) > td { background-color: transparent; }
-html body table tbody tr:hover > td { background: var(--c3) !important; }
-html body table tbody tr:hover > td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
-html body table tbody tr:hover > td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
-html body .col-flt-btn { background: #F2F3F5 !important; color: #6B7280 !important; -webkit-text-fill-color: #6B7280 !important; }
-html body .col-flt-btn.active { background: var(--c1) !important; color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important; }
-html body .table-card { background: #FFFFFF !important; }
-
 /* ══ Contract raw tabs (Yearly / Marketing) ══ */
 /* summary cards: white */
 .ct-stats { display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px !important; margin-bottom: 14px !important; }
