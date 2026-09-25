@@ -275,6 +275,7 @@ html body table.roi-tbl td.o small { font-size: 11px !important; }
       </div>
       <div class="roi-tools">
         <input type="search" id="aSearch" placeholder="Search outlet, contract, group, area, BDE, brand..." aria-label="Search accrual">
+        <select id="aYear" aria-label="Year" hidden></select>
         <select id="aAnalytical" aria-label="Analytical"><option value="">All results</option><option>Reached Target (In period)</option><option>In period</option><option>Maximum paid</option><option>Under target</option></select>
         <span class="roi-count" id="aCount"></span>
       </div>
@@ -547,7 +548,7 @@ function aFiltered(list, keys) {
 function renderAccrual() {
   if (!A) return;
   document.querySelectorAll('.acc-tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.s === aSheet)));
-  $('aAnalytical').hidden = aSheet === 'brand';
+  $('aAnalytical').hidden = aSheet === 'brand'; $('aYear').hidden = aSheet !== 'monthly';
   const cs = A.contracts || [], act = cs.filter(c => c.active).length;
   /* counters filter the table: Total = all, Active / Inactive = only those contracts (not on Brand Summary) */
   const cnt = (k, n, l) => `<button type="button" data-st="${k}" aria-pressed="${aStatus === k}">${aSheet === 'brand' ? '' : ''}<b>${fmt(n)}</b> ${l}</button>`;
@@ -591,10 +592,25 @@ function renderAccBrand() {
     `</tbody></table>` + more(list.length);
 }
 
+/* Monthly Breakdown: year filter + a header colour per year */
+let aYearSel = '';
+/* month headers: the as-of year (2026) dark grey; earlier years their own colour so they stand apart in "All years" */
+const YEAR_OTHER = ['#0F766E', '#1D4ED8', '#7C3AED', '#B45309'];
+function yearStyle(m) {
+  const y = +String(m).slice(0, 4), cy = +String(A.as_of).slice(0, 4);
+  const c = y === cy ? '#374151' : YEAR_OTHER[((cy - y - 1) % YEAR_OTHER.length + YEAR_OTHER.length) % YEAR_OTHER.length];
+  return `background:${c} !important`;
+}
 function renderAccMonthly() {
   $('accTitle').textContent = 'Accrual Summary - Monthly Breakdown by Outlet Contract';
-  const cols = A.month_cols || [], n = cols.length;
-  const list = aFiltered(A.monthly || [], ['outlet', 'contract', 'grp', 'area', 'outlet_code']);
+  /* on screen: only ACCRUAL TO BE PAID (the Excel export keeps both blocks like the workbook) */
+  /* year filter: default = the as-of year (2026); "All years" shows every month */
+  const allCols = A.month_cols || [], years = [...new Set(allCols.map(m => m.slice(0, 4)))];
+  const ySel = $('aYear'); if (!years.includes(aYearSel) && aYearSel !== 'all') aYearSel = String(A.as_of).slice(0, 4);
+  ySel.innerHTML = years.slice().reverse().map(y => `<option value="${y}"${y === aYearSel ? ' selected' : ''}>${y}</option>`).join('') + `<option value="all"${aYearSel === 'all' ? ' selected' : ''}>All years</option>`;
+  const idx = allCols.map((m, i) => aYearSel === 'all' || m.startsWith(aYearSel) ? i : -1).filter(i => i >= 0);
+  const cols = idx.map(i => allCols[i]), n = cols.length;
+  const list = aFiltered(A.monthly || [], ['outlet', 'contract', 'grp', 'area', 'outlet_code']).map(r => Object.assign({}, r, { act: idx.map(i => (r.act || [])[i] || 0) }));
   $('aCount').textContent = `${fmt(list.length)} contracts`;
   /* totals per month: actual, accrual = actual × the contract's % rebate */
   const tA = new Array(n).fill(0), tR = new Array(n).fill(0);
@@ -602,15 +618,14 @@ function renderAccMonthly() {
   const sA = tA.reduce((s, v) => s + v, 0), sR = tR.reduce((s, v) => s + v, 0);
   const fixed = ['Outlet Name', 'Outlets Contract', 'Group', 'Area', '% Rebate', 'Start Date', 'End Date', 'Outlets Code'];
   $('aWrap').innerHTML = `<table class="roi-tbl acc-tbl acc-month"><thead>` +
-    `<tr class="acc-grp"><th class="stick" colspan="1"></th><th colspan="${fixed.length - 1}"></th><th colspan="${n + 1}" class="g1">ACTUAL PURCHASE (THB, Exc.VAT)</th><th colspan="${n + 1}" class="g2">ACCRUAL TO BE PAID</th></tr>` +
-    `<tr>${fixed.map((h, i) => `<th class="${i === 4 ? 'n' : ''}${i === 0 ? ' stick' : ''}">${h}</th>`).join('')}${cols.map(m => `<th class="n">${mExcel(m)}</th>`).join('')}<th class="n">Total Actual Purchase</th>` +
-    `${cols.map(m => `<th class="n">${mExcel(m)}</th>`).join('')}<th class="n">Total Accrual</th></tr></thead><tbody>` +
-    `<tr class="acc-total"><td class="stick">TOTAL</td><td colspan="${fixed.length - 1}"></td>${tA.map(v => `<td class="n">${money(v)}</td>`).join('')}<td class="n">${money(sA)}</td>` +
+    `<tr class="acc-grp"><th class="stick" colspan="1"></th><th colspan="${fixed.length - 1}"></th><th colspan="${n + 1}" class="g2">ACCRUAL TO BE PAID</th></tr>` +
+    `<tr>${fixed.map((h, i) => `<th class="${i === 4 ? 'n' : ''}${i === 0 ? ' stick' : ''}">${h}</th>`).join('')}` +
+    `${cols.map(m => `<th class="n yr" style="${yearStyle(m)}">${mExcel(m)}</th>`).join('')}<th class="n">Total Accrual</th></tr></thead><tbody>` +
+    `<tr class="acc-total"><td class="stick">TOTAL${aYearSel === 'all' ? '' : ' ' + aYearSel}</td><td colspan="${fixed.length - 1}"></td>` +
     `${tR.map(v => `<td class="n">${money(v)}</td>`).join('')}<td class="n">${money(sR)}</td></tr>` +
     list.slice(0, aShown).map(r => { const a = r.act || [], tot = a.reduce((s, v) => s + Number(v || 0), 0);
       return `<tr data-c="${esc(r.contract)}" tabindex="0"><td class="stick"><b>${esc(r.outlet)}</b></td><td>${esc(r.contract)}</td><td>${esc(r.grp || '')}</td><td>${esc(r.area || '')}</td>` +
         `<td class="n">${pct1(r.rate)}</td><td>${dExcel(r.d_start)}</td><td>${dExcel(r.d_end)}</td><td>${esc(r.outlet_code || '')}</td>` +
-        a.map(v => `<td class="n">${money(v)}</td>`).join('') + `<td class="n"><b>${money(tot)}</b></td>` +
         a.map(v => `<td class="n">${money(Number(v || 0) * r.rate)}</td>`).join('') + `<td class="n acc">${money(tot * r.rate)}</td></tr>`; }).join('') +
     `</tbody></table>` + more(list.length);
 }
@@ -622,6 +637,7 @@ $('aWrap').addEventListener('keydown', e => { const tr = e.target.closest('tr[da
 $('aSearch').addEventListener('input', () => { aShown = 150; renderAccrual(); });
 $('aAnalytical').addEventListener('change', () => { aShown = 150; renderAccrual(); });
 $('aMonth').addEventListener('change', loadAccrual);
+$('aYear').addEventListener('change', () => { aYearSel = $('aYear').value; aShown = 150; renderAccrual(); });
 
 /* ── Excel: the same 3 sheets and layout as the team's workbook ── */
 let excelJsLoading = null;
@@ -686,12 +702,12 @@ async function exportAccrual() {
     const mo = A.monthly || [], mc = A.month_cols || [], n = mc.length, s3 = wb.addWorksheet('Monthly Breakdown', { views: [{ state: 'frozen', xSplit: 2, ySplit: 7 }] });
     s3.getCell('A1').value = 'Accrual Summary - Monthly Breakdown by Outlet Contract'; s3.getCell('A1').font = { bold: true, size: 14 };
     const c0 = 9, cT = c0 + n, cR = cT + 2, cRT = cR + n;   /* I … months, total, blank, accrual months, total */
-    s3.getCell(6, c0).value = 'ACTUAL PURCHASE (THB, Exc.VAT)'; s3.mergeCells(6, c0, 6, cT);
+    s3.getCell(6, c0).value = 'REBATE PREPARING TO PAY (Ex.VAT)'; s3.mergeCells(6, c0, 6, cT);
     s3.getCell(6, cR).value = 'ACCRUAL TO BE PAID'; s3.mergeCells(6, cR, 6, cRT);
     [s3.getCell(6, c0), s3.getCell(6, cR)].forEach(c => { c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.alignment = { horizontal: 'center' };
       c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF374151' } }; });
     const h7 = ['Outlet Name', 'Outlets Contract', 'Group', 'Area', '% Rebate', 'Start Date', 'End Date', 'Outlets Code'];
-    mc.forEach(m => h7.push(dt(m))); h7.push('Total Actual Purchase'); h7.push(''); mc.forEach(m => h7.push(dt(m))); h7.push('Total Accrual');
+    mc.forEach(m => h7.push(dt(m))); h7.push('Total Rebate Preparing to Pay'); h7.push(''); mc.forEach(m => h7.push(dt(m))); h7.push('Total Accrual');
     s3.getRow(7).values = h7; hdr(s3, 7);
     for (let i = 0; i < n; i++) { s3.getCell(7, c0 + i).numFmt = 'mmm-yy'; s3.getCell(7, cR + i).numFmt = 'mmm-yy'; }
     s3.getCell(7, cT + 1).fill = { type: 'pattern', pattern: 'none' };
