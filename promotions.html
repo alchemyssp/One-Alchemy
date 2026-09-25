@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="img/logo-64.png">
 <link rel="apple-touch-icon" href="img/logo-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js?v=9"></script>
+<script src="js/config.js?v=10"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Poppins', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
@@ -134,6 +134,23 @@ tr:hover td { background: #FDE0DC; }
 .bo-toast { position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 3000; padding: 10px 16px; border-radius: 10px; background: #111827; color: #fff; font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,.2); max-width: 420px; }
 .bo-toast.err { background: #B91C1C; }
 @media (max-width: 768px) { .bo-grid { grid-template-columns: 1fr; } .bo-pend li { grid-template-columns: auto minmax(0, 1fr) auto; } .bo-pend small { display: none; } }
+/* principle groups */
+.bo-prins { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 14px; }
+.bo-prins button { border: none; background: #fff; border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600; color: #374151; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+.bo-prins button b { color: #6B7280; font-weight: 600; margin-left: 2px; }
+html body .bo-prins button[aria-pressed="true"] { background: var(--c1, #B0120A) !important; color: #fff !important; -webkit-text-fill-color: #fff !important; }
+html body .bo-prins button[aria-pressed="true"] b { color: #fff !important; -webkit-text-fill-color: #fff !important; }
+.bo-prin { margin-bottom: 18px; }
+html body .bo-prin + .bo-prin { position: relative; padding-top: 18px; margin-top: 6px; }
+/* thin divider fading from the theme red to grey to nothing */
+html body .bo-prin + .bo-prin::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, var(--c1, #B0120A) 0%, #C4C9D1 45%, rgba(196,201,209,0) 100%); }
+
+.bo-prin-h { font-size: 16px; color: #111; margin: 0 0 10px; padding-left: 10px; border-left: 4px solid var(--c1, #B0120A); }
+.bo-prin-h small { font-size: 12px; font-weight: 500; color: #6B7280; margin-left: 6px; }
+.bo-prin-edit { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #555; font-weight: 600; }
+.bo-prin-edit input { padding: 5px 8px; border-radius: 8px; border: 1.5px solid #E5E7EB; background: #fff; font: inherit; font-weight: 400; width: 150px; }
+.bo-new #boNewPrin { flex: 0 1 200px; min-width: 150px; }
 /* brand folders */
 .bo-folders { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
 .bo-folder { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 12px 12px; border: none; border-radius: 16px; background: #fff;
@@ -183,7 +200,7 @@ tr:hover td { background: #FDE0DC; }
     <a href="promotions.html" class="active">Brand Campaign</a>
     <a href="products.html">Products</a>
     <div class="nav-section">Analytics</div>
-    <a href="roi.html">ROI Analysis</a>
+    <a href="roi.html">Return of Investment (ROI)</a>
     <a href="offtake.html">Off-take 2026</a>
     <a href="sku.html">SKU</a>
   </div>
@@ -212,10 +229,12 @@ tr:hover td { background: #FDE0DC; }
     </div>
     <div class="bo-new" id="boNew" hidden>
       <input id="boNewName" placeholder="Brand name, e.g. Espolon" aria-label="New brand folder name">
+      <input id="boNewPrin" list="boPrinList" placeholder="Principle, e.g. Campari" aria-label="Principle of the new brand"><datalist id="boPrinList"></datalist>
       <button type="button" class="bo-btn primary" onclick="createFolder()">Create folder</button>
       <button type="button" class="bo-btn ghost" onclick="toggleNewFolder(false)">Cancel</button>
     </div>
-    <div class="bo-folders" id="boFolders"></div>
+    <div class="bo-prins" id="boPrins" role="group" aria-label="Filter by principle"></div>
+    <div id="boFolders"></div>
     <div id="boHits"></div>
   </div>
 
@@ -223,7 +242,9 @@ tr:hover td { background: #FDE0DC; }
   <div id="viewFolder" hidden>
     <nav class="bo-crumb" aria-label="Breadcrumb">
       <a href="#" onclick="openBrand(null); return false;">All brands</a><span aria-hidden="true">/</span>
+      <a href="#" id="boCrumbPrin" onclick="openPrinciple(this.dataset.p); return false;"></a><span aria-hidden="true">/</span>
       <span class="bo-crumb-cur" id="boCrumb"></span>
+      <label class="bo-prin-edit">Principle <input id="boPrinEdit" list="boPrinList" aria-label="Principle of this brand"></label>
     </nav>
 
     <section class="bo-card" aria-labelledby="boUpTitle">
@@ -304,11 +325,52 @@ async function checkAuth() {
   route();
 }
 
+/* new logo in the Brands Logo bucket → its folder is created automatically (principle 'Other', change it on the folder page) */
+let logosSynced = false;
+/* brand key from a folder name or a logo file name: "Tito's_ogo.png", "Henkes logo.jpg", "Real mccoy_Logo.png" → titos / henkes / realmccoy */
+const logoKey = t => String(t || '').toLowerCase().replace(/\.[a-z0-9]{2,5}$/, '').replace(/[\s_-]*l?ogo$/, '').replace(/[^a-z0-9]/g, '');
+function editDist(a, b) {           /* small typo check: Triue ↔ Trieu */
+  if (Math.abs(a.length - b.length) > 2) return 9;
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+async function syncLogos(existing) {
+  if (logosSynced) return false; logosSynced = true;
+  const { data, error } = await supabase.storage.from(LOGOS).list('', { limit: 1000 });
+  if (error || !data) return false;
+  const files = data.filter(o => o.name && /\.(png|jpe?g|gif|webp|svg)$/i.test(o.name));
+  const inBucket = new Set(data.map(o => o.name)), used = new Set(existing.map(x => x.logo_file).filter(n => inBucket.has(n)));
+  /* folder for a logo: same key, one key starts with the other, or 1–2 letters different */
+  const find = k => existing.find(x => logoKey(x.name) === k || logoKey(x.folder) === k) ||
+    existing.find(x => { const n = logoKey(x.name); return k.length >= 4 && n.length >= 4 && (n.startsWith(k) || k.startsWith(n)); }) ||
+    existing.find(x => { const n = logoKey(x.name); return k.length >= 5 && editDist(n, k) <= 2; });
+  const add = [], link = [];
+  files.filter(o => !used.has(o.name)).forEach(o => {
+    const k = logoKey(o.name); if (!k) return;
+    const hit = find(k);
+    if (hit) { if (!hit.logo_file || !inBucket.has(hit.logo_file)) { link.push({ id: hit.id, logo_file: o.name, name: hit.name }); hit.logo_file = o.name; } return; }
+    let n = o.name.replace(/\.[a-z0-9]{2,5}$/i, '').replace(/[\s_-]*l?ogo$/i, '').replace(/[_-]+/g, ' ').trim();
+    if (n === n.toLowerCase()) n = n.replace(/\b\w/g, c => c.toUpperCase());
+    if (n && !add.some(x => logoKey(x.name) === k)) add.push({ name: n, folder: slug(n) || 'Brand_' + Date.now(), logo_file: o.name, principle: 'Other' });
+  });
+  let changed = false;
+  for (const l of link) { const r = await supabase.from(BRANDS).update({ logo_file: l.logo_file }).eq('id', l.id); if (!r.error) { changed = true; delete logoUrl[l.name]; } }
+  if (add.length) {
+    const r = await supabase.from(BRANDS).insert(add);
+    if (!r.error) { changed = true; toast(`New logo${add.length > 1 ? 's' : ''} found — folder${add.length > 1 ? 's' : ''} created: ` + add.map(x => x.name).join(', ')); }
+  }
+  if (link.length && !add.length) toast('Logo added to: ' + link.map(x => x.name).join(', '));
+  return changed;
+}
 async function loadAll() {
   const [b, f] = await Promise.all([
     supabase.from(BRANDS).select('*').order('name'),
     supabase.from(TABLE).select('*').order('created_at', { ascending: false }).limit(5000)]);
   if (b.error || f.error) { document.getElementById('boFolders').innerHTML = `<div class="empty"><p>Failed to load: ${esc((b.error || f.error).message)}</p></div>`; return; }
+  if (await syncLogos(b.data || [])) return loadAll();
   /* General always last */
   brands = (b.data || []).sort((x, y) => (x.name === 'General') - (y.name === 'General') || x.name.localeCompare(y.name));
   allFiles = f.data || [];
@@ -332,25 +394,44 @@ function route() {
 }
 function openBrand(name) { location.hash = name ? 'brand=' + encodeURIComponent(name) : ''; if (!name) route(); }
 
+/* principles: most folders first, then Other and General at the end */
+let prinSel = '';
+const prinOf = b => b.principle || 'Other';
+function principles() {
+  const n = {}; brands.forEach(b => { n[prinOf(b)] = (n[prinOf(b)] || 0) + 1; });
+  const rank = p => p === 'General' ? 2 : p === 'Other' ? 1 : 0;
+  return Object.keys(n).sort((x, y) => rank(x) - rank(y) || n[y] - n[x] || x.localeCompare(y)).map(p => ({ p, n: n[p] }));
+}
+function openPrinciple(p) { prinSel = p || ''; openBrand(null); renderBrands(); }
 function renderBrands() {
   const q = document.getElementById('brandSearch').value.trim().toLowerCase();
-  const list = brands.filter(b => !q || b.name.toLowerCase().includes(q) || filesOf(b).some(f => match(f, q)));
-  const used = brands.filter(b => filesOf(b).length).length;
+  const ps = principles();
+  document.getElementById('boPrinList').innerHTML = ps.filter(x => x.p !== 'General').map(x => `<option value="${esc(x.p)}">`).join('');
+  document.getElementById('boPrins').innerHTML = `<button type="button" data-p="" aria-pressed="${!prinSel}">All <b>${brands.length}</b></button>` +
+    ps.map(x => `<button type="button" data-p="${esc(x.p)}" aria-pressed="${prinSel === x.p}">${esc(x.p)} <b>${x.n}</b></button>`).join('');
+  const list = brands.filter(b => (!prinSel || prinOf(b) === prinSel) && (!q || b.name.toLowerCase().includes(q) || prinOf(b).toLowerCase().includes(q) || filesOf(b).some(f => match(f, q))));
   document.getElementById('brandCount').textContent = `${list.length} brands · ${allFiles.length} files`;
-  document.getElementById('boFolders').innerHTML = list.length ? list.map(b => { const n = filesOf(b).length;
+  const card = b => { const n = filesOf(b).length;
     return `<button type="button" class="bo-folder${n ? '' : ' empty-f'}" onclick="openBrand(this.dataset.b)" data-b="${esc(b.name)}">` +
       logoHtml(b) + `<span class="bo-fname">${esc(b.name)}</span>` +
-      `<span class="bo-fcount">${n ? n + (n > 1 ? ' files' : ' file') : 'Empty'}</span></button>`; }).join('')
+      `<span class="bo-fcount">${n ? n + (n > 1 ? ' files' : ' file') : 'Empty'}</span></button>`; };
+  document.getElementById('boFolders').innerHTML = list.length ? ps.filter(x => list.some(b => prinOf(b) === x.p)).map(x => {
+      const inP = list.filter(b => prinOf(b) === x.p), files = inP.reduce((s, b) => s + filesOf(b).length, 0);
+      return `<section class="bo-prin"><h3 class="bo-prin-h">${esc(x.p)} <small>${inP.length} brand${inP.length > 1 ? 's' : ''} · ${files} file${files === 1 ? '' : 's'}</small></h3>` +
+        `<div class="bo-folders">${inP.map(card).join('')}</div></section>`; }).join('')
     : `<div class="empty"><p>No brand matches “${esc(q)}”</p></div>`;
   /* files that match the search, across all brands */
   const hits = q ? allFiles.filter(f => match(f, q)) : [];
   document.getElementById('boHits').innerHTML = hits.length
     ? `<h3 class="bo-hits-h">Files matching “${esc(q)}” (${hits.length})</h3><div class="table-card"><div class="overflow-x">${table(hits, true)}</div></div>` : '';
 }
+document.getElementById('boPrins').addEventListener('click', e => { const b = e.target.closest('button[data-p]'); if (b) { prinSel = b.dataset.p; renderBrands(); } });
 const match = (f, q) => [f.title, f.brand, f.file_name, f.note, f.category].some(v => String(v ?? '').toLowerCase().includes(q));
 
 function renderFolderHead() {
   document.getElementById('boCrumb').textContent = cur.name;
+  const cp = document.getElementById('boCrumbPrin'); cp.textContent = prinOf(cur); cp.dataset.p = prinOf(cur);
+  document.getElementById('boPrinEdit').value = cur.principle || '';
   document.getElementById('boFolderName').textContent = cur.name;
   document.getElementById('boFolderLogo').outerHTML = logoHtml(cur, 'sm').replace('class="bo-logo', 'id="boFolderLogo" class="bo-logo');
 }
@@ -387,17 +468,29 @@ function rerender() { if (cur) renderList(); else renderBrands(); }
 /* ── new brand folder ── */
 function toggleNewFolder(on) {
   document.getElementById('boNew').hidden = !on; document.getElementById('btnNewFolder').hidden = on;
-  if (on) document.getElementById('boNewName').focus(); else document.getElementById('boNewName').value = '';
+  if (on) document.getElementById('boNewName').focus(); else { document.getElementById('boNewName').value = ''; document.getElementById('boNewPrin').value = ''; }
 }
 async function createFolder() {
   const name = document.getElementById('boNewName').value.trim().replace(/\s+/g, ' ');
   if (!name) { toast('Type a brand name first', true); return; }
   if (brands.some(b => b.name.toLowerCase() === name.toLowerCase())) { toast('This brand folder already exists', true); return; }
   /* use the logo if one with this name is in Brands Logo (e.g. Espolon_Logo.png) */
-  const { error } = await supabase.from(BRANDS).insert({ name, folder: slug(name) || 'Brand_' + Date.now(), logo_file: slug(name) + '_Logo.png' });
+  const principle = document.getElementById('boNewPrin').value.trim() || 'Other';
+  const { error } = await supabase.from(BRANDS).insert({ name, principle, folder: slug(name) || 'Brand_' + Date.now(), logo_file: slug(name) + '_Logo.png' });
   if (error) { toast('Could not create the folder: ' + error.message, true); return; }
-  toggleNewFolder(false); toast('Folder created: ' + name); await loadAll();
+  toggleNewFolder(false); toast('Folder created: ' + name + ' (' + principle + ')'); await loadAll();
 }
+
+/* change the principle of the open brand folder */
+async function savePrinciple() {
+  if (!cur) return;
+  const p = document.getElementById('boPrinEdit').value.trim() || 'Other';
+  if (p === (cur.principle || '')) return;
+  const { error } = await supabase.from(BRANDS).update({ principle: p }).eq('id', cur.id);
+  if (error) { toast('Could not change the principle: ' + error.message, true); return; }
+  toast(cur.name + ' moved to ' + p); await loadAll();
+}
+document.getElementById('boPrinEdit').addEventListener('change', savePrinciple);
 
 /* open in a new tab / download, with a short-lived private link */
 async function openFile(id, download) {

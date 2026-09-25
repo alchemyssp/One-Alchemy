@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ROI Analysis — Archive</title>
+<title>Return of Investment (ROI) — Archive</title>
 <link rel="icon" type="image/png" href="img/logo-64.png">
 <link rel="apple-touch-icon" href="img/logo-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="js/config.js?v=9"></script>
+<script src="js/config.js?v=10"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Poppins', system-ui, sans-serif; background: #F4F4F5; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; }
@@ -36,7 +36,7 @@ button { cursor: pointer; }
 <script src="js/theme.js?v=3"></script>
 <script src="js/sidebar-offtake.js?v=4" defer></script>
 <style>
-/* ── ROI Analysis ── */
+/* ── Return of Investment (ROI) ── */
 .roi-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .roi-meta { font-size: 12px; color: #6B7280; margin: -4px 0 14px; }
 .roi-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 12px; align-items: end;
@@ -179,7 +179,7 @@ html body table.roi-tbl td.o small { font-size: 11px !important; }
     <a href="promotions.html">Brand Campaign</a>
     <a href="products.html">Products</a>
     <div class="nav-section">Analytics</div>
-    <a href="roi.html" class="active">ROI Analysis</a>
+    <a href="roi.html" class="active">Return of Investment (ROI)</a>
     <a href="offtake.html">Off-take 2026</a>
     <a href="sku.html">SKU</a>
   </div>
@@ -198,7 +198,7 @@ html body table.roi-tbl td.o small { font-size: 11px !important; }
 <div class="main">
   <div class="page-header">
     <div>
-      <h2>ROI Analysis <span class="dot"></span></h2>
+      <h2>Return of Investment (ROI) <span class="dot"></span></h2>
       <p>Contract targets from the ROI file vs actual off-take — matched by outlet + SKU inside each contract period</p>
     </div>
     <div class="roi-actions"><span id="roiImportSlot"></span><button type="button" class="btn-export" onclick="exportExcel()">Export Excel</button></div>

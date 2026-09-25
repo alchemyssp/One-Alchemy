@@ -18,7 +18,7 @@ window.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
     'contracts.html':  'Contracts',
     'promotions.html': 'Brand Campaign',
     'products.html':   'Products',
-    'roi.html':        'ROI Analysis',
+    'roi.html':        'Return of Investment (ROI)',
     'offtake.html':    'Off-take 2026',
     'sku.html':        'SKU'
   };

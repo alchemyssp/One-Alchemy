@@ -77,3 +77,40 @@ on conflict (name) do nothing;
 insert into public.brand_offer_brands (name, folder, logo_file) values ('General', 'General', null) on conflict (name) do nothing;
 
 do $$ begin alter publication supabase_realtime add table public.brand_offer_brands; exception when duplicate_object then null; end $$;
+
+-- 4) principle per brand folder (applied 2026-09-25) — the page groups folders by principle
+ALTER TABLE public.brand_offer_brands ADD COLUMN IF NOT EXISTS principle text;
+DROP POLICY IF EXISTS "brand_offer_brands_update" ON public.brand_offer_brands;
+CREATE POLICY "brand_offer_brands_update" ON public.brand_offer_brands FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+-- filled from the brand → principle pairs in Off-take / ROI data; brands not found there = 'Other'
+UPDATE public.brand_offer_brands b SET principle = v.p FROM (VALUES
+  ('1800 Tequila','Proximo'), ('Aperol','Campari'), ('Appleton Estate','Campari'), ('Boodles London Dry Gin','Proximo'),
+  ('Brugal','TEG'), ('Bruichladdich','RC'), ('Bulldog London Dry Gin','Campari'), ('Bushmills','Proximo'), ('Campari','Campari'),
+  ('Cinzano','Campari'), ('Cointreau','RC'), ('Cynar','Campari'), ('Ferdinands Saar','Independent'), ('Four Pillars','Four Pillars'),
+  ('Frangelico','Campari'), ('Galliano Vanilla Liqueur','Lucas Bols'), ('Highland Park','TEG'), ('Jose Cuervo','Proximo'),
+  ('Kraken Rum','Proximo'), ('Licor 43 Cuarenta Y Tres','Independent'), ('Lucas Bols','Lucas Bols'), ('Mount Gay Rum','RC'),
+  ('No3 London Dry Gin','TEG'), ('Octomore','RC'), ('Remy Martin','RC'), ('Skyy Vodka','Campari'), ('St Remy','RC'),
+  ('The Botanist Gin','RC'), ('The Famous Grouse','TEG'), ('The Glenrothes','TEG'), ('The Macallan','TEG'), ('The Naked Grouse','TEG'),
+  ('Vaccari Sambuca','Lucas Bols'), ('Wild Turkey','Campari'),
+  ('Rekorderlig','Other'), ('Snow Leopard','Other'), ('The Kings Ginger Liqueur','Other'), ('Thomas Henry','Other'), ('General','General')
+) AS v(n, p) WHERE b.name = v.n AND b.principle IS NULL;
+
+-- 5) new logos (2026-09-25) and brands per principle from the team
+--    (the page also creates / links folders by itself when a new logo appears in "Brands Logo")
+INSERT INTO public.brand_offer_brands (name, folder, logo_file, principle) VALUES
+  ('BBC', 'BBC', 'BBC_Logo.gif', 'BBC'), ('The Kyoto Whisky', 'The_Kyoto_Whisky', 'the-kyoto-whisky_Logo.png', 'Kyoto'),
+  ('Branca', 'Branca', 'Branca_Logo.png', 'Branca'), ('Louis XIII', 'Louis_XIII', 'Louis_XIII_Logo.png', 'RC'),
+  ('Clase Azul Tequila', 'Clase_Azul_Tequila', 'Clase azul tequila_Logo.webp', 'Clase Azul'), ('Dictador', 'Dictador', 'Dictador_Logo.png', 'Dictador'),
+  ('Kilo', 'Kilo', 'Kilo_Logo.png', 'Kilo'), ('Pommery', 'Pommery', 'Pommery_Logo.png', 'Independent'),
+  ('Lark', 'Lark', 'Lark_Logo.webp', 'Lark'), ('Telmont', 'Telmont', 'Telmont_Logo.png', 'RC'), ('Teremana', 'Teremana', 'Teremana_Logo.png', 'Teremana'),
+  ('Tito''s', 'Titos', NULL, 'Independent'), ('Matusalem', 'Matusalem', NULL, 'Independent'), ('Lady Trieu', 'Lady_Trieu', NULL, 'Independent'),
+  ('Kaibutsu', 'Kaibutsu', NULL, 'Independent'), ('Nhau', 'Nhau', NULL, 'Independent'), ('Real McCoy', 'Real_McCoy', NULL, 'Independent'),
+  ('Passao', 'Passao', NULL, 'Lucas Bols'), ('Henkes', 'Henkes', NULL, 'Lucas Bols')
+ON CONFLICT (name) DO UPDATE SET principle = excluded.principle, logo_file = coalesce(excluded.logo_file, brand_offer_brands.logo_file);
+UPDATE public.brand_offer_brands SET principle = 'Independent' WHERE name = 'Four Pillars';
+-- Bols Liqueur / Bols Vodka / Bols Genever: one folder "Lucas Bols" (team request)
+DELETE FROM public.brand_offer_brands WHERE name IN ('Bols Liqueur', 'Bols Vodka', 'Bols Genever')
+  AND NOT EXISTS (SELECT 1 FROM public.brand_offer_files f WHERE f.brand = brand_offer_brands.name);
+-- brands under BBC (team request)
+UPDATE public.brand_offer_brands SET principle = 'BBC'
+WHERE name IN ('Branca', 'Clase Azul Tequila', 'Dictador', 'Kilo', 'The Kyoto Whisky', 'Lark', 'Teremana');
