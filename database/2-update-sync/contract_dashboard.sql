@@ -12,13 +12,18 @@ RETURNS date LANGUAGE sql IMMUTABLE SET search_path = public AS $$
 $$;
 
 CREATE OR REPLACE FUNCTION public.contract_dashboard()
-RETURNS json LANGUAGE sql STABLE SET search_path = public AS $$
+ RETURNS json
+ LANGUAGE sql
+ STABLE
+ SET search_path TO 'public'
+AS $function$
 WITH c AS (
   SELECT CASE WHEN "Type" ~* 'year' THEN 'yearly' WHEN "Type" ~* 'market' THEN 'marketing' END AS kind,
          coalesce(nullif(trim("Code of Contract"), ''), coalesce("CODE OUTLET", '') || '|' || coalesce("Promotion", '') || '|' || coalesce("START", '')) AS code,
          nullif(trim("CODE OUTLET"), '') AS outlet, "OUTLET NAME" AS outlet_name,
          coalesce(nullif(trim("TEAM"), ''), '(blank)') AS team, "CURRENT BDE" AS bde,
          coalesce(nullif(trim("AREA"), ''), '(blank)') AS area,
+         nullif(trim("PROVINCE"), '') AS province,
          coalesce(nullif(trim("Principle"), ''), '(blank)') AS principle,
          "Promotion" AS promotion, "TYPE OF CONTRACT" AS yc_type,
          trim("Active/Inactive") ILIKE 'active' AS active,
@@ -41,10 +46,12 @@ SELECT json_build_object(
       SELECT team AS name, count(DISTINCT code) FILTER (WHERE kind = 'yearly') AS yearly,
              count(DISTINCT code) FILTER (WHERE kind = 'marketing') AS marketing
       FROM k WHERE active GROUP BY team) t),
-  'by_area', (SELECT json_agg(t ORDER BY t.yearly + t.marketing DESC) FROM (
-      SELECT area AS name, count(DISTINCT code) FILTER (WHERE kind = 'yearly') AS yearly,
-             count(DISTINCT code) FILTER (WHERE kind = 'marketing') AS marketing
-      FROM k WHERE active GROUP BY area) t),
+  -- active contracts per location as written in PROVINCE (the page maps names → map points)
+  'by_location', (SELECT json_agg(t ORDER BY t.yearly + t.marketing DESC) FROM (
+      SELECT province AS name, count(DISTINCT code) FILTER (WHERE kind = 'yearly') AS yearly,
+             count(DISTINCT code) FILTER (WHERE kind = 'marketing') AS marketing,
+             count(DISTINCT outlet) AS outlets
+      FROM k WHERE active AND province IS NOT NULL GROUP BY province) t),
   'mkt_principle', (SELECT json_agg(t ORDER BY t.contracts DESC) FROM (
       SELECT principle AS name, count(DISTINCT code) AS contracts, count(DISTINCT outlet) AS outlets
       FROM k WHERE kind = 'marketing' AND active GROUP BY principle) t),
@@ -53,23 +60,19 @@ SELECT json_build_object(
       FROM k WHERE kind = 'marketing' AND active AND promotion IS NOT NULL
       GROUP BY promotion ORDER BY 2 DESC LIMIT 10) t),
   'yc_types', (SELECT json_agg(t ORDER BY t.contracts DESC) FROM (
-      SELECT coalesce(nullif(trim(upper(yc_type)), ''), '(blank)') AS name, count(DISTINCT code) AS contracts
-      FROM k WHERE kind = 'yearly' AND active GROUP BY 1) t),
+      SELECT trim(upper(yc_type)) AS name, count(DISTINCT code) AS contracts
+      FROM k WHERE kind = 'yearly' AND active AND nullif(trim(yc_type), '') IS NOT NULL GROUP BY 1) t),
   'yc_contract_types', (SELECT json_agg(t ORDER BY t.contracts DESC) FROM (
-      SELECT coalesce(nullif(trim(promotion), ''), '(blank)') AS name, count(DISTINCT code) AS contracts
-      FROM k WHERE kind = 'yearly' AND active GROUP BY 1) t),
-  'monthly', (SELECT json_agg(t ORDER BY t.m) FROM (
-      SELECT to_char(g.m, 'YYYY-MM') AS m,
-             (SELECT count(DISTINCT code) FROM k WHERE kind = 'yearly' AND date_trunc('month', d_start) = g.m) AS yearly,
-             (SELECT count(DISTINCT code) FROM k WHERE kind = 'marketing' AND date_trunc('month', d_start) = g.m) AS marketing
-      FROM generate_series(date_trunc('month', current_date) - interval '11 months', date_trunc('month', current_date), interval '1 month') AS g(m)) t),
+      SELECT trim(promotion) AS name, count(DISTINCT code) AS contracts
+      FROM k WHERE kind = 'yearly' AND active AND nullif(trim(promotion), '') IS NOT NULL GROUP BY 1) t),
   'expiring', (SELECT json_agg(t ORDER BY t.d_end, t.outlet_name) FROM (
       SELECT DISTINCT ON (kind, code) kind, code, outlet, outlet_name, bde, promotion AS detail, end_text, d_end
       FROM k WHERE active AND d_end BETWEEN current_date AND current_date + 90
       ORDER BY kind, code, d_end) t)
 )
 FROM (SELECT 1) one
-$$;
+$function$;
+
 GRANT EXECUTE ON FUNCTION public.contract_dashboard() TO authenticated;
 REVOKE ALL ON FUNCTION public.contract_dashboard() FROM anon;
 

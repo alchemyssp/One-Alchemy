@@ -1233,3 +1233,24 @@ html body .theme-pick.in-bar { padding: 0 !important; margin-right: 14px; gap: 7
 html body .theme-pick.top-row span, html body .theme-pick.in-bar span { color: #4B5563 !important; -webkit-text-fill-color: #4B5563 !important; font-size: 11px !important; margin-right: 2px !important; }
 html body .theme-pick.top-row button, html body .theme-pick.in-bar button { width: 16px !important; height: 16px !important; box-shadow: 0 0 0 1.5px #D1D5DB !important; }
 html body .theme-pick.top-row button[aria-pressed="true"], html body .theme-pick.in-bar button[aria-pressed="true"] { box-shadow: 0 0 0 2px #111827 !important; }
+/* Contracts dashboard: red word in a card title; Expiring table tags (Yearly white text, Marketing light yellow) */
+html body .card-title .ctd-red { color: var(--c1) !important; -webkit-text-fill-color: var(--c1) !important; font: inherit; }
+html body table .ctd-tag.yearly { background: var(--c1) !important; color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important; }
+html body table .ctd-tag.marketing { background: #FEF3C7 !important; color: #92400E !important; -webkit-text-fill-color: #92400E !important; }
+/* Contract Master dashboard: every table as compact as Top 10 Active Promotions */
+html body #ctDash table.otd-prod td, html body #ctDash table.otd-prod th { font-size: 12px !important; padding: 5px 12px !important; line-height: 1.3 !important; }
+html body #ctDash table.otd-prod td *, html body #ctDash table.otd-prod th * { font-size: 12px !important; }
+html body #ctDash table.otd-prod th { white-space: nowrap !important; padding-top: 7px !important; padding-bottom: 7px !important; }
+html body #ctDash table.otd-prod .ctd-tag, html body #ctDash table.otd-prod .ctd-days { font-size: 11px !important; padding: 1px 8px !important; }
+/* Top 10 Active Promotions: same size as the raw data tables + Brand filter in the card head */
+html body #ctDash table#ctdPromo td, html body #ctDash table#ctdPromo th { padding: 5px 8px !important; }
+.ctd-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.ctd-card-head .card-title { margin: 0 !important; }
+.ctd-brand-flt { display: inline-flex; align-items: center; gap: 8px; }
+html body .ctd-brand-flt span { font-size: 12px !important; color: #555 !important; }
+html body .ctd-brand-flt select { padding: 6px 10px; border-radius: 10px; border: 1.5px solid #E5E7EB; background: #F9FAFB; color: #111; font-size: 12px !important; min-width: 180px; max-width: 260px; }
+/* Off-take By Product table: same size as the raw data tables */
+html body table#otdProdTbl td, html body table#otdProdTbl th { font-size: 12px !important; padding: 5px 8px !important; line-height: 1.3 !important; }
+html body table#otdProdTbl td *, html body table#otdProdTbl th * { font-size: 12px !important; }
+html body table#otdProdTbl th { white-space: nowrap !important; padding-top: 7px !important; padding-bottom: 7px !important; }
+html body table#otdProdTbl .otd-pill { font-size: 11px !important; padding: 1px 8px !important; }

@@ -208,7 +208,8 @@
       '    <div class="otd-years" id="otdBoSum"></div><div class="otd-tablewrap otd-bo-wrap"><table class="otd-prod" id="otdBoTbl"></table></div></section>' +
       '  <section class="card otd-card otd-wide"><h3 class="card-title" id="otdValTitle">Off-Take Value Inc.VAT (THB)</h3>' +
       '    <div class="otd-years" id="otdValYears"></div><div class="otd-chart"><canvas id="otdValChart" aria-label="Off-take value by month"></canvas></div></section>' +
-      '  <section class="card otd-card otd-wide"><h3 class="card-title" id="otdProdTitle">By Product: Selected Month vs Previous Year</h3>' +
+      '  <section class="card otd-card otd-wide"><div class="ctd-card-head"><h3 class="card-title" id="otdProdTitle">By Product: Selected Month vs Previous Year</h3>' +
+      '    <label class="ctd-brand-flt"><span>Brand</span><select id="otdProdBrand"><option value="">All Brands</option></select></label></div>' +
       '    <div class="otd-tablewrap"><table class="otd-prod" id="otdProdTbl"></table></div></section>' +
       '</div>';
     return true;
@@ -447,15 +448,31 @@
       }) });
 
     /* change badge: up = light green, down = light red, no change / no data = light yellow (arrow + sign too, not color alone) */
-    var chg = function (a, b) {
+    chg = function (a, b) {
       var v = pct(a, b);
       if (v == null || !isFinite(v)) return '<span class="otd-pill flat">— no data</span>';
       if (Math.abs(v) < 0.05) return '<span class="otd-pill flat">■ 0.0%</span>';
       return v > 0 ? '<span class="otd-pill up">▲ +' + v.toFixed(1) + '%</span>' : '<span class="otd-pill down">▼ ' + v.toFixed(1) + '%</span>';
     };
-    $('otdProdTitle').textContent = 'By Product: ' + P + ' vs ' + period((d.selected || [d.month]).map(function (m) { return shiftYear(m, -1); })) + ' (top 20 by volume)';
+    /* product table: top 20 by volume — all brands, or only the brand picked in this card */
+    prodView = { title: 'By Product: ' + P + ' vs ' + period((d.selected || [d.month]).map(function (m) { return shiftYear(m, -1); })),
+      Y: Y, PY: PY, top: d.by_product || [], all: d.by_product_brand || [] };
+    var bSel = $('otdProdBrand'), bKeep = bSel.value;
+    var bList = prodView.all.map(function (p) { return p.brand; }).filter(function (v, i, a) { return v && a.indexOf(v) === i; }).sort();
+    bSel.innerHTML = '<option value="">All Brands</option>' + bList.map(function (b) { return '<option' + (b === bKeep ? ' selected' : '') + '>' + esc(b) + '</option>'; }).join('');
+    bSel.onchange = function () { renderProducts(bSel.value); };
+    renderProducts(bSel.value);
+  }
+
+  var prodView = null, chg;   /* chg: change badge, set in render() */
+  function renderProducts(brand) {
+    var v = prodView; if (!v) return;
+    var list = brand ? v.all.filter(function (p) { return p.brand === brand; }).slice(0, 20) : v.top;
+    var Y = v.Y, PY = v.PY;
+    $('otdProdTitle').textContent = v.title + ' (top 20 by volume' + (brand ? ', ' + brand : '') + ')';
     $('otdProdTbl').innerHTML = '<thead><tr><th>Product</th><th>Vol ' + Y + '</th><th>Vol ' + PY + '</th><th>Change</th><th>Value ' + Y + ' (THB)</th><th>Value ' + PY + ' (THB)</th><th>Change</th></tr></thead><tbody>' +
-      (d.by_product || []).map(function (p) {
+      (list.length ? '' : '<tr><td colspan="7">No products for this brand in the selected period</td></tr>') +
+      list.map(function (p) {
         return '<tr><td>' + esc(p.name) + '</td><td>' + fmt(p.vol) + '</td><td>' + fmt(p.vol_py) + '</td><td>' + chg(p.vol, p.vol_py) +
           '</td><td>' + fmt(p.val) + '</td><td>' + fmt(p.val_py) + '</td><td>' + chg(p.val, p.val_py) + '</td></tr>';
       }).join('') + '</tbody>';

@@ -96,12 +96,12 @@ window.ContractDashboard = (function () {
       '    <div class="ctd-legend"><span>Pin size = active contracts · hover or tap a pin for details</span></div>' +
       '    <div id="ctdMap" class="ctd-map" role="img" aria-label="Map of Thailand with contract locations"></div>' +
       '    <div class="ctd-unmapped" id="ctdUnmapped"></div></section>' +
-      '  <section class="card otd-card"><h3 class="card-title">Marketing Active Contracts by Principle</h3>' +
+      '  <section class="card otd-card"><h3 class="card-title">Marketing Active Contracts by <span class="ctd-red">Principle</span></h3>' +
       '    <div class="otd-chart"><canvas id="ctdPrin" aria-label="Active marketing contracts by principle"></canvas></div></section>' +
-      '  <section class="card otd-card"><h3 class="card-title">Yearly — Active Contracts by Type</h3>' +
+      '  <section class="card otd-card"><h3 class="card-title">Yearly Active Contracts by Type</h3>' +
       '    <div class="ctd-two"><div class="otd-tablewrap"><table class="otd-prod" id="ctdYcType"></table></div>' +
       '    <div class="otd-tablewrap"><table class="otd-prod" id="ctdYcCt"></table></div></div></section>' +
-      '  <section class="card otd-card otd-wide"><h3 class="card-title">Marketing — Top 10 Active Promotions</h3>' +
+      '  <section class="card otd-card otd-wide"><h3 class="card-title">Marketing Top 10 Active Promotions</h3>' +
       '    <div class="otd-tablewrap"><table class="otd-prod" id="ctdPromo"></table></div></section>' +
       '  <section class="card otd-card otd-wide"><h3 class="card-title" id="ctdExpTitle">Expiring in the Next 90 Days</h3>' +
       '    <div class="otd-tablewrap ctd-exp-wrap"><table class="otd-prod" id="ctdExp"></table></div></section>' +
