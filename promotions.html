@@ -198,9 +198,9 @@ html body .bo-dshow { color: var(--c1, #B0120A) !important; -webkit-text-fill-co
 .bo-logo.sm.super svg { width: 30px; height: 30px; }
 .bo-pcard.super { background: linear-gradient(145deg, #FFFFFF 0%, #FFF4F2 100%); box-shadow: 0 0 0 1.5px rgba(176,18,10,.18), 0 2px 10px rgba(0,0,0,.06); }
 #boBrandCard[hidden], #boBhead[hidden], #boBpick[hidden], #boEditBrands[hidden], #fltBrand[hidden] { display: none !important; }
-.bo-cat { border: none; background: transparent; padding: 2px 4px; border-radius: 6px; font: inherit; color: inherit; cursor: pointer; display: inline-flex; gap: 4px; align-items: center; }
+.bo-cat { border: none; background: #F3F4F6; padding: 2px 10px; border-radius: 999px; font-size: 11px !important; font-weight: 600; font: inherit; color: inherit; cursor: pointer; display: inline-flex; gap: 4px; align-items: center; }
 .bo-cat span { opacity: 0; font-size: 11px; color: #6B7280; transition: opacity .15s; }
-.bo-cat:hover { background: #F3F4F6; } .bo-cat:hover span, .bo-cat:focus-visible span { opacity: 1; }
+.bo-cat:hover { filter: brightness(.96); box-shadow: 0 0 0 1.5px currentColor; } .bo-cat:hover span, .bo-cat:focus-visible span { opacity: 1; }
 .bo-cat-in { width: 150px; padding: 3px 6px; border-radius: 6px; border: 1.5px solid var(--c1, #B0120A); font: inherit; font-size: 12px; }
 .bo-hint2 { font-weight: 400; color: #9CA3AF; font-size: 11px; }
 .bo-f input[list] { padding: 8px 10px; }
@@ -210,6 +210,10 @@ html body .bo-dshow { color: var(--c1, #B0120A) !important; -webkit-text-fill-co
 .bo-pv-hint.fade { opacity: 0; }
 a.bo-btn { text-decoration: none; display: inline-flex; align-items: center; }
 a.bo-btn[hidden] { display: none; }
+.bo-f select#boCatSel { padding: 8px 10px; border-radius: 10px; border: 1.5px solid #E5E7EB; background: #F9FAFB; color: #111; font: inherit; }
+.bo-f #boCat { margin-top: 6px; }
+.bo-cat-edit { display: inline-flex; gap: 4px; }
+.bo-cat-edit select, .bo-cat-edit input { padding: 3px 6px; border-radius: 6px; border: 1.5px solid var(--c1, #B0120A); font: inherit; font-size: 12px; max-width: 170px; }
 /* principle page: brand cards (display only) */
 .bo-sub { font-size: 12px; color: #6B7280; }
 .bo-bgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
@@ -352,7 +356,7 @@ html body .bo-prin + .bo-prin::before { content: ""; position: absolute; top: 0;
       </label>
       <div id="boPending" hidden>
         <div class="bo-grid bo-grid4">
-          <label class="bo-f"><span>Category <small class="bo-hint2">(choose or type a new one)</small></span><input id="boCat" list="boCatList" autocomplete="off"><datalist id="boCatList"></datalist></label>
+          <label class="bo-f"><span>Category</span><select id="boCatSel"></select><input id="boCat" placeholder="New category name" autocomplete="off" hidden></label>
           <label class="bo-f"><span>Launch Date <b class="bo-dshow" id="boLaunchTxt"></b></span><input type="date" id="boLaunch" aria-label="Launch date (day, month, year)"></label>
           <label class="bo-f"><span>Until <b class="bo-dshow" id="boUntilTxt"></b></span><input type="date" id="boUntil" aria-label="Until (day, month, year)"></label>
           <label class="bo-f"><span>Note (optional)</span><input id="boNote" placeholder="e.g. Summer campaign 2027"></label>
@@ -401,7 +405,7 @@ const KIND_LABEL = { pdf: 'PDF', word: 'Word', excel: 'Excel', other: 'File' };
 const size = b => b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
 const when = d => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' });
 const baseName = n => n.replace(/\.[^.]+$/, '');
-const slug = s => String(s).normalize('NFKD').replace(/[^\w.-]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '').slice(0, 60);
+const slug = s => String(s).normalize('NFKD').replace(/[^\w.-]+/g, '_').replace(/_+/g, '_').replace(/^[_.]+|[_.]+$/g, '').slice(0, 60);
 const initials = n => n.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
 const prinOf = b => b.principle || 'Other';
 const fileBrands = f => (f.brands && f.brands.length ? f.brands : f.brand ? [f.brand] : []);
@@ -453,7 +457,7 @@ async function checkAuth() {
   $('userEmail').textContent = u.email;
   const displayName = (p && p.username) || u.email.split('@')[0];
   $('userName').textContent = displayName; $('userAvatar').textContent = displayName.charAt(0).toUpperCase();
-  $('boCatList').innerHTML = CATEGORIES.map(c => `<option value="${esc(c)}">`).join(''); $('boCat').value = CATEGORIES[0];
+
   await loadAll();
   supabase.channel('brand-offer')
     .on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, loadAll)
@@ -511,6 +515,7 @@ async function loadAll() {
   if (await syncLogos(b.data || [])) return loadAll();
   brands = (b.data || []).filter(x => x.name !== 'General');
   allFiles = f.data || [];
+  fixPaths();
   const need = brands.filter(x => x.logo_file && !logoUrl[x.name]);
   if (need.length) {
     const { data } = await supabase.storage.from(LOGOS).createSignedUrls(need.map(x => x.logo_file), 60 * 60 * 12);
@@ -582,8 +587,7 @@ function renderPrinPage() {
   $('boBrandCard').hidden = sup; $('boBhead').hidden = sup; $('boBpick').hidden = sup; $('boEditBrands').hidden = sup; $('fltBrand').hidden = sup;
   /* categories: the standard list + any category already used in this place */
   const catList = [...new Set((sup ? SUPER_CATS : CATEGORIES).concat(filesOfP(cur).map(f => f.category).filter(Boolean)))];
-  $('boCatList').innerHTML = catList.map(c => `<option value="${esc(c)}">`).join('');
-  if (!catList.includes($('boCat').value)) $('boCat').value = catList[0];
+  fillCatSelect($('boCatSel'), catList, $('boCatSel').value); $('boCat').hidden = $('boCatSel').value !== NEW_CAT;
   $('boUpTitle').firstChild.textContent = sup ? 'Upload documents to ' : 'Upload campaign to ';
   $('boCrumb').textContent = cur; $('boPrinTitle').innerHTML = prinLogoHtml(cur, 'sm') + `<span>${esc(cur)}</span>`; $('boUpName').textContent = cur;
   $('boPrinSub').textContent = `${bs.length} brand${bs.length === 1 ? '' : 's'} · ${nf} campaign file${nf === 1 ? '' : 's'}`;
@@ -625,7 +629,7 @@ function table(rows, withPrin, noBrands) {
         `<td class="bo-title"><b>${esc(f.title)}</b><small>${esc(f.file_name)}${f.note ? ' · ' + esc(f.note) : ''}</small></td>` +
         (withPrin ? `<td>${esc(f.principle || 'Other')}</td>` : '') +
         (noBrands ? '' : `<td class="bo-tags">${fbs.length ? fbs.map(b => `<span class="bo-tag" style="${tagStyle(b)}">${esc(b)}</span>`).join('') : '<span class="bo-tag all">All brands</span>'}</td>`) +
-        `<td><button type="button" class="bo-cat" data-id="${f.id}" title="Change category">${esc(f.category || '—')}<span aria-hidden="true">✎</span></button></td><td>${f.launch_date ? fullDate(f.launch_date) : '—'}</td>` +
+        `<td><button type="button" class="bo-cat" data-id="${f.id}" title="Change category" style="${catStyle(f.category)}">${esc(f.category || '—')}<span aria-hidden="true">✎</span></button></td><td>${f.launch_date ? fullDate(f.launch_date) : '—'}</td>` +
         `<td>${f.until_date ? fullDate(f.until_date) + campaignState(f) : '—'}</td><td>${f.size_bytes ? size(f.size_bytes) : '—'}</td>` +
         `<td>${esc((f.uploaded_by || '').split('@')[0] || '—')}</td><td>${when(f.created_at)}</td>` +
         `<td class="bo-act"><button type="button" class="bo-btn sm" onclick="previewFile(${f.id})">Preview</button>` +
@@ -660,26 +664,66 @@ function tagStyle(name) {
   const [bg, fg] = TAG_COLORS[h % TAG_COLORS.length];
   return `background:${bg};color:${fg};-webkit-text-fill-color:${fg}`;
 }
-/* change the category of an uploaded file: click it, type or pick, Enter (Esc = cancel) */
+/* category dropdown: every category of this place + "+ New category…" */
+const NEW_CAT = '__new__';
+function catsHere() { return [...new Set(((cur === SUPER) ? SUPER_CATS : CATEGORIES).concat(filesOfP(cur || '').map(f => f.category).filter(Boolean)))]; }
+function fillCatSelect(sel, list, keep) {
+  sel.innerHTML = list.map(c => `<option${c === keep ? ' selected' : ''}>${esc(c)}</option>`).join('') + `<option value="${NEW_CAT}"${keep === NEW_CAT ? ' selected' : ''}>+ New category…</option>`;
+  if (!list.includes(keep) && keep !== NEW_CAT) sel.value = list[0];
+}
+$('boCatSel').addEventListener('change', () => { const nw = $('boCatSel').value === NEW_CAT; $('boCat').hidden = !nw; if (nw) $('boCat').focus(); });
+
+/* change the category of an uploaded file: click it → dropdown (or a new name) → saved */
 document.addEventListener('click', e => {
-  const btn = e.target.closest('button.bo-cat'); if (!btn || btn.querySelector('input')) return;
+  const btn = e.target.closest('button.bo-cat'); if (!btn) return;
   const f = allFiles.find(x => String(x.id) === btn.dataset.id); if (!f) return;
-  const inp = document.createElement('input');
-  inp.className = 'bo-cat-in'; inp.value = f.category || ''; inp.setAttribute('list', 'boCatList'); inp.setAttribute('aria-label', 'Category of ' + f.title);
-  btn.replaceWith(inp); inp.focus(); inp.select();
+  const wrap = document.createElement('span'); wrap.className = 'bo-cat-edit';
+  const sel = document.createElement('select'); sel.setAttribute('aria-label', 'Category of ' + f.title);
+  const list = catsHere(); if (f.category && !list.includes(f.category)) list.unshift(f.category);
+  fillCatSelect(sel, list, f.category);
+  const inp = document.createElement('input'); inp.placeholder = 'New category'; inp.hidden = true;
+  wrap.append(sel, inp); btn.replaceWith(wrap); sel.focus();
   let done = false;
-  const finish = async save => {
+  const save = async v => {
     if (done) return; done = true;
-    const v = inp.value.trim().replace(/\s+/g, ' ');
-    if (save && v && v !== f.category) {
+    v = String(v || '').trim().replace(/\s+/g, ' ');
+    if (v && v !== f.category) {
       const { error } = await supabase.from(TABLE).update({ category: v }).eq('id', f.id);
       if (error) toast('Could not change the category: ' + error.message, true); else { f.category = v; toast('Category changed to ' + v); }
     }
-    rerender(); if (cur) renderPrinPage();
+    if (cur) renderPrinPage(); else rerender();
   };
-  inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') finish(true); if (ev.key === 'Escape') finish(false); });
-  inp.addEventListener('blur', () => finish(true));
+  sel.addEventListener('change', () => { if (sel.value === NEW_CAT) { inp.hidden = false; inp.focus(); } else save(sel.value); });
+  sel.addEventListener('keydown', ev => { if (ev.key === 'Escape') save(null); });
+  sel.addEventListener('blur', () => { setTimeout(() => { if (!done && document.activeElement !== inp && sel.value !== NEW_CAT) save(null); }, 150); });
+  inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') save(inp.value); if (ev.key === 'Escape') save(null); });
+  inp.addEventListener('blur', () => save(inp.value));
 });
+
+/* files saved earlier in a folder ending with "." (e.g. "Super_Info./…") → move to "Super_Info/…" so the Office viewer can open them */
+let pathsFixed = false;
+async function fixPaths() {
+  if (pathsFixed) return false; pathsFixed = true;
+  const bad = allFiles.filter(f => /(^|\/)[^/]*\.\//.test(f.file_path) || /^[._]/.test(f.file_path));
+  let moved = 0;
+  for (const f of bad) {
+    const to = f.file_path.split('/').map((seg, i, a) => i < a.length - 1 ? seg.replace(/^[_.]+|[_.]+$/g, '') || 'Files' : seg).join('/');
+    if (to === f.file_path) continue;
+    const m = await supabase.storage.from(BUCKET).move(f.file_path, to);
+    if (m.error) continue;
+    const u = await supabase.from(TABLE).update({ file_path: to }).eq('id', f.id);
+    if (!u.error) { f.file_path = to; moved++; }
+  }
+  return moved > 0;
+}
+/* category tags: soft colours, fixed per category (same category = same colour on every page) */
+const CAT_COLORS = { 'Contract Form': ['#EEF2FF', '#3730A3'], 'Brand Offer / Proposal': ['#ECFDF5', '#065F46'], 'Presentation': ['#FCE7F3', '#9D174D'],
+  'Price List': ['#FEF3C7', '#92400E'], 'Promotion Detail': ['#E0F2FE', '#075985'], 'Catalog': ['#F3E8FF', '#6B21A8'], 'Amendment': ['#FFEDD5', '#9A3412'],
+  'Form': ['#E6FFFA', '#115E59'], 'Other': ['#F1F5F9', '#334155'] };
+function catStyle(c) {
+  const p = CAT_COLORS[c]; if (!p) return c ? tagStyle(c) : '';
+  return `background:${p[0]};color:${p[1]};-webkit-text-fill-color:${p[1]}`;
+}
 /* ── new brand ── */
 function toggleNewBrand(on) {
   $('boNew').hidden = !on; $('btnNewBrand').hidden = on;
@@ -783,7 +827,7 @@ function renderPending() {
 }
 async function uploadAll() {
   if (!cur) return;
-  const category = $('boCat').value.trim().replace(/\s+/g, ' ') || 'Other', note = $('boNote').value.trim() || null, btn = $('boUpload');
+  const category = ($('boCatSel').value === NEW_CAT ? $('boCat').value : $('boCatSel').value).trim().replace(/\s+/g, ' ') || 'Other', note = $('boNote').value.trim() || null, btn = $('boUpload');
   const picked = [...$('boBpick').querySelectorAll('input:checked')].map(i => i.value);
   if ($('boLaunch').value && $('boUntil').value && $('boUntil').value < $('boLaunch').value) { toast('Until must be on or after the Launch Date', true); return; }
   btn.disabled = true; let ok = 0;

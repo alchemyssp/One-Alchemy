@@ -129,3 +129,9 @@ UPDATE public.brand_offer_files SET principle = 'Independence' WHERE principle =
 -- 7) campaign period (2026-09-25): Launch Date / Until on each file; category list on the page adds "Presentation"
 ALTER TABLE public.brand_offer_files ADD COLUMN IF NOT EXISTS launch_date date;
 ALTER TABLE public.brand_offer_files ADD COLUMN IF NOT EXISTS until_date date;
+
+-- 8) allow moving files inside brand-offer (the page moves files out of folders ending with "." — Microsoft's viewer
+--    drops the trailing dot and then cannot find the file)
+DROP POLICY IF EXISTS "brand_offer_move" ON storage.objects;
+CREATE POLICY "brand_offer_move" ON storage.objects FOR UPDATE TO authenticated
+  USING (bucket_id = 'brand-offer') WITH CHECK (bucket_id = 'brand-offer');
