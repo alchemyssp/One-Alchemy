@@ -53,105 +53,78 @@
       cv.addEventListener('mouseleave', function () { self.hover = -1; tip.hidden = true; self.draw(); });
       if (window.ResizeObserver) new ResizeObserver(function () { self.draw(); }).observe(cv.parentElement);
     },
-    slices: function () {
+    /* concentric rings (radial infographic): one ring per principle, biggest share outside;
+       each arc = that principle's share of 360°, starting at 9 o'clock and running clockwise,
+       rounded ends, two-tone gradient, % at the end of the arc, number badge at the start,
+       red center disc with the total. Transparent background. */
+    rings: function () {
       var vis = this.items.map(function (it, i) { return { it: it, i: i }; }).filter(function (s) { return !this.hidden[s.i] && s.it.vol > 0; }, this);
-      var tot = vis.reduce(function (s, x) { return s + x.it.vol; }, 0), a = -Math.PI / 2;
-      return vis.map(function (s) { var a0 = a, a1 = a + (tot ? s.it.vol / tot : 0) * Math.PI * 2; a = a1; return { i: s.i, it: s.it, a0: a0, a1: a1 }; });
+      var tot = vis.reduce(function (s, x) { return s + x.it.vol; }, 0);
+      return vis.map(function (s, k) { return { i: s.i, k: k, it: s.it, frac: tot ? s.it.vol / tot : 0 }; });
     },
     hit: function (x, y) {
       var g = this.geo; if (!g) return -1;
-      var dx = (x - g.cx) / g.rx, dy = (y - g.cy) / g.ry;
-      var rr = dx * dx + dy * dy; if (rr > 1 || rr < (g.hole || 0) * (g.hole || 0)) return -1;
-      var ang = Math.atan2(dy, dx); if (ang < -Math.PI / 2) ang += Math.PI * 2;
-      var s = this.slices().filter(function (s) { return ang >= s.a0 && ang < s.a1; })[0];
-      return s ? s.i : -1;
+      var dx = x - g.cx, dy = y - g.cy, d = Math.sqrt(dx * dx + dy * dy);
+      var k = Math.floor((g.R - d) / g.step); if (k < 0 || k >= g.rings.length) return -1;
+      if (Math.abs((g.R - k * g.step - g.step / 2) - d) > g.lw / 2 + 3) return -1;
+      var ring = g.rings[k], ang = Math.atan2(dy, dx) - Math.PI; if (ang < 0) ang += Math.PI * 2;   /* 0 at 9 o'clock, clockwise */
+      return ang <= ring.frac * Math.PI * 2 + 0.12 ? ring.i : -1;
     },
     draw: function () {
-      /* neon 3D ring (infographic style): thick isometric doughnut, two-tone gradient per slice,
-         inner wall of the hole, glow on a dark card */
       var cv = $('otdPrinChart'); if (!cv) return;
       var box = cv.parentElement, W = box.clientWidth, H = box.clientHeight, dpr = window.devicePixelRatio || 1;
       if (!W || !H) return;
       cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
       var c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
-      var TILT = 0.55, DEPTH = 0.34, HOLE = 0.42;
-      var rx = Math.min(W * 0.46, (H - 30) / (2 * TILT + DEPTH)), ry = rx * TILT, depth = rx * DEPTH;
-      var cx = W / 2, cy = (H - depth) / 2, irx = rx * HOLE, iry = ry * HOLE;
-      this.geo = { cx: cx, cy: cy, rx: rx, ry: ry, hole: HOLE };
-      var sl = this.slices(), self = this;
-      var lift = function (s) { return s.i === self.hover ? 10 : 0; };
-      var off = function (s) { var m = (s.a0 + s.a1) / 2, d = lift(s); return { x: Math.cos(m) * d, y: Math.sin(m) * d * TILT - d * 0.35 }; };
-      var pair = function (s) { return neonOf(s.it.name); };
-      var grad = function (x0, y0, x1, y1, p, dark) {
-        var g = c.createLinearGradient(x0, y0, x1, y1);
-        g.addColorStop(0, dark ? mix(p[0], 0, dark) : p[0]); g.addColorStop(1, dark ? mix(p[1], 0, dark) : p[1]); return g;
-      };
-      /* wall between two ellipses (outer or inner) for angles b0..b1 */
-      var wall = function (x, y, ax, ay, b0, b1, fill) {
-        c.beginPath();
-        c.ellipse(x, y, ax, ay, 0, b0, b1);
-        c.lineTo(x + Math.cos(b1) * ax, y + Math.sin(b1) * ay + depth);
-        c.ellipse(x, y + depth, ax, ay, 0, b1, b0, true);
-        c.closePath(); c.fillStyle = fill; c.fill();
-      };
+      var rings = this.rings(), n = Math.max(rings.length, 1), self = this;
+      var R = Math.min(W, H) / 2 - 24, core = R * 0.27, step = (R - core) / n, lw = Math.max(6, step * 0.74);
+      var cx = W / 2, cy = H / 2, START = Math.PI;
+      this.geo = { cx: cx, cy: cy, R: R, step: step, lw: lw, rings: rings };
 
-      /* glow under the ring */
-      c.save(); c.filter = 'blur(28px)';
-      var glow = c.createRadialGradient(cx, cy + depth, 0, cx, cy + depth, rx * 1.1);
-      glow.addColorStop(0, 'rgba(200, 205, 214, 0.30)'); glow.addColorStop(1, 'rgba(200, 205, 214, 0)');
-      c.fillStyle = glow; c.beginPath(); c.ellipse(cx, cy + depth * 0.9, rx * 1.05, ry * 1.1, 0, 0, Math.PI * 2); c.fill(); c.restore();
-
-      /* 1) inner wall of the hole: its back half (π..2π) is visible through the hole */
-      c.save(); c.beginPath(); c.ellipse(cx, cy, irx, iry, 0, 0, Math.PI * 2); c.clip();
-      c.fillStyle = '#23272E'; c.fillRect(cx - irx, cy - iry, irx * 2, iry * 2 + depth);
-      sl.forEach(function (s) {
-        var o = off(s), p = pair(s);
-        [[s.a0, s.a1], [s.a0 + Math.PI * 2, s.a1 + Math.PI * 2]].forEach(function (r) {
-          var b0 = Math.max(r[0], Math.PI), b1 = Math.min(r[1], Math.PI * 2); if (b1 <= b0) return;
-          wall(cx + o.x, cy + o.y, irx, iry, b0, b1, grad(cx - irx, 0, cx + irx, 0, p, 0.45));
-        });
-      });
-      c.restore();
-
-      /* 2) outer wall: front half (0..π) */
-      sl.forEach(function (s) {
-        var o = off(s), p = pair(s);
-        [[s.a0, s.a1], [s.a0 + Math.PI * 2, s.a1 + Math.PI * 2]].forEach(function (r) {
-          var b0 = Math.max(r[0], 0), b1 = Math.min(r[1], Math.PI); if (b1 <= b0) return;
-          wall(cx + o.x, cy + o.y, rx, ry, b0, b1, grad(cx - rx, cy, cx + rx, cy + depth, p, 0.22));
-        });
-      });
-
-      /* 3) tops: annular sectors with a diagonal two-tone gradient + soft glow */
-      sl.forEach(function (s) {
-        var o = off(s), x = cx + o.x, y = cy + o.y, p = pair(s);
+      rings.forEach(function (g) {
+        var r = R - g.k * step - step / 2, p = neonOf(g.it.name), on = self.hover === g.i, dim = self.hover >= 0 && !on;
+        var end = START + Math.max(g.frac, 0.004) * Math.PI * 2;
+        /* faint full-circle guide */
+        c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.strokeStyle = 'rgba(17,24,39,.07)'; c.lineWidth = 1; c.stroke();
+        /* the arc: gradient along the ring */
+        var gr = c.createLinearGradient(cx - r, cy, cx + r, cy + r);
+        gr.addColorStop(0, p[0]); gr.addColorStop(1, p[1]);
         c.save();
-        c.shadowColor = p[1]; c.shadowBlur = s.i === self.hover ? 26 : 14;
-        c.beginPath();
-        c.ellipse(x, y, rx, ry, 0, s.a0, s.a1);
-        c.ellipse(x, y, irx, iry, 0, s.a1, s.a0, true);
-        c.closePath();
-        c.fillStyle = grad(x - rx, y - ry, x + rx, y + ry, p); c.fill();
+        c.globalAlpha = dim ? 0.35 : 1;
+        c.shadowColor = 'rgba(0,0,0,.18)'; c.shadowBlur = on ? 14 : 6; c.shadowOffsetY = 2;
+        c.beginPath(); c.arc(cx, cy, r, START, end); c.lineCap = 'round'; c.lineWidth = on ? lw + 3 : lw; c.strokeStyle = gr; c.stroke();
         c.restore();
-        c.lineWidth = 1.2; c.strokeStyle = 'rgba(255,255,255,0.35)'; c.stroke();
+        /* % label just past the arc end — only when the ring is wide enough to read it (else: legend + tooltip) */
+        c.globalAlpha = dim ? 0.4 : 1;
+        c.textAlign = 'center'; c.textBaseline = 'middle';
+        if (step >= 14 && g.frac >= 0.02) {
+          var la = end + (lw / 2 + 14) / r, lx = cx + Math.cos(la) * r, ly = cy + Math.sin(la) * r;
+          c.font = '700 ' + Math.max(10, Math.min(14, step * 0.6)) + 'px Kanit, Poppins, system-ui, sans-serif';
+          c.fillStyle = p[1]; c.fillText((g.frac * 100).toFixed(0) + '%', lx, ly);
+        }
+        /* number badge at the start (9 o'clock), matches the legend order */
+        if (step >= 16) {
+          var bx = cx - r, br = Math.min(lw * 0.62, 13);
+          c.beginPath(); c.arc(bx, cy, br, 0, Math.PI * 2); c.fillStyle = '#FFFFFF'; c.fill();
+          c.lineWidth = 2; c.strokeStyle = p[0]; c.stroke();
+          c.fillStyle = '#374151'; c.font = '700 ' + Math.max(8, br * 0.85) + 'px Kanit, Poppins, system-ui, sans-serif';
+          c.fillText(String(g.k + 1).padStart(2, '0'), bx, cy + 0.5);
+        }
+        c.globalAlpha = 1;
       });
 
-      /* top sheen */
-      c.save(); c.beginPath(); c.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); c.ellipse(cx, cy, irx, iry, 0, Math.PI * 2, 0, true); c.clip('evenodd');
-      var sh = c.createLinearGradient(0, cy - ry, 0, cy + ry);
-      sh.addColorStop(0, 'rgba(255,255,255,0.30)'); sh.addColorStop(0.5, 'rgba(255,255,255,0)');
-      c.fillStyle = sh; c.fillRect(cx - rx, cy - ry, rx * 2, ry * 2); c.restore();
-
-      /* % labels on slices ≥ 9% (smaller ones: legend + tooltip) */
-      c.save(); c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '600 14px Kanit, sans-serif';
-      sl.forEach(function (s) {
-        var frac = (s.a1 - s.a0) / (Math.PI * 2); if (frac < 0.09) return;
-        var m = (s.a0 + s.a1) / 2, o = off(s), rr = (1 + HOLE) / 2;
-        c.shadowColor = 'rgba(0,0,0,0.55)'; c.shadowBlur = 6; c.fillStyle = '#FFFFFF';
-        c.fillText((frac * 100).toFixed(1) + '%', cx + o.x + Math.cos(m) * rx * rr, cy + o.y + Math.sin(m) * ry * rr);
-      });
-      c.restore();
-    },
+      /* center disc: theme red with the total */
+      var tot = rings.reduce(function (s, g) { return s + g.it.vol; }, 0), red = CUR;
+      c.save(); c.shadowColor = 'rgba(0,0,0,.22)'; c.shadowBlur = 16; c.shadowOffsetY = 4;
+      var cg = c.createRadialGradient(cx - core * 0.3, cy - core * 0.3, core * 0.1, cx, cy, core);
+      cg.addColorStop(0, mix(red, 255, 0.25)); cg.addColorStop(1, red);
+      c.beginPath(); c.arc(cx, cy, core * 0.86, 0, Math.PI * 2); c.fillStyle = cg; c.fill(); c.restore();
+      c.fillStyle = '#FFFFFF'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.font = '700 ' + Math.max(12, core * 0.34) + 'px Kanit, Poppins, system-ui, sans-serif';
+      c.fillText(short(tot), cx, cy - core * 0.12);
+      c.font = '500 ' + Math.max(9, core * 0.16) + 'px Kanit, Poppins, system-ui, sans-serif';
+      c.fillText('btls', cx, cy + core * 0.24);
+    }
   };
   var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
   var fmt = function (n) { return Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 }); };
@@ -200,9 +173,9 @@
       '<div class="otd-grid">' +
       '  <section class="card otd-card otd-wide"><h3 class="card-title" id="otdVolTitle">Off-Take Volume (Btls)</h3>' +
       '    <div class="otd-years" id="otdYearTbl"></div><div class="otd-chart"><canvas id="otdVolChart" aria-label="Off-take volume by month"></canvas></div></section>' +
-      '  <section class="card otd-card otd-neon"><h3 class="card-title">Off-Take Volume (Btls) by Principle</h3>' +
+      '  <section class="card otd-card otd-neon otd-wide"><h3 class="card-title">Off-Take Volume (Btls) by Principle</h3>' +
       '    <div class="otd-pie"><div class="otd-chart otd-pie-canvas"><canvas id="otdPrinChart" aria-label="Volume by principle"></canvas></div><ul class="otd-legend" id="otdPrinLegend"></ul></div></section>' +
-      '  <section class="card otd-card"><h3 class="card-title">Top 10 Brands — Volume (Btls)</h3>' +
+      '  <section class="card otd-card otd-wide"><h3 class="card-title">Top 10 Brands — Volume (Btls)</h3>' +
       '    <div class="otd-chart otd-tall"><canvas id="otdBrandChart" aria-label="Top 10 brands by volume"></canvas></div></section>' +
       '  <section class="card otd-card otd-wide" id="otdBoCard" hidden><h3 class="card-title" id="otdBoTitle">Outlets buying this brand</h3>' +
       '    <div class="otd-years" id="otdBoSum"></div><div class="otd-tablewrap otd-bo-wrap"><table class="otd-prod" id="otdBoTbl"></table></div></section>' +
@@ -422,7 +395,7 @@
     $('otdPrinLegend').innerHTML = top.map(function (x, i) {
       var col = neonCss(x.name);
       return '<li><button type="button" data-i="' + i + '" aria-pressed="true">' +
-        '<span class="otd-dot" style="background:' + col + '"></span><span class="otd-lg-name" title="' + esc(x.name) + '">' + esc(x.name) + '</span>' +
+        '<span class="otd-lg-no">' + String(i + 1).padStart(2, '0') + '</span><span class="otd-dot" style="background:' + col + '"></span><span class="otd-lg-name" title="' + esc(x.name) + '">' + esc(x.name) + '</span>' +
         '<span class="otd-lg-val">' + fmt(x.vol) + '</span><span class="otd-lg-pct">' + share(x.vol) + '%</span>' +
         '<span class="otd-lg-bar"><i style="width:' + share(x.vol) + '%;background:' + col + '"></i></span></button></li>';
     }).join('');

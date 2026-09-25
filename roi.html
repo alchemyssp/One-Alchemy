@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
@@ -7,155 +7,109 @@
 <link rel="icon" type="image/png" href="img/logo-64.png">
 <link rel="apple-touch-icon" href="img/logo-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="js/config.js?v=9"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Poppins', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
-h1, h2, h3, h4, h5 { font-weight: 700; text-wrap: balance; }
-button { font-family: 'Poppins', system-ui, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; }
-input, select, textarea { font-family: 'Poppins', system-ui, sans-serif; font-size: 13px; font-weight: 400; }
-label { font-family: 'Poppins', system-ui, sans-serif; font-size: 11px; font-weight: 700; }
-
-/* ── SIDEBAR ─────────────────────────────────────────────── */
-.sidebar{
-  width:240px;height:100vh;
-  background:#080C11;
-  position:fixed;left:0;top:0;
-  display:flex;flex-direction:column;
-  z-index:100;
-  box-shadow:4px 0 32px rgba(0,0,0,.45);
-  overflow:hidden;
-}
-.sidebar::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:#B0120A;
-}
-
-.sb-logo{padding:28px 20px 20px;display:flex;align-items:center;gap:12px}
-.sb-logo-icon{width:38px;height:38px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#B0120A,#B0120A);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(0,0,0,0.1);}
-.sb-logo-text h3{font-size:14px;font-weight:800;color:#fff;letter-spacing:.3px}
-.sb-logo-text p{font-size:10.5px;color:rgba(255,255,255,.35);margin-top:1px;font-weight:400}
-.nav-links{flex:1;padding:8px 12px;overflow-y:auto;overflow-x:hidden}
-.nav-links::-webkit-scrollbar{width:3px}
-.nav-links::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
-.nav-section{padding:16px 8px 6px;font-size:9.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,.22);}
-.nav-section:first-child{padding-top:4px}
-.nav-links a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;font-weight:500;transition:background .18s,color .18s,transform .15s;position:relative;margin-bottom:2px;border:1px solid transparent;}
-.nav-links a .nav-ico{width:34px;height:34px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;background:rgba(255,255,255,.05);transition:background .18s,box-shadow .18s;}
-.nav-links a:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);transform:translateX(2px);}
-.nav-links a:hover .nav-ico{background:rgba(255,255,255,.1)}
-.nav-links a.active{background:linear-gradient(135deg,rgba(176,18,10,.55),rgba(176,18,10,.3));color:#fff;border-color:rgba(176,18,10,.35);box-shadow:0 4px 16px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,.08);}
-.nav-links a.active .nav-ico{background:linear-gradient(135deg,#B0120A,#B0120A);box-shadow:0 4px 12px rgba(0,0,0,0.1);}
-.nav-links a.nav-sub{padding-left:24px;font-size:12px;color:rgba(255,255,255,.4);margin-left:8px;border-radius:8px;}
-.nav-links a.nav-sub .nav-ico{width:28px;height:28px;font-size:13px;background:transparent;}
-.nav-links a.nav-sub:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.05)}
-.nav-links a.nav-sub.active{color:#fff;background:rgba(176,18,10,.2);border-color:rgba(176,18,10,.25);}
-.nav-links a.nav-sub.active .nav-ico{background:rgba(176,18,10,.3)}
-.sidebar-user{padding:14px 16px 18px;border-top:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);}
-.sb-user-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.sb-avatar{width:36px;height:36px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#B0120A,#B0120A);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;box-shadow:0 3px 10px rgba(0,0,0,0.1);}
-.sidebar-user .sname{font-size:12.5px;font-weight:700;color:#fff;line-height:1.2}
-.sidebar-user .semail{font-size:10.5px;color:rgba(255,255,255,.3);margin-top:1px}
-.btn-logout{width:100%;padding:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.09);border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .18s;}
-.btn-logout:hover{background:rgba(176,18,10,.35);color:#fff;border-color:rgba(176,18,10,.4)}
-
-.main { margin-left: 240px; flex: 1; padding: 32px; min-height: 100vh; }
-.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
-.page-header h2 { font-size: 22px; font-weight: 800; }
-.page-header p { font-size: 13px; color: #888; margin-top: 4px; }
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 18px; margin-bottom: 24px;
-}
-.stat-card {
-  background: #fff; border-radius: 16px;
-  padding: 22px; box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-}
-.stat-card .label { font-size: 11px; color: #888; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
-.stat-card .value { font-size: 28px; font-weight: 600; margin: 8px 0 4px; }
-.stat-card .sub { font-size: 12px; color: #aaa; }
-.blue .value { color: #B0120A; }
-.green .value { color: #27ae60; }
-.orange .value { color: #F36C60; }
-.red .value { color: #F36C60; }
-
-.tabs {
-  display: flex; gap: 4px; background: #FDE0DC;
-  border-radius: 12px; padding: 4px; margin-bottom: 20px;
-}
-.tab-btn {
-  flex: 1; padding: 10px; border: none; border-radius: 9px;
-  font-family: inherit; font-size: 13px; font-weight: 500;
-  cursor: pointer; color: #888; background: transparent; transition: all .2s;
-}
-.tab-btn.active { background: #fff; color: #2c3e50; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
-
-.section {
-  background: #fff; border-radius: 16px;
-  padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 20px;
-}
-.section-head {
-  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
-}
-.section-head h3 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-.chart-wrap { position: relative; height: 300px; }
-
-table { width: 100%; border-collapse: collapse; }
-th { text-align: left; padding: 10px 12px; font-size: 12px; color: #fff; font-weight: 500; background: linear-gradient(90deg,#B0120A 0%,#B0120A 100%); white-space: nowrap; }
-th:hover { background: linear-gradient(90deg,#273C57 0%,#B0120A 100%); }
-td { padding: 11px 12px; font-size: 13.5px; border-bottom: 1px solid #f8f9fa; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: #FDE0DC; }
-
-.badge {
-  display: inline-block; padding: 3px 10px;
-  border-radius: 20px; font-size: 12px; font-weight: 500;
-}
-.b-good { background: #e8f8f0; color: #27ae60; }
-.b-warn { background: #fff3cd; color: #856404; }
-.b-bad  { background: #FDE0DC; color: #B0120A; }
-.b-draft { background: #f0f0f0; color: #888; }
-.b-active { background: #e8f8f0; color: #27ae60; }
-.b-expired { background: #FDE0DC; color: #B0120A; }
-.b-cancelled { background: #f0f0f0; color: #888; }
-
-.roi-bar-wrap { display: flex; align-items: center; gap: 8px; }
-.roi-bg { flex: 1; height: 6px; background: #FDE0DC; border-radius: 3px; min-width: 50px; }
-.roi-fill { height: 6px; border-radius: 3px; }
-
-.btn-export {
-  padding: 9px 18px; background: #fff;
-  border: 1px solid #FDE0DC; border-radius: 10px;
-  font-size: 13px; font-family: inherit;
-  cursor: pointer; font-weight: 500; color: #555;
-  display: flex; align-items: center; gap: 6px; transition: all .2s;
-}
-.btn-export:hover { background: #FDE0DC; border-color: #B0120A; color: #B0120A; }
-
-.dot { display: inline-block; width: 8px; height: 8px; background: #F36C60; border-radius: 50%; animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-.empty { text-align: center; padding: 40px; color: #bbb; }
-.empty .ei { font-size: 36px; margin-bottom: 12px; }
-.empty p { font-size: 14px; }
-
-.overflow-x { overflow-x: auto; }
-/* force nav labels visible */
-.nav-links a>span{display:inline!important;width:auto!important;max-width:none!important;flex-shrink:1!important;opacity:1!important;color:inherit!important}
+body { font-family: 'Poppins', system-ui, sans-serif; background: #F4F4F5; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; }
+button, input, select { font-family: inherit; font-size: 13px; }
+button { cursor: pointer; }
+.sidebar { width: 240px; height: 100vh; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; z-index: 100; overflow: hidden; }
+.sb-logo { padding: 28px 20px 20px; display: flex; align-items: center; gap: 12px; }
+.nav-links { flex: 1; padding: 8px 12px; overflow-y: auto; overflow-x: hidden; }
+.nav-links a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; text-decoration: none; font-size: 13px; margin-bottom: 2px; }
+.nav-links a>span { display: inline !important; }
+.sidebar-user { padding: 14px 16px 18px; }
+.sb-user-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.sb-avatar { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+.btn-logout { width: 100%; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.main { margin-left: 240px; flex: 1; padding: 28px 32px; min-height: 100vh; min-width: 0; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.page-header h2 { font-size: 20px; font-weight: 800; color: #111; }
+.page-header p { font-size: 13px; color: #6B7280; margin-top: 4px; }
+.dot { display: inline-block; width: 7px; height: 7px; background: #F36C60; border-radius: 50%; }
+.empty { text-align: center; padding: 48px 20px; color: #6B7280; }
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=103">
+<link rel="stylesheet" href="css/ssp-type.css?v=105">
 <script src="js/theme.js?v=3"></script>
 <script src="js/sidebar-offtake.js?v=4" defer></script>
+<style>
+/* ── ROI Analysis ── */
+.roi-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.roi-meta { font-size: 12px; color: #6B7280; margin: -4px 0 14px; }
+.roi-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 12px; align-items: end;
+  background: #fff; border-radius: 18px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+.roi-f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.roi-f span { font-size: 12px; color: #555; font-weight: 600; }
+.roi-f select { width: 100%; padding: 8px 10px; border-radius: 10px; border: 1.5px solid #E5E7EB; background: #F9FAFB; color: #111; }
+.roi-reset { padding: 9px 14px; border-radius: 10px; border: none; background: #F3F4F6; color: #111; font-weight: 600; }
+.roi-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+.roi-kpi { background: #fff; border-radius: 20px; padding: 16px 18px; box-shadow: 0 2px 10px rgba(0,0,0,.05); min-width: 0; }
+.roi-kpi .k-l { font-size: 13px; color: #555; font-weight: 600; }
+.roi-kpi .k-v { font-size: 28px; font-weight: 800; color: var(--c1, #B0120A); line-height: 1.2; margin-top: 4px; }
+.roi-kpi .k-s { font-size: 12px; color: #6B7280; margin-top: 4px; }
+.roi-kpi .k-bar { height: 6px; background: #F3F4F6; border-radius: 6px; margin-top: 8px; overflow: hidden; }
+.roi-kpi .k-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--g1, #B0120A), var(--g2, #E53935)); border-radius: 6px; }
+.roi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+.roi-card { background: #fff; border-radius: 20px; padding: 16px 18px; box-shadow: 0 2px 10px rgba(0,0,0,.05); min-width: 0; }
+.roi-card.wide { grid-column: 1 / -1; }
+.roi-card h3 { font-size: 15px; font-weight: 700; color: #111; margin-bottom: 4px; }
+.roi-card .roi-sub { font-size: 12px; color: #6B7280; margin-bottom: 10px; }
+.roi-chart { position: relative; height: 300px; }
+.roi-chart.tall { height: 460px; }
+.roi-scroll { max-height: 460px; overflow-y: auto; overflow-x: hidden; padding-right: 4px; }
+.roi-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.roi-tools input { flex: 1; min-width: 200px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid #E5E7EB; background: #F9FAFB; }
+.roi-tools .roi-count { font-size: 12px; color: #6B7280; }
+.roi-band { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.roi-band.hit { background: #374151; color: #FFFFFF; } .roi-band.near { background: #FEF3C7; color: #92400E; }
+.roi-band.low { background: #FEE2E2; color: #991B1B; } .roi-band.none { background: #F3F4F6; color: #4B5563; }
+.roi-ach { display: flex; align-items: center; gap: 6px; min-width: 130px; }
+.roi-ach .b { flex: 1; height: 6px; background: #F3F4F6; border-radius: 6px; overflow: hidden; min-width: 50px; }
+.roi-ach .b i { display: block; height: 100%; border-radius: 6px; }
+.roi-st { font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: #F3F4F6; color: #374151; white-space: nowrap; }
+.roi-st.on { background: #111827; color: #fff; }
+table.roi-tbl { width: 100%; border-collapse: separate; border-spacing: 0; }
+html body table.roi-tbl th { font-size: 12px !important; padding: 7px 8px !important; white-space: nowrap; cursor: pointer; text-align: left; }
+html body table.roi-tbl td { font-size: 12px !important; padding: 5px 8px !important; white-space: nowrap; }
+html body table.roi-tbl td * { font-size: 12px !important; }
+html body table.roi-tbl .roi-band, html body table.roi-tbl .roi-st { font-size: 11px !important; }
+table.roi-tbl td.n, table.roi-tbl th.n { text-align: right; font-variant-numeric: tabular-nums; }
+table.roi-tbl tbody tr { cursor: pointer; }
+table.roi-tbl td.o b { display: block; color: #111; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+table.roi-tbl td.o small { color: #6B7280; }
+.roi-more { display: flex; justify-content: center; gap: 10px; padding: 10px; }
+.roi-more button { padding: 6px 14px; border-radius: 10px; border: none; background: #F3F4F6; font-weight: 600; }
+.roi-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #374151; margin-bottom: 6px; }
+.roi-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.roi-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+/* detail dialog */
+.roi-ov { position: fixed; inset: 0; background: rgba(17,24,39,.45); z-index: 2000; display: none; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow: auto; }
+.roi-ov.open { display: flex; }
+.roi-dlg { background: #fff; border-radius: 20px; width: min(1100px, 100%); padding: 18px 20px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+.roi-dlg-h { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+.roi-dlg-h h3 { font-size: 16px; color: #111; }
+.roi-dlg-h p { font-size: 12px; color: #6B7280; }
+.roi-dlg-h button { padding: 6px 14px; border-radius: 10px; border: none; background: #F3F4F6; font-weight: 600; }
+.roi-dlg .roi-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.roi-dlg .roi-kpi { box-shadow: none; background: #F9FAFB; padding: 10px 12px; }
+.roi-dlg .roi-kpi .k-v { font-size: 20px; }
+html body .roi-kpi .k-v { font-size: 28px !important; font-weight: 800 !important; color: var(--c1, #B0120A) !important; -webkit-text-fill-color: var(--c1, #B0120A) !important; }
+html body .roi-dlg .roi-kpi .k-v { font-size: 20px !important; }
+html body .roi-kpi .k-l { font-size: 13px !important; }
+html body .roi-kpi .k-s { font-size: 12px !important; line-height: 1.4 !important; }
+html body .roi-st.on { background: #111827 !important; color: #fff !important; -webkit-text-fill-color: #fff !important; }
+html body .roi-st { -webkit-text-fill-color: currentColor; }
+html body .roi-actions .btn-export { padding: 10px 18px !important; border-radius: 12px !important; white-space: nowrap; font-weight: 700; }
+html body table.roi-tbl td.o b { font-size: 12px !important; line-height: 1.25 !important; }
+html body table.roi-tbl td.o small { font-size: 11px !important; }
+@media (max-width: 1100px) { .roi-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .roi-grid { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .main { margin-left: 0; padding: 20px 16px; } .roi-kpis, .roi-dlg .roi-kpis { grid-template-columns: 1fr 1fr; } }
+</style>
 </head>
 <body>
-
 <nav class="sidebar">
   <div class="sb-logo">
     <img class="sb-logo-img" src="img/logo-192.png" alt="Archive logo" width="64" height="64">
@@ -191,377 +145,284 @@ tr:hover td { background: #FDE0DC; }
   <div class="page-header">
     <div>
       <h2>ROI Analysis <span class="dot"></span></h2>
-      <p>Return on investment per contract — Contract value vs. promotions/discounts given</p>
+      <p>Contract targets from the ROI file vs actual off-take — matched by outlet + SKU inside each contract period</p>
     </div>
-    <button class="btn-export" onclick="exportExcel()">Export Excel</button>
+    <div class="roi-actions"><span id="roiImportSlot"></span><button type="button" class="btn-export" onclick="exportExcel()">Export Excel</button></div>
+  </div>
+  <div class="roi-meta" id="roiMeta">Coming in 3 2 1 ...</div>
+
+  <div class="roi-filters" role="group" aria-label="Filters">
+    <label class="roi-f"><span>BDE</span><select id="fBde"></select></label>
+    <label class="roi-f"><span>Area</span><select id="fArea"></select></label>
+    <label class="roi-f"><span>Group</span><select id="fGroup"></select></label>
+    <label class="roi-f"><span>Principle</span><select id="fPrin"></select></label>
+    <label class="roi-f"><span>Brand</span><select id="fBrand"></select></label>
+    <label class="roi-f"><span>Tier</span><select id="fTier"></select></label>
+    <label class="roi-f"><span>Contract status</span><select id="fStatus"><option value="">All</option><option value="active">Active (not ended)</option><option value="ended">Ended</option></select></label>
+    <button type="button" class="roi-reset" id="fReset">Reset</button>
   </div>
 
-  <div class="stats-grid">
-    <div class="stat-card blue">
-      <div class="label">Total Contract Value</div>
-      <div class="value" id="sTotalContract">-</div>
-      <div class="sub">Baht</div>
-    </div>
-    <div class="stat-card orange">
-      <div class="label">Total Promotions/Discounts</div>
-      <div class="value" id="sTotalPromo">-</div>
-      <div class="sub">Baht</div>
-    </div>
-    <div class="stat-card green">
-      <div class="label">Total Net Value</div>
-      <div class="value" id="sNetValue">-</div>
-      <div class="sub">Baht</div>
-    </div>
-    <div class="stat-card" id="sROICard">
-      <div class="label">เฉลี่ย ROI%</div>
-      <div class="value" id="sAvgROI">-</div>
-      <div class="sub">ต่อสัญญา</div>
-    </div>
+  <div class="roi-kpis" id="roiKpis"></div>
+
+  <div class="roi-grid">
+    <section class="roi-card wide">
+      <h3>Monthly Target vs Actual (Btls)</h3>
+      <div class="roi-sub">Target = yearly volume ÷ 12 for every contract SKU running that month · Actual = off-take of those outlet SKUs</div>
+      <div class="roi-legend"><span><i style="background:var(--c1,#B0120A)"></i>Actual</span><span><i style="background:#4B5563;height:3px"></i>Target</span></div>
+      <div class="roi-chart"><canvas id="cMonthly" aria-label="Monthly target vs actual bottles"></canvas></div>
+    </section>
+    <section class="roi-card">
+      <h3>Achievement by Contract</h3>
+      <div class="roi-sub" id="cBdeSub">Top 10 active contracts · actual off-take ÷ target to date (volume), highest first</div>
+      <div><div class="roi-chart tall" id="cBdeBox"><canvas id="cBde" aria-label="Achievement by active contract, highest first"></canvas></div></div>
+    </section>
+    <section class="roi-card">
+      <h3>Target vs Actual by Principle (Btls)</h3>
+      <div class="roi-sub">Target to date and actual volume</div>
+      <div class="roi-legend"><span><i style="background:#D1D5DB"></i>Target to date</span><span><i style="background:linear-gradient(90deg,#1F2328,#9CA3AF)"></i>Actual</span></div>
+      <div class="roi-chart tall"><canvas id="cPrin" aria-label="Target vs actual by principle"></canvas></div>
+    </section>
+    <section class="roi-card wide">
+      <h3>Contracts</h3>
+      <div class="roi-sub">Click a contract to see its SKUs · On target ≥ 100% · Close 70–99% · Below &lt; 70%</div>
+      <div class="roi-tools">
+        <input type="search" id="cSearch" placeholder="Search outlet, contract, BDE, area..." aria-label="Search contracts">
+        <select id="cBand" class="roi-f" aria-label="Achievement"><option value="">All results</option><option value="hit">On target</option><option value="near">Close</option><option value="low">Below</option><option value="none">No sales yet</option></select>
+        <span class="roi-count" id="cCount"></span>
+      </div>
+      <div class="table-card"><div class="overflow-x"><div id="cWrap"></div></div></div>
+    </section>
   </div>
+</div>
 
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('calc')">ROI คำนวณจากสัญญา</button>
-    <button class="tab-btn" onclick="switchTab('raw')">ตาราง Return of Investment</button>
-  </div>
-
-  <!-- Calculated ROI Tab -->
-  <div id="tabCalc" class="tab-panel active">
-    <div class="section">
-      <div class="section-head">
-        <h3>ROI% ต่อสัญญา (สูงสุด 15 อันดับ)</h3>
-        <span style="font-size:12px;color:#aaa">เขียวสด = ROI ≥ 70% | เหลือง = 40-70% | แดง = &lt; 40%</span>
-      </div>
-      <div class="chart-wrap">
-        <canvas id="roiChart"></canvas>
-      </div>
-    </div>
-
-    <div class="section">
-      <h3 style="margin-bottom:16px">รายละเอียด ROI ต่อสัญญา</h3>
-      <div class="overflow-x">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>เลขสัญญา</th>
-              <th>Outlet</th>
-              <th>ประเภท</th>
-              <th style="text-align:right">มูลค่าสัญญา (฿)</th>
-              <th style="text-align:right">โปรโมชั่นรวม (฿)</th>
-              <th style="text-align:right">Net Value (฿)</th>
-              <th>ROI%</th>
-              <th>สถานะ</th>
-            </tr>
-          </thead>
-          <tbody id="roiTbody">
-            <tr><td colspan="9" style="text-align:center;color:#aaa;padding:32px">กำลังโหลด...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Raw ROI Table Tab -->
-  <div id="tabRaw" class="tab-panel">
-    <div class="section">
-      <div class="section-head">
-        <h3>ข้อมูลจากตาราง "Return of investment"</h3>
-        <span id="rawCount" style="font-size:13px;color:#aaa"></span>
-      </div>
-      <div id="rawWrap" class="overflow-x">
-        <div class="empty"><div class="ei"></div><p>กำลังโหลด...</p></div>
-      </div>
-    </div>
+<div class="roi-ov" id="dOv" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+  <div class="roi-dlg">
+    <div class="roi-dlg-h"><div><h3 id="dTitle"></h3><p id="dSub"></p></div><button type="button" id="dClose">Close</button></div>
+    <div class="roi-kpis" id="dKpis"></div>
+    <div class="table-card"><div class="overflow-x"><div id="dWrap"></div></div></div>
   </div>
 </div>
 
 <script>
-let chartInstance = null;
-let calcRows = [];
-let rawRows = [];
-
-function switchTab(t) {
-  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === (t === 'calc' ? 0 : 1)));
-  document.getElementById('tabCalc').classList.toggle('active', t === 'calc');
-  document.getElementById('tabRaw').classList.toggle('active', t === 'raw');
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+const short = n => { n = Number(n || 0); const a = Math.abs(n); return a >= 1e6 ? (n / 1e6).toFixed(a >= 1e8 ? 0 : 1) + 'M' : a >= 1e3 ? (n / 1e3).toFixed(a >= 1e5 ? 0 : 1) + 'K' : fmt(n); };
+const pctOf = (a, t) => t > 0 ? a / t * 100 : null;
+const pctTxt = p => p == null ? '—' : p.toFixed(p >= 100 ? 0 : 1) + '%';
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const mLabel = iso => { const d = new Date(iso + 'T00:00:00'); return MON[d.getMonth()] + ' ' + String(d.getFullYear()).slice(2); };
+const dText = iso => { if (!iso) return '—'; const d = new Date(iso + 'T00:00:00'); return d.getDate() + ' ' + MON[d.getMonth()] + ' ' + String(d.getFullYear()).slice(2); };
+const cur = () => (window.themeColor ? themeColor('--c1', '#B0120A') : '#B0120A');
+/* result bands: text label + color, never color alone */
+const band = (a, t) => { const p = pctOf(a, t); if (!a) return ['none', 'No sales yet']; if (p == null) return ['none', '—']; return p >= 100 ? ['hit', 'On target'] : p >= 70 ? ['near', 'Close'] : ['low', 'Below']; };
+/* 3 colors only: dark grey = on target, amber = close, red = below (no green) */
+const BAND_COLOR = { hit: '#374151', near: '#D97706', low: '#DC2626', none: '#9CA3AF' };
+/* bar gradients (light at the base → full color at the end), same hue per result */
+const BAND_GRAD = { hit: ['#9CA3AF', '#1F2328'], near: ['#FDE68A', '#D97706'], low: ['#FCA5A5', '#B91C1C'], none: ['#E5E7EB', '#6B7280'] };
+function barGrad(ctx, pair) {
+  const a = ctx.chart.chartArea; if (!a) return pair[1];
+  /* from the start of this bar to its own end, so short bars get the full shade too */
+  const v = ctx.raw, xs = ctx.chart.scales.x, end = v != null && xs ? Math.max(a.left + 8, xs.getPixelForValue(v)) : a.right;
+  const g = ctx.chart.ctx.createLinearGradient(a.left, 0, end, 0);
+  g.addColorStop(0, pair[0]); g.addColorStop(1, pair[1]); return g;
 }
+
+let D = null, charts = {}, sortKey = 'd_end', sortAsc = false, shown = 100, seq = 0;
+const FILTERS = [['fBde', 'bdes', 'p_bde'], ['fArea', 'areas', 'p_area'], ['fGroup', 'groups', 'p_group'], ['fPrin', 'principles', 'p_principle'],
+                 ['fBrand', 'brands', 'p_brand'], ['fTier', 'tiers', 'p_tier']];
 
 async function checkAuth() {
   const { data } = await supabase.auth.getSession();
   if (!data.session) { window.location.href = 'index.html'; return; }
   const u = data.session.user;
   const { data: p } = await supabase.from('user_profile').select('username').eq('auth_email', u.email).maybeSingle();
-  document.getElementById('userEmail').textContent = u.email;
-  const displayName = (p && p.username) || u.email.split('@')[0];
-  document.getElementById('userName').textContent = displayName;
-  document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
-  Promise.all([loadCalc(), loadRaw()]);
+  $('userEmail').textContent = u.email;
+  const name = (p && p.username) || u.email.split('@')[0];
+  $('userName').textContent = name; $('userAvatar').textContent = name.charAt(0).toUpperCase();
+  await loadOptions(); load();
 }
 
-// ดึง table โดย try primary → fallback
-async function fetchTable(primary, fallback) {
-  let { data, error } = await supabase.from(primary).select('*').limit(1000);
-  if (error || !data || !data.length) {
-    ({ data } = await supabase.from(fallback).select('*').limit(1000));
-  }
-  return data || [];
-}
-
-// หา column ที่น่าจะเป็น contract value
-function detectValCol(row) {
-  if (!row) return null;
-  const keys = Object.keys(row);
-  const priority = ['value','amount','contract_value','total','มูลค่า','ราคา','budget'];
-  for (const p of priority) {
-    const found = keys.find(k => k.toLowerCase().includes(p) && typeof row[k] === 'number');
-    if (found) return found;
-  }
-  return keys.find(k => typeof row[k] === 'number') || null;
-}
-
-// หา column ที่น่าจะเป็น label/name ของสัญญา
-function detectLabelCol(row, hint = []) {
-  if (!row) return null;
-  const keys = Object.keys(row);
-  const terms = [...hint, 'contract_no','contract_name','name','no','เลขสัญญา','ชื่อ'];
-  for (const t of terms) {
-    const found = keys.find(k => k.toLowerCase().includes(t) && typeof row[k] === 'string');
-    if (found) return found;
-  }
-  return keys.find(k => typeof row[k] === 'string') || null;
-}
-
-// หา column ที่เชื่อม promo → contract
-function detectLinkCol(pRow, cKeys) {
-  if (!pRow) return { pCol: null, cCol: null };
-  const pKeys = Object.keys(pRow);
-  const linkTerms = ['contract_id','contract_no','contract','สัญญา'];
-  for (const t of linkTerms) {
-    const pCol = pKeys.find(k => k.toLowerCase().includes(t));
-    if (pCol) {
-      const cCol = cKeys.find(k => k === 'id' || k.toLowerCase().includes(t));
-      if (cCol) return { pCol, cCol };
-    }
-  }
-  return { pCol: null, cCol: null };
-}
-
-async function loadCalc() {
-  const [contracts, promotions] = await Promise.all([
-    fetchTable('Contract Master', 'contracts'),
-    fetchTable('Promotion / Trade deal', 'promotions')
-  ]);
-
-  if (!contracts.length) {
-    document.getElementById('roiTbody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#aaa;padding:32px">ไม่พบข้อมูลสัญญา — กรุณารัน database/1-setup/add_rls_existing_tables.sql ก่อน</td></tr>';
-    return;
-  }
-
-  const cSample = contracts[0];
-  const pSample = promotions[0];
-  const cKeys = Object.keys(cSample);
-
-  const cValCol   = detectValCol(cSample);
-  const cLabelCol = detectLabelCol(cSample, ['contract_no','contract_name','no']);
-  const cTypeCol  = cKeys.find(k => /type|ประเภท/i.test(k)) || null;
-  const cStatCol  = cKeys.find(k => /^status$/i.test(k) || /สถานะ/.test(k)) || null;
-  const cOutletCol = cKeys.find(k => /outlet|ลูกค้า|ร้าน/i.test(k)) || null;
-
-  const { pCol, cCol } = detectLinkCol(pSample, cKeys);
-  const pValCol = detectValCol(pSample);
-
-  // Build promo map grouped by contract link
-  const pMap = {};
-  if (pCol && pValCol) {
-    promotions.forEach(p => {
-      const key = String(p[pCol] || '');
-      if (!pMap[key]) pMap[key] = 0;
-      pMap[key] += parseFloat(p[pValCol] || 0);
-    });
-  }
-
-  calcRows = contracts.map(c => {
-    const cLinkVal = String(c[cCol] || c['id'] || '');
-    const cv = parseFloat(c[cValCol] || 0);
-    const pv = pMap[cLinkVal] || 0;
-    const net = cv - pv;
-    const roi = cv > 0 ? (net / cv * 100) : 0;
-    return {
-      contract_no: c[cLabelCol] || String(cLinkVal).slice(0, 12),
-      outlet: cOutletCol ? (c[cOutletCol] || '-') : '-',
-      type: cTypeCol ? (c[cTypeCol] || '-') : '-',
-      cv, pv, net, roi,
-      status: cStatCol ? (c[cStatCol] || '-') : '-'
-    };
+async function loadOptions() {
+  const { data, error } = await supabase.rpc('roi_options');
+  if (error) { $('roiMeta').textContent = 'Could not load ROI data: ' + error.message; return; }
+  FILTERS.forEach(([id, key]) => {
+    const el = $(id), keep = el.value;
+    el.innerHTML = '<option value="">All</option>' + (data[key] || []).map(v => `<option${v === keep ? ' selected' : ''}>${esc(v)}</option>`).join('');
   });
-
-  updateStats(calcRows);
-  renderChart(calcRows);
-  renderTable(calcRows);
+  const li = data.last_import;
+  window._roiMeta = `ROI file: ${fmt(data.rows)} rows` + (li ? ` · last import ${esc(li.file_name || '')} on ${new Date(li.imported_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} by ${esc((li.imported_by || '').split('@')[0])}` : '');
 }
 
-function updateStats(rows) {
-  const totalCV = rows.reduce((s, r) => s + r.cv, 0);
-  const totalPV = rows.reduce((s, r) => s + r.pv, 0);
-  const totalNet = totalCV - totalPV;
-  const withVal = rows.filter(r => r.cv > 0);
-  const avgROI = withVal.length ? withVal.reduce((s, r) => s + r.roi, 0) / withVal.length : 0;
+async function load() {
+  const my = ++seq, args = {};
+  FILTERS.forEach(([id, , p]) => { args[p] = $(id).value || null; });
+  args.p_status = $('fStatus').value || null;
+  document.querySelector('.main').classList.add('search-busy');
+  const { data, error } = await supabase.rpc('roi_dashboard', args);
+  if (my !== seq) return;
+  document.querySelector('.main').classList.remove('search-busy');
+  if (error) { $('roiMeta').textContent = 'Could not load ROI analysis: ' + error.message; return; }
+  D = data; shown = 100;
+  $('roiMeta').textContent = (window._roiMeta || '') + ` · off-take matched ${mLabel(D.data_from)} – ${mLabel(D.data_to)}`;
+  renderKpis(); renderCharts(); renderTable();
+}
+window.roiReload = async () => { await loadOptions(); load(); };
 
-  document.getElementById('sTotalContract').textContent = fNum(totalCV);
-  document.getElementById('sTotalPromo').textContent = fNum(totalPV);
-  document.getElementById('sNetValue').textContent = fNum(totalNet);
-  document.getElementById('sAvgROI').textContent = avgROI.toFixed(1) + '%';
-  const card = document.getElementById('sROICard');
-  card.classList.add(avgROI >= 70 ? 'green' : avgROI >= 40 ? 'orange' : 'red');
+function kpi(label, value, sub, pct) {
+  return `<div class="roi-kpi"><div class="k-l">${label}</div><div class="k-v">${value}</div><div class="k-s">${sub}</div>` +
+    (pct == null ? '' : `<div class="k-bar" role="img" aria-label="${pctTxt(pct)}"><i style="width:${Math.min(100, pct)}%"></i></div>`) + `</div>`;
+}
+function renderKpis() {
+  const k = D.kpi || {}, pv = pctOf(k.a_vol, k.t_vol), pval = pctOf(k.a_val, k.t_val);
+  $('roiKpis').innerHTML =
+    kpi('Achievement (volume)', pctTxt(pv), `Actual ${fmt(k.a_vol)} of ${fmt(k.t_vol)} btls target to date`, pv) +
+    kpi('Achievement (value)', pctTxt(pval), `Actual ฿${short(k.a_val)} of ฿${short(k.t_val)} target to date`, pval) +
+    kpi('Investment to date', '฿' + short(k.inv), k.inv > 0 ? `Sales ฿${(k.a_val / k.inv).toFixed(1)} per ฿1 of discount` : 'No discount in these contracts', null) +
+    kpi('Contracts on target', `${fmt(k.hit)} / ${fmt(k.with_target)}`,
+        `${fmt(k.active)} active · SKUs selling ${fmt(k.skus_sold)} of ${fmt(k.skus)} (${pctTxt(pctOf(k.skus_sold, k.skus))})`, pctOf(k.hit, k.with_target));
 }
 
-function fNum(n) {
-  if (n === null || n === undefined) return '-';
-  return Number(n).toLocaleString('th-TH', { maximumFractionDigits: 0 });
+function draw(id, cfg) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), cfg); }
+const GRID = '#EEEEEE', INK = '#111111', MUTED = '#6B7280';
+function renderCharts() {
+  const c1 = cur(), mo = D.monthly || [];
+  draw('cMonthly', { data: { labels: mo.map(x => mLabel(x.m)), datasets: [
+      { type: 'line', label: 'Target', data: mo.map(x => x.t_vol), borderColor: '#4B5563', backgroundColor: '#4B5563', borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, tension: .25, order: 0 },
+      { type: 'bar', label: 'Actual', data: mo.map(x => x.a_vol), backgroundColor: c1, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 22, order: 1 }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 250 }, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: { callbacks: {
+        label: c => ` ${c.dataset.label}: ${fmt(c.parsed.y)} btls`,
+        afterBody: it => { const m = mo[it[0].dataIndex]; return m ? ` Achievement: ${pctTxt(pctOf(m.a_vol, m.t_vol))}` : ''; } } } },
+      scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: MUTED, maxRotation: 0, autoSkip: true } },
+                y: { beginAtZero: true, grid: { color: GRID }, border: { display: false }, ticks: { color: MUTED, callback: v => short(v) } } } } });
+
+  /* top 10 ACTIVE contracts by achievement (actual off-take ÷ target to date), highest first */
+  const act = (D.contracts || []).filter(x => x.active && x.t_vol > 0);
+  const bd = act.map(x => Object.assign({ p: pctOf(x.a_vol, x.t_vol), name: x.outlet }, x)).sort((a, b) => b.p - a.p || b.t_vol - a.t_vol).slice(0, 10);
+  $('cBdeSub').textContent = `Top 10 of ${fmt(act.length)} active contracts · actual off-take ÷ target to date (volume), highest first`;
+  draw('cBde', { type: 'bar', data: { labels: bd.map(x => x.name.length > 26 ? x.name.slice(0, 25) + '…' : x.name), datasets: [{ label: 'Achievement', data: bd.map(x => +x.p.toFixed(1)),
+      backgroundColor: ctx => barGrad(ctx, BAND_GRAD[band(bd[ctx.dataIndex].a_vol, bd[ctx.dataIndex].t_vol)[0]]), borderRadius: 4, borderSkipped: 'start', maxBarThickness: 16 }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: { duration: 250 },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => { const x = bd[c.dataIndex];
+        return [` ${x.outlet}`, ` ${x.contract} · BDE ${x.bde || '—'}`,
+          ` Contract: ${dText(x.d_start)} – ${dText(x.d_end)} (${x.months} months compared)`,
+          ` Actual off-take ${fmt(x.a_vol)} of target ${fmt(x.t_vol)} btls`,
+          ` Achieved ${pctTxt(x.p)} — ${band(x.a_vol, x.t_vol)[1]}`]; },
+        title: () => '' } } },
+      onClick: (e, els) => { if (els.length) openDetail(bd[els[0].index].contract); },
+      onHover: (e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : ''; },
+      scales: { x: { beginAtZero: true, grid: { color: GRID }, border: { display: false }, ticks: { color: MUTED, callback: v => v + '%' } },
+                y: { grid: { display: false }, border: { display: false }, ticks: { color: INK, autoSkip: false } } } },
+    plugins: [valueLabels(v => v + '%')] });
+
+  const pr = (D.by_principle || []).slice(0, 10);
+  draw('cPrin', { type: 'bar', data: { labels: pr.map(x => x.name), datasets: [
+      { label: 'Target to date', data: pr.map(x => x.t_vol), backgroundColor: '#D1D5DB', borderRadius: 4, borderSkipped: 'start', maxBarThickness: 12 },
+      { label: 'Actual', data: pr.map(x => x.a_vol), backgroundColor: ctx => barGrad(ctx, ['#1F2328', '#9CA3AF']), borderRadius: 4, borderSkipped: 'start', maxBarThickness: 12 }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: { duration: 250 }, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${fmt(c.parsed.x)} btls`,
+        afterBody: it => { const x = pr[it[0].dataIndex]; return ` Achievement: ${pctTxt(pctOf(x.a_vol, x.t_vol))}`; } } } },
+      scales: { x: { beginAtZero: true, grid: { color: GRID }, border: { display: false }, ticks: { color: MUTED, callback: v => short(v) } },
+                y: { grid: { display: false }, border: { display: false }, ticks: { color: INK, autoSkip: false } } } } });
+}
+/* small value label at the end of each horizontal bar */
+function valueLabels(f) {
+  return { id: 'vl', afterDatasetsDraw(ch) {
+    const c = ch.ctx, meta = ch.getDatasetMeta(0); c.save(); c.font = '600 11px Kanit, Poppins, system-ui, sans-serif'; c.fillStyle = '#374151'; c.textBaseline = 'middle';
+    meta.data.forEach((b, i) => c.fillText(f(ch.data.datasets[0].data[i]), b.x + 6, b.y)); c.restore(); } };
 }
 
-function renderChart(rows) {
-  const sorted = [...rows].sort((a, b) => b.roi - a.roi).slice(0, 15);
-  const labels = sorted.map(r => r.contract_no);
-  const vals = sorted.map(r => parseFloat(r.roi.toFixed(1)));
-  const colors = vals.map(v => v >= 70 ? '#27ae60' : v >= 40 ? '#F36C60' : '#F36C60');
-
-  const ctx = document.getElementById('roiChart').getContext('2d');
-  if (chartInstance) chartInstance.destroy();
-  chartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'ROI (%)',
-        data: vals,
-        backgroundColor: colors,
-        borderRadius: 6,
-        borderSkipped: false
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => `ROI: ${ctx.parsed.y.toFixed(1)}%` } }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { callback: v => v + '%' },
-          grid: { color: '#FDE0DC' }
-        },
-        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
-      }
-    }
-  });
+/* ── contracts table ── */
+function rows() {
+  const q = $('cSearch').value.trim().toLowerCase(), bf = $('cBand').value;
+  let list = (D && D.contracts) || [];
+  if (q) list = list.filter(c => [c.outlet, c.outlet_code, c.contract, c.bde, c.area, c.grp, c.tier].some(v => String(v ?? '').toLowerCase().includes(q)));
+  if (bf) list = list.filter(c => band(c.a_vol, c.t_vol)[0] === bf);
+  const val = c => sortKey === 'ach' ? (pctOf(c.a_vol, c.t_vol) ?? -1) : sortKey === 'spd' ? (c.inv > 0 ? c.a_val / c.inv : -1) : c[sortKey];
+  return list.slice().sort((a, b) => { const x = val(a), y = val(b); if (x == null) return 1; if (y == null) return -1; return (x > y ? 1 : x < y ? -1 : 0) * (sortAsc ? 1 : -1); });
 }
-
-function renderTable(rows) {
-  const tbody = document.getElementById('roiTbody');
-  if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#aaa;padding:32px">ยังไม่มีข้อมูลสัญญา</td></tr>';
-    return;
-  }
-  const stMap = { draft: 'b-draft', active: 'b-active', expired: 'b-expired', cancelled: 'b-cancelled' };
-  const stTh  = { draft: 'ร่าง', active: 'ใช้งาน', expired: 'หมดอายุ', cancelled: 'ยกเลิก' };
-
-  tbody.innerHTML = [...rows].sort((a, b) => b.roi - a.roi).map((r, i) => {
-    const rc = r.roi >= 70 ? '#27ae60' : r.roi >= 40 ? '#F36C60' : '#F36C60';
-    const rb = r.roi >= 70 ? 'b-good' : r.roi >= 40 ? 'b-warn' : 'b-bad';
-    const bw = Math.min(100, Math.max(0, r.roi));
-    return `<tr>
-      <td style="color:#aaa;font-size:12px">${i + 1}</td>
-      <td><strong>${r.contract_no}</strong></td>
-      <td>${r.outlet}</td>
-      <td>${r.type}</td>
-      <td style="text-align:right;font-variant-numeric:tabular-nums">${fNum(r.cv)}</td>
-      <td style="text-align:right;font-variant-numeric:tabular-nums;color:#F36C60">${fNum(r.pv)}</td>
-      <td style="text-align:right;font-variant-numeric:tabular-nums;color:#27ae60">${fNum(r.net)}</td>
-      <td>
-        <div class="roi-bar-wrap">
-          <div class="roi-bg"><div class="roi-fill" style="width:${bw}%;background:${rc}"></div></div>
-          <span class="badge ${rb}" style="white-space:nowrap">${r.roi.toFixed(1)}%</span>
-        </div>
-      </td>
-      <td><span class="badge ${stMap[r.status] || ''}">${stTh[r.status] || r.status}</span></td>
-    </tr>`;
-  }).join('');
+const COLS = [['outlet', 'Outlet'], ['contract', 'Contract'], ['bde', 'BDE'], ['area', 'Area'], ['tier', 'Tier'], ['d_start', 'Start'], ['d_end', 'End'],
+  ['active', 'Status'], ['t_vol', 'Target to date (btl)', 1], ['a_vol', 'Actual (btl)', 1], ['ach', 'Achievement'], ['a_val', 'Actual value (฿)', 1],
+  ['inv', 'Investment (฿)', 1], ['spd', 'Sales per ฿1', 1], ['skus_sold', 'SKUs selling', 1]];
+function renderTable() {
+  const list = rows();
+  $('cCount').textContent = `${fmt(list.length)} contracts`;
+  if (!list.length) { $('cWrap').innerHTML = '<div class="empty">No contracts match the filters</div>'; return; }
+  const arrow = k => sortKey === k ? (sortAsc ? ' ▲' : ' ▼') : '';
+  $('cWrap').innerHTML = `<table class="roi-tbl"><thead><tr>${COLS.map(([k, l, n]) => `<th class="${n ? 'n' : ''}" data-k="${k}" aria-sort="${sortKey === k ? (sortAsc ? 'ascending' : 'descending') : 'none'}">${l}${arrow(k)}</th>`).join('')}</tr></thead><tbody>` +
+    list.slice(0, shown).map(c => { const p = pctOf(c.a_vol, c.t_vol), [b, bl] = band(c.a_vol, c.t_vol);
+      return `<tr data-c="${esc(c.contract)}" tabindex="0"><td class="o"><b>${esc(c.outlet)}</b><small>${esc(c.outlet_code)}</small></td>` +
+        `<td>${esc(c.contract)}</td><td>${esc(c.bde || '—')}</td><td>${esc(c.area || '—')}</td><td>${esc(c.tier || '—')}</td>` +
+        `<td>${dText(c.d_start)}</td><td>${dText(c.d_end)}</td><td><span class="roi-st${c.active ? ' on' : ''}">${c.active ? 'Active' : 'Ended'}</span></td>` +
+        `<td class="n">${fmt(c.t_vol)}</td><td class="n">${fmt(c.a_vol)}</td>` +
+        `<td><div class="roi-ach"><span class="b"><i style="width:${Math.min(100, p || 0)}%;background:${BAND_COLOR[b]}"></i></span><span class="roi-band ${b}">${pctTxt(p)} ${bl}</span></div></td>` +
+        `<td class="n">${fmt(c.a_val)}</td><td class="n">${fmt(c.inv)}</td><td class="n">${c.inv > 0 ? (c.a_val / c.inv).toFixed(1) : '—'}</td>` +
+        `<td class="n">${fmt(c.skus_sold)} / ${fmt(c.skus)}</td></tr>`; }).join('') + `</tbody></table>` +
+    (list.length > shown ? `<div class="roi-more"><span class="roi-count">Showing ${fmt(shown)} of ${fmt(list.length)}</span><button type="button" onclick="shown+=200;renderTable()">Show more</button><button type="button" onclick="shown=Infinity;renderTable()">Show all</button></div>` : '');
 }
+$('cWrap').addEventListener('click', e => {
+  const th = e.target.closest('th[data-k]');
+  if (th) { const k = th.dataset.k; if (sortKey === k) sortAsc = !sortAsc; else { sortKey = k; sortAsc = ['outlet', 'contract', 'bde', 'area', 'tier'].includes(k); } renderTable(); return; }
+  const tr = e.target.closest('tr[data-c]'); if (tr) openDetail(tr.dataset.c);
+});
+$('cWrap').addEventListener('keydown', e => { const tr = e.target.closest('tr[data-c]'); if (tr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openDetail(tr.dataset.c); } });
+$('cSearch').addEventListener('input', () => { shown = 100; renderTable(); });
+$('cBand').addEventListener('change', () => { shown = 100; renderTable(); });
 
-async function loadRaw() {
-  const { data, error } = await supabase
-    .from('Return of investment')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(500);
-
-  const wrap = document.getElementById('rawWrap');
-
-  if (error || !data || !data.length) {
-    document.getElementById('rawCount').textContent = '';
-    wrap.innerHTML = `<div class="empty">
-      <div class="ei"></div>
-      <p>ไม่พบข้อมูลในตาราง "Return of investment"<br>
-      <span style="color:#ccc;font-size:12px">${error ? error.message : 'ตารางยังไม่มีข้อมูล หรือยังไม่ได้เปิด RLS Policy'}</span></p>
-    </div>`;
-    return;
-  }
-
-  rawRows = data;
-  document.getElementById('rawCount').textContent = `${data.length} รายการ`;
-
-  const skipCols = ['id'];
-  const cols = Object.keys(data[0]).filter(c => !skipCols.includes(c));
-  const fv = v => {
-    if (v === null || v === undefined) return '<span style="color:#ccc">-</span>';
-    if (typeof v === 'number') return Number(v).toLocaleString('th-TH');
-    if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v)) return new Date(v).toLocaleDateString('th-TH');
-    const s = String(v);
-    return s.length > 80 ? s.slice(0, 77) + '...' : s;
-  };
-  const label = c => colLabel(c);
-
-  wrap.innerHTML = `<table>
-    <thead><tr>${cols.map(c => `<th>${label(c)}</th>`).join('')}</tr></thead>
-    <tbody>${data.map(row => `<tr>${cols.map(c => `<td>${fv(row[c])}</td>`).join('')}</tr>`).join('')}</tbody>
-  </table>`;
+/* ── one contract: its SKUs ── */
+async function openDetail(code) {
+  const c = (D.contracts || []).find(x => x.contract === code); if (!c) return;
+  $('dTitle').textContent = c.outlet + ' — ' + c.contract;
+  $('dSub').textContent = `${c.outlet_code} · BDE ${c.bde || '—'} · ${c.area || '—'} · ${c.tier || '—'} · ${dText(c.d_start)} – ${dText(c.d_end)} · ${c.months} months compared`;
+  const p = pctOf(c.a_vol, c.t_vol);
+  $('dKpis').innerHTML = kpi('Achievement (volume)', pctTxt(p), `${fmt(c.a_vol)} of ${fmt(c.t_vol)} btls`, p) +
+    kpi('Actual value', '฿' + short(c.a_val), `target ฿${short(c.t_val)}`, pctOf(c.a_val, c.t_val)) +
+    kpi('Investment to date', '฿' + short(c.inv), c.inv > 0 ? `Sales ฿${(c.a_val / c.inv).toFixed(1)} per ฿1` : '—', null) +
+    kpi('SKUs selling', `${fmt(c.skus_sold)} / ${fmt(c.skus)}`, 'contract SKUs with any off-take', pctOf(c.skus_sold, c.skus));
+  $('dWrap').innerHTML = '<div class="empty">Coming in 3 2 1 ...</div>';
+  $('dOv').classList.add('open'); $('dClose').focus();
+  const { data, error } = await supabase.rpc('roi_contract_detail', { p_contract: code });
+  if (error) { $('dWrap').innerHTML = `<div class="empty">Could not load: ${esc(error.message)}</div>`; return; }
+  $('dWrap').innerHTML = `<table class="roi-tbl"><thead><tr><th>SKU</th><th>Product</th><th>Brand</th><th>Principle</th><th>Proposed for</th><th class="n">Rebate</th>` +
+    `<th class="n">Target to date (btl)</th><th class="n">Actual (btl)</th><th>Achievement</th><th class="n">Actual value (฿)</th><th class="n">Investment (฿)</th></tr></thead><tbody>` +
+    (data || []).map(s => { const q = pctOf(s.a_vol, s.t_vol), [b, bl] = band(s.a_vol, s.t_vol);
+      return `<tr><td>${esc(s.sku)}</td><td>${esc(s.product)}</td><td>${esc(s.brand)}</td><td>${esc(s.principle)}</td><td>${esc(s.proposed || '—')}</td>` +
+        `<td class="n">${s.rebate_pct == null ? '—' : s.rebate_pct + '%'}</td><td class="n">${fmt(s.t_vol)}</td><td class="n">${fmt(s.a_vol)}</td>` +
+        `<td><span class="roi-band ${b}">${pctTxt(q)} ${bl}</span></td><td class="n">${fmt(s.a_val)}</td><td class="n">${fmt(s.inv)}</td></tr>`; }).join('') + `</tbody></table>`;
 }
+function closeDetail() { $('dOv').classList.remove('open'); }
+$('dClose').onclick = closeDetail;
+$('dOv').addEventListener('click', e => { if (e.target === $('dOv')) closeDetail(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
 
+/* ── filters ── */
+FILTERS.forEach(([id]) => $(id).addEventListener('change', load));
+$('fStatus').addEventListener('change', load);
+$('fReset').onclick = () => { FILTERS.forEach(([id]) => { $(id).value = ''; }); $('fStatus').value = ''; load(); };
+window.addEventListener('themechange', () => { if (D) renderCharts(); });
+
+/* ── export ── */
 function exportExcel() {
+  if (!D || !D.contracts || !D.contracts.length) return;
   const wb = XLSX.utils.book_new();
-  if (calcRows.length) {
-    const ws1 = XLSX.utils.json_to_sheet(calcRows.map((r, i) => ({
-      'ลำดับ': i + 1,
-      'เลขสัญญา': r.contract_no,
-      'Outlet': r.outlet,
-      'ประเภท': r.type,
-      'มูลค่าสัญญา (บาท)': r.cv,
-      'โปรโมชั่นรวม (บาท)': r.pv,
-      'Net Value (บาท)': r.net,
-      'ROI (%)': parseFloat(r.roi.toFixed(2)),
-      'สถานะ': r.status
-    })));
-    XLSX.utils.book_append_sheet(wb, ws1, 'ROI คำนวณ');
-  }
-  if (rawRows.length) {
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rawRows), 'Return of Investment');
-  }
-  if (!calcRows.length && !rawRows.length) { alert('ยังไม่มีข้อมูล'); return; }
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows().map(c => ({
+    'Outlet Code': c.outlet_code, 'Outlet': c.outlet, 'Contract': c.contract, 'Group': c.grp, 'BDE': c.bde, 'Area': c.area, 'Tier': c.tier,
+    'Start': c.d_start, 'End': c.d_end, 'Status': c.active ? 'Active' : 'Ended', 'Months compared': c.months,
+    'Yearly target (btl)': c.vol_y, 'Target to date (btl)': c.t_vol, 'Actual (btl)': c.a_vol, 'Achievement %': pctOf(c.a_vol, c.t_vol) == null ? null : +pctOf(c.a_vol, c.t_vol).toFixed(1),
+    'Result': band(c.a_vol, c.t_vol)[1], 'Target value to date (THB)': c.t_val, 'Actual value (THB)': c.a_val, 'Investment to date (THB)': c.inv,
+    'Sales per 1 THB discount': c.inv > 0 ? +(c.a_val / c.inv).toFixed(2) : null, 'SKUs': c.skus, 'SKUs selling': c.skus_sold }))), 'Contracts');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((D.by_bde || []).map(x => ({ 'BDE': x.name, 'Contracts': x.contracts, 'Target to date (btl)': x.t_vol,
+    'Actual (btl)': x.a_vol, 'Achievement %': pctOf(x.a_vol, x.t_vol) == null ? null : +pctOf(x.a_vol, x.t_vol).toFixed(1), 'Actual value (THB)': x.a_val, 'Investment (THB)': x.inv }))), 'By BDE');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((D.monthly || []).map(x => ({ 'Month': x.m, 'Target (btl)': x.t_vol, 'Actual (btl)': x.a_vol }))), 'Monthly');
   XLSX.writeFile(wb, `ROI_Analysis_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
-async function logout() {
-  await supabase.auth.signOut();
-  window.location.href = 'index.html';
-}
-
+async function logout() { await supabase.auth.signOut(); window.location.href = 'index.html'; }
 checkAuth();
 </script>
 <script src="js/responsive.js?v=1"></script>
-<script src="js/table-scroll.js?v=5"></script>
+<script src="js/search-loading.js?v=1"></script>
+<script src="js/roi-import.js?v=1"></script>
 </body>
 </html>
-

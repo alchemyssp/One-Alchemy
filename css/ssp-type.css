@@ -1254,3 +1254,20 @@ html body table#otdProdTbl td, html body table#otdProdTbl th { font-size: 12px !
 html body table#otdProdTbl td *, html body table#otdProdTbl th * { font-size: 12px !important; }
 html body table#otdProdTbl th { white-space: nowrap !important; padding-top: 7px !important; padding-bottom: 7px !important; }
 html body table#otdProdTbl .otd-pill { font-size: 11px !important; padding: 1px 8px !important; }
+/* Off-take: Volume by Principle — concentric rings on a see-through card (no grey background) */
+html body section.card.otd-neon { background: transparent !important; box-shadow: none !important; color: #111 !important; }
+html body section.card.otd-neon .card-title { color: #111 !important; -webkit-text-fill-color: #111 !important; }
+html body .otd-neon .otd-legend button { color: #111 !important; }
+html body .otd-neon .otd-legend button:hover { background: rgba(0,0,0,.05) !important; }
+html body .otd-neon .otd-lg-val { color: #6B7280 !important; }
+html body .otd-neon .otd-lg-bar { background: rgba(0,0,0,.08) !important; }
+html body .otd-neon .otd-dot { box-shadow: none !important; }
+html body .otd-neon .otd-pie-tip { background: #111827 !important; color: #fff !important; }
+/* rings card: full width, bigger rings, numbered legend */
+html body .otd-neon .otd-pie { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) !important; }
+html body .otd-neon .otd-pie-canvas { height: 440px !important; }
+.otd-lg-no { font-size: 11px; font-weight: 700; color: #6B7280; min-width: 18px; }
+@media (max-width: 900px) { html body .otd-neon .otd-pie { grid-template-columns: 1fr !important; } html body .otd-neon .otd-pie-canvas { height: 340px !important; } }
+html body .otd-neon .otd-legend button { grid-template-columns: 20px 12px minmax(0, 1fr) auto 52px !important; }
+html body .otd-neon .otd-lg-bar { grid-column: 3 / -1 !important; }
+html body .otd-neon .otd-lg-name { text-align: left !important; }

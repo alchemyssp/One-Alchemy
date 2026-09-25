@@ -145,7 +145,7 @@ th.col-filtered { background: linear-gradient(90deg,#B0120A,#B0120A) !important;
 .cfp-btn-ok:hover { background: #B0120A; }
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=103">
+<link rel="stylesheet" href="css/ssp-type.css?v=105">
 <script src="js/theme.js?v=3"></script>
 <script src="js/sidebar-offtake.js?v=4" defer></script>
 </head>
@@ -347,7 +347,7 @@ async function loadData() {
     return;
   }
   if (!first || !first.length) {
-    wrap.innerHTML = `<div class="empty"><div class="ei"></div><p>No ${esc(V.title)} rows yet — use Import to upload the file</p></div>`;
+    wrap.innerHTML = `<div class="empty"><div class="ei"></div><p>No ${esc(V.title)} rows yet — use + Add to create one</p></div>`;
     document.getElementById('rowCount').textContent = '0 records';
     return;
   }
@@ -781,7 +781,6 @@ checkAuth();
 <script src="js/responsive.js?v=1"></script>
 <script src="js/table-scroll.js?v=5"></script>
 <script src="js/search-loading.js?v=1"></script>
-<script src="js/contract-import.js?v=2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="js/contract-export.js?v=1"></script>
 <script src="js/contract-tools.js?v=5"></script>
