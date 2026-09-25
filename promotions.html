@@ -3,12 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Promotions — Archive</title>
+<title>Brand Offer — Archive</title>
 <link rel="icon" type="image/png" href="img/logo-64.png">
 <link rel="apple-touch-icon" href="img/logo-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="js/config.js?v=7"></script>
+<script src="js/config.js?v=8"></script>
 <style>
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Poppins', system-ui, sans-serif; background: linear-gradient(160deg,#ffffff 0%,#F4F4F5 50%,#EBEBED 100%); background-attachment: fixed; color: #1E293B; display: flex; font-size: 14px; line-height: 1.55; font-weight: 400; }
@@ -91,6 +90,77 @@ tr:hover td { background: #FDE0DC; }
 .row-count { font-size: 13px; color: #9CA3AF; }
 /* force nav labels visible */
 .nav-links a>span{display:inline!important;width:auto!important;max-width:none!important;flex-shrink:1!important;opacity:1!important;color:inherit!important}
+/* ── Brand Offer ── */
+.bo-stats .strip-item { border-left: none; }
+.bo-card { background: #fff; border-radius: 18px; padding: 18px 20px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+.bo-h { font-size: 16px; margin-bottom: 12px; color: #111; }
+.bo-drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 26px 16px; border: 2px dashed #D1D5DB; border-radius: 14px; background: #FAFAFA; cursor: pointer; text-align: center; transition: border-color .15s, background .15s; }
+.bo-drop:hover, .bo-drop.over { border-color: var(--c1, #B0120A); background: #FFF5F4; }
+.bo-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.bo-drop:focus-within { outline: 2px solid var(--c1, #B0120A); outline-offset: 2px; }
+.bo-drop-main { font-size: 15px; font-weight: 600; color: #111; }
+.bo-drop-main u { color: var(--c1, #B0120A); }
+.bo-drop-sub { font-size: 12px; color: #6B7280; }
+.bo-grid { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 10px 14px; margin-top: 16px; }
+.bo-f { display: flex; flex-direction: column; gap: 4px; }
+.bo-f span { font-size: 12px; color: #555; font-weight: 600; }
+.bo-f input, .bo-f select { padding: 8px 10px; border-radius: 10px; border: 1.5px solid #E5E7EB; background: #F9FAFB; color: #111; font: inherit; }
+.bo-list-h { margin: 14px 0 6px; font-size: 13px; font-weight: 700; color: #111; }
+.bo-list-h small { font-weight: 400; color: #6B7280; }
+.bo-pend { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.bo-pend li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 10px; background: #F9FAFB; }
+.bo-ptitle { padding: 6px 8px; border-radius: 8px; border: 1.5px solid #E5E7EB; background: #fff; font: inherit; min-width: 0; }
+.bo-pend small { color: #6B7280; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
+.bo-x { background: none; border: none; color: #6B7280; font-size: 14px; padding: 4px 6px; border-radius: 6px; }
+.bo-x:hover { background: #FEE2E2; color: #B91C1C; }
+.bo-state { font-style: normal; font-size: 12px; color: #6B7280; white-space: nowrap; }
+.bo-state.ok { color: #15803D; font-weight: 600; } .bo-state.err { color: #B91C1C; }
+.bo-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.bo-btn { padding: 9px 18px; border-radius: 10px; border: none; background: #F3F4F6; color: #111; font-weight: 600; }
+.bo-btn.primary { background: linear-gradient(135deg, var(--g1, #B0120A), var(--g2, #E53935)); color: #fff; }
+.bo-btn.primary:disabled { opacity: .6; cursor: wait; }
+.bo-btn.ghost { background: #F3F4F6; color: #374151; }
+.bo-btn.sm { padding: 4px 10px; font-size: 12px; border-radius: 8px; background: #F3F4F6; color: #111; }
+.bo-btn.sm:hover { background: #E5E7EB; }
+.bo-btn.sm.danger { background: #B91C1C; color: #fff; }
+.bo-type { display: inline-block; min-width: 46px; text-align: center; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+.bo-type.pdf { background: #FEE2E2; color: #B91C1C; } .bo-type.word { background: #DBEAFE; color: #1D4ED8; }
+.bo-type.excel { background: #DCFCE7; color: #15803D; } .bo-type.other { background: #F3F4F6; color: #374151; }
+.bo-tbl td.bo-title { max-width: 380px; }
+.bo-tbl td.bo-title b { display: block; color: #111; overflow: hidden; text-overflow: ellipsis; }
+.bo-tbl td.bo-title small { display: block; color: #6B7280; font-size: 11px; overflow: hidden; text-overflow: ellipsis; }
+.bo-tbl td.bo-act { white-space: nowrap; max-width: none; overflow: visible; }
+.bo-tbl td.bo-act .bo-btn + .bo-btn { margin-left: 4px; }
+.bo-toast { position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 3000; padding: 10px 16px; border-radius: 10px; background: #111827; color: #fff; font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,.2); max-width: 420px; }
+.bo-toast.err { background: #B91C1C; }
+@media (max-width: 768px) { .bo-grid { grid-template-columns: 1fr; } .bo-pend li { grid-template-columns: auto minmax(0, 1fr) auto; } .bo-pend small { display: none; } }
+/* brand folders */
+.bo-folders { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.bo-folder { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 12px 12px; border: none; border-radius: 16px; background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06); text-align: center; cursor: pointer; transition: box-shadow .15s; }
+.bo-folder:hover { box-shadow: 0 0 0 2px var(--c1, #B0120A), 0 4px 14px rgba(0,0,0,.08); }
+.bo-folder:focus-visible { outline: 2px solid var(--c1, #B0120A); outline-offset: 2px; }
+.bo-logo { display: flex; align-items: center; justify-content: center; width: 100%; height: 64px; }
+.bo-logo img { max-width: 100%; max-height: 64px; object-fit: contain; }
+.bo-logo.none { width: 64px; border-radius: 14px; background: #F3F4F6; color: #6B7280; font-weight: 700; font-size: 20px; }
+.bo-logo.sm { width: 56px; height: 40px; flex: 0 0 56px; }
+.bo-logo.sm img { max-height: 40px; }
+.bo-logo.sm.none { width: 40px; flex-basis: 40px; font-size: 14px; border-radius: 10px; }
+.bo-fname { font-size: 13px; font-weight: 700; color: #111; line-height: 1.25; }
+.bo-fcount { font-size: 11px; color: #fff; background: var(--c1, #B0120A); border-radius: 999px; padding: 1px 9px; }
+.bo-folder.empty-f .bo-fcount { background: #F3F4F6; color: #6B7280; }
+.bo-new[hidden] { display: none; }
+.bo-new { display: flex; gap: 8px; align-items: center; margin: -4px 0 14px; flex-wrap: wrap; }
+.bo-new input { flex: 1; min-width: 200px; padding: 9px 12px; border-radius: 10px; border: 1.5px solid #E5E7EB; background: #fff; font: inherit; }
+.bo-hits-h { font-size: 15px; margin: 6px 0 10px; color: #111; }
+.bo-crumb { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 13px; }
+.bo-crumb a { color: var(--c1, #B0120A); font-weight: 600; text-decoration: none; }
+.bo-crumb a:hover { text-decoration: underline; }
+.bo-crumb span { color: #6B7280; }
+.bo-crumb .bo-crumb-cur { color: #111; font-weight: 600; }
+.bo-fhead { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.bo-fhead .bo-h { margin: 0; }
+.bo-grid { grid-template-columns: 1fr 2fr !important; }
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
 <link rel="stylesheet" href="css/ssp-type.css?v=99">
@@ -110,7 +180,7 @@ tr:hover td { background: #FDE0DC; }
     <a href="outlets.html">Outlet Master</a>
     <a href="data_u.html" class="nav-sub">Data Universe</a>
     <a href="contracts.html">Contract Master</a>
-    <a href="promotions.html" class="active">Promotions</a>
+    <a href="promotions.html" class="active">Brand Offer</a>
     <a href="products.html">Products</a>
     <div class="nav-section">Analytics</div>
     <a href="roi.html">ROI Analysis</a>
@@ -130,83 +200,284 @@ tr:hover td { background: #FDE0DC; }
 </nav>
 <div class="main">
   <div class="page-header">
-    <div><h2>Promotion / Trade Deal <span class="dot"></span></h2><p>Data from "Promotion / Trade deal" table in Supabase — Real-time sync</p></div>
-    <button class="btn-exp" onclick="exportExcel()">Export Excel</button>
+    <div><h2>Brand Offer <span class="dot"></span></h2><p>PDF, Word and Excel files and forms for making contracts with customers — one folder per brand</p></div>
   </div>
-  <div id="statsStrip" class="stats-strip"></div>
-  <div class="toolbar">
-    <div class="search-box"><input type="text" id="searchInput" placeholder="Search all columns..." oninput="filterRows()"></div>
-    <select id="colFilter" class="filter" onchange="filterRows()" style="display:none"><option value="">All columns</option></select>
-    <span class="row-count" id="rowCount">Loading...</span>
+
+  <!-- ── all brands: folder grid ── -->
+  <div id="viewBrands">
+    <div class="toolbar">
+      <div class="search-box"><input type="text" id="brandSearch" placeholder="Search brands or files..." oninput="renderBrands()"></div>
+      <span class="row-count" id="brandCount">Coming in 3 2 1 ...</span>
+      <button type="button" class="bo-btn ghost" id="btnNewFolder" onclick="toggleNewFolder(true)">+ New brand folder</button>
+    </div>
+    <div class="bo-new" id="boNew" hidden>
+      <input id="boNewName" placeholder="Brand name, e.g. Espolon" aria-label="New brand folder name">
+      <button type="button" class="bo-btn primary" onclick="createFolder()">Create folder</button>
+      <button type="button" class="bo-btn ghost" onclick="toggleNewFolder(false)">Cancel</button>
+    </div>
+    <div class="bo-folders" id="boFolders"></div>
+    <div id="boHits"></div>
   </div>
-  <div class="table-card"><div class="overflow-x"><div id="tableWrap"><div class="empty"><div class="ei"></div><p>กำลังโหลด...</p></div></div></div></div>
+
+  <!-- ── one brand: upload + files ── -->
+  <div id="viewFolder" hidden>
+    <nav class="bo-crumb" aria-label="Breadcrumb">
+      <a href="#" onclick="openBrand(null); return false;">All brands</a><span aria-hidden="true">/</span>
+      <span class="bo-crumb-cur" id="boCrumb"></span>
+    </nav>
+
+    <section class="bo-card" aria-labelledby="boUpTitle">
+      <div class="bo-fhead">
+        <span class="bo-logo sm" id="boFolderLogo"></span>
+        <h3 id="boUpTitle" class="bo-h">Upload to <span id="boFolderName"></span></h3>
+      </div>
+      <label class="bo-drop" id="boDrop" for="boFile">
+        <input type="file" id="boFile" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.xlsm,.csv">
+        <span class="bo-drop-main">Drop files here or <u>choose files</u></span>
+        <span class="bo-drop-sub">PDF, Word (.doc, .docx), Excel (.xls, .xlsx, .xlsm, .csv) · up to 50 MB each</span>
+      </label>
+      <div id="boPending" hidden>
+        <div class="bo-grid">
+          <label class="bo-f"><span>Category</span><select id="boCat"></select></label>
+          <label class="bo-f"><span>Note (optional)</span><input id="boNote" placeholder="e.g. Use with Yearly Contract 2027"></label>
+        </div>
+        <div class="bo-list-h">Files to upload <small>(you can change each title)</small></div>
+        <ul class="bo-pend" id="boPendList"></ul>
+        <div class="bo-actions">
+          <button type="button" class="bo-btn ghost" id="boCancel">Cancel</button>
+          <button type="button" class="bo-btn primary" id="boUpload">Upload</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <div class="search-box"><input type="text" id="searchInput" placeholder="Search title, file name, note..." oninput="renderList()"></div>
+      <select id="fltCat" class="filter" onchange="renderList()"><option value="">All Categories</option></select>
+      <select id="fltType" class="filter" onchange="renderList()">
+        <option value="">All File Types</option><option value="pdf">PDF</option><option value="word">Word</option><option value="excel">Excel</option>
+      </select>
+      <span class="row-count" id="rowCount"></span>
+    </div>
+    <div class="table-card"><div class="overflow-x"><div id="tableWrap"></div></div></div>
+  </div>
 </div>
+<div class="bo-toast" id="boToast" role="status" aria-live="polite" hidden></div>
 <script>
-const TABLE = 'Promotion / Trade deal';
-let allData = [], cols = [], sortCol = '', sortAsc = true;
+const BUCKET = 'brand-offer', LOGOS = 'Brands Logo', TABLE = 'brand_offer_files', BRANDS = 'brand_offer_brands', MAX = 50 * 1024 * 1024;
+const CATEGORIES = ['Contract Form', 'Brand Offer / Proposal', 'Price List', 'Promotion Detail', 'Other'];
+const EXT_OK = /\.(pdf|docx?|xlsx?|xlsm|csv)$/i;
+let brands = [], allFiles = [], logoUrl = {}, cur = null, pending = [], userEmail = '', confirmId = null, confirmTimer = null;
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const kind = n => /\.pdf$/i.test(n) ? 'pdf' : /\.docx?$/i.test(n) ? 'word' : /\.(xlsx?|xlsm|csv)$/i.test(n) ? 'excel' : 'other';
+const KIND_LABEL = { pdf: 'PDF', word: 'Word', excel: 'Excel', other: 'File' };
+const size = b => b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+const when = d => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' });
+const baseName = n => n.replace(/\.[^.]+$/, '');
+const slug = s => String(s).normalize('NFKD').replace(/[^\w.-]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '').slice(0, 60);
+const filesOf = b => allFiles.filter(f => f.brand === b.name);
+const initials = n => n.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+const logoHtml = (b, cls) => logoUrl[b.name]
+  ? `<span class="bo-logo ${cls || ''}"><img src="${esc(logoUrl[b.name])}" alt="" loading="lazy"></span>`
+  : `<span class="bo-logo ${cls || ''} none" aria-hidden="true">${esc(initials(b.name))}</span>`;
+function toast(msg, err) {
+  const t = document.getElementById('boToast');
+  t.textContent = msg; t.className = 'bo-toast' + (err ? ' err' : ''); t.hidden = false;
+  clearTimeout(t._h); t._h = setTimeout(() => { t.hidden = true; }, 3500);
+}
+
 async function checkAuth() {
   const { data } = await supabase.auth.getSession();
   if (!data.session) { window.location.href = 'index.html'; return; }
-  const u = data.session.user;
+  const u = data.session.user; userEmail = u.email;
   const { data: p } = await supabase.from('user_profile').select('username').eq('auth_email', u.email).maybeSingle();
   document.getElementById('userEmail').textContent = u.email;
   const displayName = (p && p.username) || u.email.split('@')[0];
   document.getElementById('userName').textContent = displayName;
   document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
-  loadData();
+  document.getElementById('boCat').innerHTML = CATEGORIES.map(c => `<option>${esc(c)}</option>`).join('');
+  await loadAll();
+  supabase.channel('brand-offer')
+    .on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, loadAll)
+    .on('postgres_changes', { event: '*', schema: 'public', table: BRANDS }, loadAll).subscribe();
+  window.addEventListener('hashchange', route);
+  route();
 }
-async function loadData() {
-  const { data, error } = await supabase.from(TABLE).select('*').limit(5000);
-  const wrap = document.getElementById('tableWrap');
-  if (error) { wrap.innerHTML = `<div class="empty"><div class="ei"></div><p>Failed to load: ${error.message}<br><small style="color:#ccc">Run database/1-setup/add_rls_existing_tables.sql in Supabase SQL Editor</small></p></div>`; document.getElementById('rowCount').textContent = 'Load failed'; return; }
-  if (!data || !data.length) { wrap.innerHTML = '<div class="empty"><div class="ei"></div><p>No promotions found</p></div>'; document.getElementById('rowCount').textContent = '0 records'; return; }
-  allData = data; cols = Object.keys(data[0]).filter(c => c !== 'id');
-  buildStats(data); buildColFilter(); renderTable(data);
-  supabase.channel('promo-trade').on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, loadData).subscribe();
+
+async function loadAll() {
+  const [b, f] = await Promise.all([
+    supabase.from(BRANDS).select('*').order('name'),
+    supabase.from(TABLE).select('*').order('created_at', { ascending: false }).limit(5000)]);
+  if (b.error || f.error) { document.getElementById('boFolders').innerHTML = `<div class="empty"><p>Failed to load: ${esc((b.error || f.error).message)}</p></div>`; return; }
+  /* General always last */
+  brands = (b.data || []).sort((x, y) => (x.name === 'General') - (y.name === 'General') || x.name.localeCompare(y.name));
+  allFiles = f.data || [];
+  const need = brands.filter(x => x.logo_file && !logoUrl[x.name]);
+  if (need.length) {
+    const { data } = await supabase.storage.from(LOGOS).createSignedUrls(need.map(x => x.logo_file), 60 * 60 * 12);
+    (data || []).forEach((r, i) => { if (r && r.signedUrl) logoUrl[need[i].name] = r.signedUrl; });
+  }
+  renderBrands();
+  if (cur) { cur = brands.find(x => x.name === cur.name) || cur; renderFolderHead(); fillCats(); renderList(); }
 }
-function buildStats(data) {
-  const numCols = cols.filter(c => typeof data[0][c] === 'number');
-  const strip = document.getElementById('statsStrip');
-  let html = `<div class="strip-item"><div class="sl">Total Records</div><div class="sv">${data.length.toLocaleString()}</div></div>`;
-  numCols.slice(0, 4).forEach(c => { const total = data.reduce((s, r) => s + parseFloat(r[c] || 0), 0); html += `<div class="strip-item"><div class="sl">${label(c)}</div><div class="sv">${fNum(total)}</div></div>`; });
-  strip.innerHTML = html;
+
+/* #brand=Campari opens that folder (browser Back returns to all brands) */
+function route() {
+  const m = location.hash.match(/brand=([^&]+)/), name = m ? decodeURIComponent(m[1]) : null;
+  cur = name ? brands.find(b => b.name === name) || null : null;
+  document.getElementById('viewBrands').hidden = !!cur;
+  document.getElementById('viewFolder').hidden = !cur;
+  if (cur) { pending = []; renderPending(); renderFolderHead(); fillCats(); document.getElementById('searchInput').value = ''; renderList(); }
+  window.scrollTo(0, 0);
 }
-function buildColFilter() {
-  const strCols = cols.filter(c => typeof allData[0][c] === 'string');
-  const sel = document.getElementById('colFilter');
-  if (strCols.length > 1) { sel.style.display = 'block'; sel.innerHTML = '<option value="">All columns</option>' + strCols.map(c => `<option value="${c}">${label(c)}</option>`).join(''); }
+function openBrand(name) { location.hash = name ? 'brand=' + encodeURIComponent(name) : ''; if (!name) route(); }
+
+function renderBrands() {
+  const q = document.getElementById('brandSearch').value.trim().toLowerCase();
+  const list = brands.filter(b => !q || b.name.toLowerCase().includes(q) || filesOf(b).some(f => match(f, q)));
+  const used = brands.filter(b => filesOf(b).length).length;
+  document.getElementById('brandCount').textContent = `${list.length} brands · ${allFiles.length} files`;
+  document.getElementById('boFolders').innerHTML = list.length ? list.map(b => { const n = filesOf(b).length;
+    return `<button type="button" class="bo-folder${n ? '' : ' empty-f'}" onclick="openBrand(this.dataset.b)" data-b="${esc(b.name)}">` +
+      logoHtml(b) + `<span class="bo-fname">${esc(b.name)}</span>` +
+      `<span class="bo-fcount">${n ? n + (n > 1 ? ' files' : ' file') : 'Empty'}</span></button>`; }).join('')
+    : `<div class="empty"><p>No brand matches “${esc(q)}”</p></div>`;
+  /* files that match the search, across all brands */
+  const hits = q ? allFiles.filter(f => match(f, q)) : [];
+  document.getElementById('boHits').innerHTML = hits.length
+    ? `<h3 class="bo-hits-h">Files matching “${esc(q)}” (${hits.length})</h3><div class="table-card"><div class="overflow-x">${table(hits, true)}</div></div>` : '';
 }
-function filterRows() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  const fc = document.getElementById('colFilter').value;
-  let filtered = allData;
-  if (q) filtered = filtered.filter(row => { const sc = fc ? [fc] : cols; return sc.some(c => String(row[c] ?? '').toLowerCase().includes(q)); });
-  renderTable(filtered);
+const match = (f, q) => [f.title, f.brand, f.file_name, f.note, f.category].some(v => String(v ?? '').toLowerCase().includes(q));
+
+function renderFolderHead() {
+  document.getElementById('boCrumb').textContent = cur.name;
+  document.getElementById('boFolderName').textContent = cur.name;
+  document.getElementById('boFolderLogo').outerHTML = logoHtml(cur, 'sm').replace('class="bo-logo', 'id="boFolderLogo" class="bo-logo');
 }
-function sortBy(c) { if (sortCol === c) sortAsc = !sortAsc; else { sortCol = c; sortAsc = true; } filterRows(); }
-function renderTable(data) {
-  document.getElementById('rowCount').textContent = `${data.length.toLocaleString()} records`;
-  const wrap = document.getElementById('tableWrap');
-  if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei"></div><p>No results found</p></div>'; return; }
-  let sorted = [...data];
-  if (sortCol) sorted.sort((a, b) => { const av = a[sortCol], bv = b[sortCol]; if (av == null) return 1; if (bv == null) return -1; return sortAsc ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1); });
-  const arrow = c => sortCol === c ? (sortAsc ? ' ↑' : ' ↓') : '';
-  wrap.innerHTML = `<table><thead><tr>${cols.map(c => `<th onclick="sortBy('${c.replace(/'/g,"\\'")}') ">${label(c)}${arrow(c)}</th>`).join('')}</tr></thead><tbody>${sorted.map(row => `<tr>${cols.map(c => `<td title="${String(row[c] ?? '')}">${fv(row[c])}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+function fillCats() {
+  const el = document.getElementById('fltCat'), v = el.value;
+  const cats = [...new Set(CATEGORIES.concat(filesOf(cur).map(f => f.category).filter(Boolean)))];
+  el.innerHTML = '<option value="">All Categories</option>' + cats.map(x => `<option${x === v ? ' selected' : ''}>${esc(x)}</option>`).join('');
 }
-function label(c) { return colLabel(c); }
-function fNum(n) { return Number(n).toLocaleString('th-TH', { maximumFractionDigits: 0 }); }
-function fv(v) {
-  if (v === null || v === undefined) return '<span style="color:#D1D5DB">—</span>';
-  if (typeof v === 'number') return `<span class="col-num">${Number(v).toLocaleString('th-TH')}</span>`;
-  if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v)) return new Date(v).toLocaleDateString('th-TH');
-  const s = String(v); return s.length > 70 ? s.slice(0,67)+'…' : s;
+
+function renderList() {
+  if (!cur) return;
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const fc = document.getElementById('fltCat').value, ft = document.getElementById('fltType').value;
+  const rows = filesOf(cur).filter(f => (!fc || f.category === fc) && (!ft || kind(f.file_name) === ft) && (!q || match(f, q)));
+  document.getElementById('rowCount').textContent = `${rows.length.toLocaleString()} files`;
+  document.getElementById('tableWrap').innerHTML = rows.length ? table(rows, false)
+    : `<div class="empty"><p>${filesOf(cur).length ? 'No files match the filters' : 'This folder is empty — upload the first file above'}</p></div>`;
 }
-function exportExcel() {
-  if (!allData.length) { alert('No data to export'); return; }
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(allData), 'Promotion Trade deal');
-  XLSX.writeFile(wb, `Promotion_Trade_deal_${new Date().toISOString().slice(0,10)}.xlsx`);
+function table(rows, withBrand) {
+  return `<table class="bo-tbl"><thead><tr><th>Type</th><th>Title</th>${withBrand ? '<th>Brand</th>' : ''}<th>Category</th><th>Size</th><th>Uploaded by</th><th>Date</th><th>Actions</th></tr></thead><tbody>` +
+    rows.map(f => { const k = kind(f.file_name), c = confirmId === f.id;
+      return `<tr><td><span class="bo-type ${k}">${KIND_LABEL[k]}</span></td>` +
+        `<td class="bo-title"><b>${esc(f.title)}</b><small>${esc(f.file_name)}${f.note ? ' · ' + esc(f.note) : ''}</small></td>` +
+        (withBrand ? `<td>${esc(f.brand || '—')}</td>` : '') +
+        `<td>${esc(f.category)}</td><td>${f.size_bytes ? size(f.size_bytes) : '—'}</td>` +
+        `<td>${esc((f.uploaded_by || '').split('@')[0] || '—')}</td><td>${when(f.created_at)}</td>` +
+        `<td class="bo-act"><button type="button" class="bo-btn sm" onclick="openFile(${f.id})">Open</button>` +
+        `<button type="button" class="bo-btn sm" onclick="openFile(${f.id}, true)">Download</button>` +
+        `<button type="button" class="bo-btn sm ${c ? 'danger' : 'ghost'}" onclick="delFile(${f.id})">${c ? 'Confirm delete' : 'Delete'}</button></td></tr>`;
+    }).join('') + `</tbody></table>`;
 }
+function rerender() { if (cur) renderList(); else renderBrands(); }
+
+/* ── new brand folder ── */
+function toggleNewFolder(on) {
+  document.getElementById('boNew').hidden = !on; document.getElementById('btnNewFolder').hidden = on;
+  if (on) document.getElementById('boNewName').focus(); else document.getElementById('boNewName').value = '';
+}
+async function createFolder() {
+  const name = document.getElementById('boNewName').value.trim().replace(/\s+/g, ' ');
+  if (!name) { toast('Type a brand name first', true); return; }
+  if (brands.some(b => b.name.toLowerCase() === name.toLowerCase())) { toast('This brand folder already exists', true); return; }
+  /* use the logo if one with this name is in Brands Logo (e.g. Espolon_Logo.png) */
+  const { error } = await supabase.from(BRANDS).insert({ name, folder: slug(name) || 'Brand_' + Date.now(), logo_file: slug(name) + '_Logo.png' });
+  if (error) { toast('Could not create the folder: ' + error.message, true); return; }
+  toggleNewFolder(false); toast('Folder created: ' + name); await loadAll();
+}
+
+/* open in a new tab / download, with a short-lived private link */
+async function openFile(id, download) {
+  const f = allFiles.find(x => x.id === id); if (!f) return;
+  const w = download ? null : window.open('', '_blank');
+  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(f.file_path, 600, download ? { download: f.file_name } : undefined);
+  if (error || !data) { if (w) w.close(); toast('Could not open the file: ' + (error ? error.message : ''), true); return; }
+  if (w) w.location.href = data.signedUrl; else window.location.href = data.signedUrl;
+}
+
+/* delete needs a second click within 4 seconds */
+async function delFile(id) {
+  if (confirmId !== id) { confirmId = id; rerender(); clearTimeout(confirmTimer); confirmTimer = setTimeout(() => { confirmId = null; rerender(); }, 4000); return; }
+  confirmId = null; clearTimeout(confirmTimer);
+  const f = allFiles.find(x => x.id === id); if (!f) return;
+  const r1 = await supabase.storage.from(BUCKET).remove([f.file_path]);
+  if (r1.error) { toast('Delete failed: ' + r1.error.message, true); rerender(); return; }
+  const r2 = await supabase.from(TABLE).delete().eq('id', id);
+  if (r2.error) { toast('Delete failed: ' + r2.error.message, true); return; }
+  toast('Deleted: ' + f.title); loadAll();
+}
+
+/* ── picking and uploading files (into the open brand folder) ── */
+function addFiles(list) {
+  const bad = [];
+  [...list].forEach(file => {
+    if (!EXT_OK.test(file.name)) { bad.push(file.name + ' (type not allowed)'); return; }
+    if (file.size > MAX) { bad.push(file.name + ' (over 50 MB)'); return; }
+    pending.push({ file, title: baseName(file.name), state: '' });
+  });
+  if (bad.length) toast('Skipped: ' + bad.join(', '), true);
+  renderPending();
+}
+function renderPending() {
+  document.getElementById('boPending').hidden = !pending.length;
+  document.getElementById('boPendList').innerHTML = pending.map((p, i) => { const k = kind(p.file.name);
+    return `<li><span class="bo-type ${k}">${KIND_LABEL[k]}</span>` +
+      `<input class="bo-ptitle" data-i="${i}" value="${esc(p.title)}" aria-label="Title for ${esc(p.file.name)}">` +
+      `<small>${esc(p.file.name)} · ${size(p.file.size)}</small>` +
+      (p.state ? `<em class="bo-state ${p.state === 'Uploaded' ? 'ok' : p.state === 'Uploading…' ? '' : 'err'}">${esc(p.state)}</em>`
+               : `<button type="button" class="bo-x" data-rm="${i}" aria-label="Remove ${esc(p.file.name)}">✕</button>`) + `</li>`;
+  }).join('');
+}
+async function uploadAll() {
+  if (!cur) return;
+  const category = document.getElementById('boCat').value, note = document.getElementById('boNote').value.trim() || null,
+        btn = document.getElementById('boUpload');
+  btn.disabled = true; let ok = 0;
+  for (const p of pending) {
+    if (p.state === 'Uploaded') continue;
+    p.state = 'Uploading…'; renderPending();
+    /* storage keys: ASCII only — the original (Thai) name is kept in file_name */
+    const ext = (p.file.name.match(/\.[^.]+$/) || [''])[0].toLowerCase();
+    const path = `${cur.folder}/${Date.now()}_${Math.random().toString(36).slice(2, 7)}_${slug(baseName(p.file.name)) || 'file'}${ext}`;
+    const up = await supabase.storage.from(BUCKET).upload(path, p.file, { contentType: p.file.type || undefined, upsert: false });
+    if (up.error) { p.state = 'Failed: ' + up.error.message; renderPending(); continue; }
+    const ins = await supabase.from(TABLE).insert({ title: (p.title || baseName(p.file.name)).trim(), brand: cur.name, category, note,
+      file_path: path, file_name: p.file.name, mime: p.file.type || null, size_bytes: p.file.size, uploaded_by: userEmail });
+    if (ins.error) { await supabase.storage.from(BUCKET).remove([path]); p.state = 'Failed: ' + ins.error.message; renderPending(); continue; }
+    p.state = 'Uploaded'; ok++; renderPending();
+  }
+  btn.disabled = false;
+  if (ok) toast(`Uploaded ${ok} file${ok > 1 ? 's' : ''} to ${cur.name}`);
+  if (pending.every(p => p.state === 'Uploaded')) { pending = []; document.getElementById('boNote').value = ''; renderPending(); }
+  loadAll();
+}
+
+(function bindUpload() {
+  const drop = document.getElementById('boDrop'), input = document.getElementById('boFile');
+  input.addEventListener('change', () => { addFiles(input.files); input.value = ''; });
+  ['dragenter', 'dragover'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', ev => addFiles(ev.dataTransfer.files));
+  document.getElementById('boPendList').addEventListener('input', ev => { const i = ev.target.dataset.i; if (i != null) pending[i].title = ev.target.value; });
+  document.getElementById('boPendList').addEventListener('click', ev => { const i = ev.target.dataset.rm; if (i != null) { pending.splice(+i, 1); renderPending(); } });
+  document.getElementById('boCancel').onclick = () => { pending = []; renderPending(); };
+  document.getElementById('boUpload').onclick = uploadAll;
+  document.getElementById('boNewName').addEventListener('keydown', ev => { if (ev.key === 'Enter') createFolder(); if (ev.key === 'Escape') toggleNewFolder(false); });
+})();
+
 async function logout() { await supabase.auth.signOut(); window.location.href = 'index.html'; }
 checkAuth();
 </script>
