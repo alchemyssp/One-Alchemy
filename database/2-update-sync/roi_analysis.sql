@@ -270,3 +270,135 @@ SELECT json_build_object(
 )
 $$;
 GRANT EXECUTE ON FUNCTION public.roi_accrual(date, text, text, text, text, text, text, text) TO authenticated;
+
+-- ============================================================
+-- v3 (applied 2026-09-25): Accrual in the team's "Accrual Summary" workbook layout
+--   (sheets Accrual Summary / Brand Summary / Monthly Breakdown) — this section supersedes the
+--   roi_facts, roi_lines_mv and roi_month_mv definitions above.
+-- ============================================================
+CREATE OR REPLACE VIEW public.roi_facts WITH (security_invoker = true) AS
+SELECT nullif(trim("Outlets Code"), '') AS outlet_code, nullif(trim("Outlet"), '') AS outlet, nullif(trim("Group"), '') AS grp,
+       nullif(trim("BDE"), '') AS bde, nullif(trim("Area"), '') AS area,
+       contract_date("Start Date") AS d_start, contract_date("End Date") AS d_end,
+       coalesce(nullif(trim("Outlets Contract"), ''), trim("Outlets Code") || '|' || coalesce("Start Date", '')) AS contract,
+       nullif(trim("SKU Code"), '') AS sku, nullif(trim("Principle"), '') AS principle, nullif(trim("Category"), '') AS category,
+       nullif(trim("Brand"), '') AS brand, nullif(trim("Product"), '') AS product, nullif(trim("Proposed for"), '') AS proposed,
+       nullif(trim("Tier"), '') AS tier,
+       coalesce(roi_num("Yearly Vol (btl)"::text), 0) AS vol_y, coalesce(roi_num("Yearly Value (THB)"), 0) AS val_y,
+       coalesce(roi_num("Total Discount (Net) (THB)"), 0) AS disc_y, roi_num("% Rebate from BDE") AS rebate_pct,
+       CASE WHEN "Received Month" ~ '^\d{2}-[A-Za-z]{3}$' THEN to_date('20' || "Received Month", 'YYYY-Mon') END AS received,
+       roi_num("% Rebate MAX") AS rebate_max          -- used when "% Rebate from BDE" is blank
+FROM "Return of investment";
+
+DROP MATERIALIZED VIEW IF EXISTS public.roi_month_mv;
+DROP MATERIALIZED VIEW IF EXISTS public.roi_lines_mv;
+CREATE MATERIALIZED VIEW public.roi_lines_mv AS
+WITH b AS (SELECT min(month) AS f, max(month) AS l FROM roi_offtake_mv),
+k AS (
+  SELECT f.contract, f.sku, max(f.outlet_code) outlet_code, max(f.outlet) outlet, max(f.grp) grp, max(f.bde) bde, max(f.area) area,
+         max(f.tier) tier, max(f.principle) principle, max(f.brand) brand, max(f.product) product, max(f.proposed) proposed,
+         max(f.rebate_pct) rebate_pct, min(f.d_start) d_start, max(f.d_end) d_end, min(f.received) received,
+         max(f.category) category, max(coalesce(f.rebate_pct, f.rebate_max)) rebate_eff,
+         greatest(date_trunc('month', min(f.d_start))::date, (SELECT f FROM b)) ws,
+         least(date_trunc('month', max(f.d_end))::date, (SELECT l FROM b)) we,
+         sum(f.vol_y) vol_y, sum(f.val_y) val_y, sum(f.disc_y) disc_y
+  FROM roi_facts f WHERE f.d_start IS NOT NULL AND f.d_end IS NOT NULL GROUP BY f.contract, f.sku),
+k2 AS (SELECT k.*, CASE WHEN we >= ws THEN (extract(year FROM age(we, ws)) * 12 + extract(month FROM age(we, ws)) + 1)::int ELSE 0 END AS months FROM k)
+SELECT k2.*, k2.vol_y * k2.months / 12.0 AS t_vol, k2.val_y * k2.months / 12.0 AS t_val, k2.disc_y * k2.months / 12.0 AS inv,
+       coalesce(a.vol, 0) AS a_vol, coalesce(a.val, 0) AS a_val, a.vol IS NOT NULL AS sold
+FROM k2 LEFT JOIN LATERAL (
+  SELECT sum(om.vol) vol, sum(om.val) val FROM roi_offtake_mv om
+  WHERE om.outlet_code = k2.outlet_code AND om.sku = k2.sku AND om.month BETWEEN k2.ws AND k2.we HAVING count(*) > 0) a ON true;
+CREATE INDEX roi_lines_mv_contract ON public.roi_lines_mv (contract);
+
+CREATE MATERIALIZED VIEW public.roi_month_mv AS
+SELECT l.contract, l.sku, l.outlet_code, l.outlet, l.bde, l.area, l.principle, l.brand, l.tier, l.grp, l.d_start, l.d_end, l.received,
+       l.rebate_pct, g.m::date AS m,
+       l.vol_y / 12.0 AS t_vol, l.disc_y / 12.0 AS budget,
+       coalesce(om.vol, 0) AS a_vol, coalesce(om.val, 0) AS a_val, coalesce(om.val_ex, 0) AS a_val_ex,
+       coalesce(om.val_ex, 0) * coalesce(l.rebate_pct, 0) / 100.0 AS accrual,
+       l.category, l.rebate_eff
+FROM roi_lines_mv l
+JOIN LATERAL generate_series(l.ws, l.we, interval '1 month') g(m) ON l.we >= l.ws
+LEFT JOIN roi_offtake_mv om ON om.outlet_code = l.outlet_code AND om.sku = l.sku AND om.month = g.m::date;
+CREATE INDEX roi_month_mv_m ON public.roi_month_mv (m);
+CREATE INDEX roi_month_mv_contract ON public.roi_month_mv (contract);
+REVOKE ALL ON public.roi_lines_mv, public.roi_month_mv FROM anon;
+GRANT SELECT ON public.roi_lines_mv, public.roi_month_mv TO authenticated;
+
+-- Accrual Summary (as of a month) — same rules as the team's workbook:
+--   rate = Σ(rebate % × yearly value) / Σ yearly value · actual = off-take excl. VAT of the contract SKUs in the contract period (≤ as-of month)
+--   to be paid = actual × rate · prepare cover 100% = committed × rate − to be paid · total paid = committed × rate
+--   analytical: active & > 100% "Reached Target (In period)", active "In period", ended & > 100% "Maximum paid", ended "Under target"
+--   plpgsql with small temp tables: planner estimates on the stored views were far off (27 s → 0.8 s)
+CREATE OR REPLACE FUNCTION public.roi_accrual_summary(p_month date DEFAULT NULL, p_bde text DEFAULT NULL, p_area text DEFAULT NULL,
+  p_principle text DEFAULT NULL, p_brand text DEFAULT NULL, p_tier text DEFAULT NULL, p_group text DEFAULT NULL, p_status text DEFAULT NULL)
+RETURNS json LANGUAGE plpgsql SET search_path TO 'public' AS $$
+DECLARE v_m date; v_first date; r json;
+BEGIN
+  SELECT max(month), min(month) INTO v_m, v_first FROM roi_offtake_mv;
+  IF p_month IS NOT NULL THEN v_m := date_trunc('month', p_month)::date; END IF;
+
+  DROP TABLE IF EXISTS _acc_l; DROP TABLE IF EXISTS _acc_cm;
+  CREATE TEMP TABLE _acc_l ON COMMIT DROP AS
+  SELECT l.contract, l.sku, l.outlet, l.outlet_code, l.grp, l.area, l.bde, l.tier, l.d_start, l.d_end, l.category, l.principle, l.brand,
+         l.vol_y, l.val_y, coalesce(l.rebate_eff, 0) AS rebate, coalesce(a.a, 0) AS a_ex
+  FROM roi_lines_mv l
+  LEFT JOIN (SELECT contract, sku, sum(a_val_ex) a FROM roi_month_mv WHERE m <= v_m GROUP BY 1, 2) a USING (contract, sku)
+  WHERE (p_bde IS NULL OR l.bde = p_bde) AND (p_area IS NULL OR l.area = p_area)
+    AND (p_principle IS NULL OR l.principle = p_principle) AND (p_brand IS NULL OR l.brand = p_brand)
+    AND (p_tier IS NULL OR l.tier = p_tier) AND (p_group IS NULL OR l.grp = p_group)
+    AND (p_status IS NULL OR (p_status = 'active') = (l.d_end >= current_date));
+  ANALYZE _acc_l;
+
+  CREATE TEMP TABLE _acc_cm ON COMMIT DROP AS
+  SELECT mm.contract, mm.m, sum(mm.a_val_ex) a
+  FROM roi_month_mv mm
+  WHERE mm.m <= v_m
+    AND (p_bde IS NULL OR mm.bde = p_bde) AND (p_area IS NULL OR mm.area = p_area)
+    AND (p_principle IS NULL OR mm.principle = p_principle) AND (p_brand IS NULL OR mm.brand = p_brand)
+    AND (p_tier IS NULL OR mm.tier = p_tier) AND (p_group IS NULL OR mm.grp = p_group)
+    AND (p_status IS NULL OR (p_status = 'active') = (mm.d_end >= current_date))
+  GROUP BY 1, 2;
+  ANALYZE _acc_cm;
+
+  WITH c AS (
+    SELECT contract, max(outlet) outlet, max(outlet_code) outlet_code, max(grp) grp, max(area) area, max(bde) bde, max(tier) tier,
+           min(d_start) d_start, max(d_end) d_end, max(d_end) >= current_date AS active,
+           sum(vol_y) btl, sum(val_y) committed, sum(a_ex) actual,
+           CASE WHEN sum(val_y) > 0 THEN sum(rebate * val_y) / sum(val_y) / 100.0 ELSE 0 END AS rate
+    FROM _acc_l GROUP BY contract),
+  c2 AS (SELECT c.*, CASE WHEN committed > 0 THEN actual / committed ELSE 0 END AS ach FROM c),
+  br AS (
+    SELECT brand, max(category) category, max(principle) principle, sum(vol_y) btl, sum(val_y) committed, sum(a_ex) actual,
+           CASE WHEN sum(val_y) > 0 THEN sum(rebate * val_y) / sum(val_y) / 100.0 ELSE 0 END AS rate
+    FROM _acc_l WHERE brand IS NOT NULL GROUP BY brand),
+  mo AS (SELECT g.m::date m FROM generate_series(v_first, make_date(extract(year FROM v_m)::int, 12, 1), interval '1 month') g(m)),
+  arr AS (
+    SELECT c.contract, json_agg(round(coalesce(cm.a, 0), 2) ORDER BY mo.m) act
+    FROM c CROSS JOIN mo LEFT JOIN _acc_cm cm ON cm.contract = c.contract AND cm.m = mo.m GROUP BY c.contract)
+  SELECT json_build_object(
+    'as_of', v_m, 'today', current_date,
+    'months', (SELECT json_agg(m ORDER BY m DESC) FROM (SELECT DISTINCT month m FROM roi_offtake_mv) t),
+    'contracts', (SELECT json_agg(json_build_object('contract', contract, 'outlet', outlet, 'outlet_code', outlet_code, 'grp', grp, 'area', area,
+        'bde', bde, 'tier', tier, 'd_start', d_start, 'd_end', d_end, 'active', active, 'btl', round(btl), 'rate', round(rate, 4),
+        'committed', round(committed, 2), 'actual', round(actual, 2), 'to_pay', round(actual * rate, 2),
+        'prepare', round(committed * rate - actual * rate, 2), 'total_paid', round(committed * rate, 2), 'ach', round(ach, 4),
+        'analytical', CASE WHEN active THEN CASE WHEN ach > 1 THEN 'Reached Target (In period)' ELSE 'In period' END
+                           ELSE CASE WHEN ach > 1 THEN 'Maximum paid' ELSE 'Under target' END END)
+        ORDER BY ach DESC, committed DESC) FROM c2),
+    'brands', (SELECT json_agg(json_build_object('category', category, 'principle', principle, 'brand', brand, 'rate', round(rate, 4),
+        'btl', round(btl), 'committed', round(committed, 2), 'actual', round(actual, 2), 'to_pay', round(actual * rate, 2),
+        'prepare', round(committed * rate - actual * rate, 2), 'total_paid', round(committed * rate, 2),
+        'ach', round(CASE WHEN committed > 0 THEN actual / committed ELSE 0 END, 4))
+        ORDER BY upper(category), CASE WHEN committed > 0 THEN actual / committed ELSE 0 END DESC) FROM br),
+    'month_cols', (SELECT json_agg(m ORDER BY m) FROM mo),
+    'monthly', (SELECT json_agg(json_build_object('contract', c.contract, 'outlet', c.outlet, 'grp', c.grp, 'area', c.area, 'rate', round(c.rate, 4),
+        'd_start', c.d_start, 'd_end', c.d_end, 'outlet_code', c.outlet_code, 'active', c.active, 'act', arr.act)
+        ORDER BY c.ach DESC, c.committed DESC) FROM c2 c JOIN arr USING (contract))
+  ) INTO r;
+  DROP TABLE IF EXISTS _acc_l; DROP TABLE IF EXISTS _acc_cm;
+  RETURN r;
+END $$;
+REVOKE ALL ON FUNCTION public.roi_accrual_summary(date, text, text, text, text, text, text, text) FROM public, anon;
+GRANT EXECUTE ON FUNCTION public.roi_accrual_summary(date, text, text, text, text, text, text, text) TO authenticated;

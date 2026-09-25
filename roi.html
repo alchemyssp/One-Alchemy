@@ -99,6 +99,41 @@ html body .roi-acc-bar .btn-export { padding: 10px 18px !important; border-radiu
 table.roi-tbl td.acc { font-weight: 700; color: var(--c1, #B0120A); }
 html body table.roi-tbl td.acc { -webkit-text-fill-color: var(--c1, #B0120A); }
 table.roi-tbl td.over { color: #B91C1C; } table.roi-tbl td.under { color: #374151; }
+/* contracts & accrual tables scroll sideways */
+.roi-card .overflow-x, .roi-dlg .overflow-x { overflow-x: auto; }
+/* Accrual (team workbook layout) */
+.acc-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.acc-tabs button { padding: 8px 16px; border-radius: 12px; border: none; background: #fff; color: #374151; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+html body .acc-tabs button[aria-selected="true"] { background: #1F2328 !important; color: #fff !important; -webkit-text-fill-color: #fff !important; }
+.acc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.acc-counts { display: flex; gap: 8px; flex-wrap: wrap; }
+.acc-counts span { background: #F3F4F6; border-radius: 10px; padding: 5px 10px; font-size: 12px; color: #374151; }
+.acc-counts b { color: #111; }
+.roi-tools select { padding: 8px 10px; border-radius: 10px; border: 1.5px solid #E5E7EB; background: #F9FAFB; }
+/* the box fits the screen, so its sideways scrollbar is on screen without scrolling to the end of the table */
+.acc-scroll { max-height: calc(100vh - 150px); min-height: 320px; overflow: auto; border-radius: 14px; box-shadow: inset 0 0 0 1px #EEE; }
+.roi-scrollbox { max-height: calc(100vh - 150px); min-height: 320px; overflow: auto; border-radius: 14px; }
+.roi-scrollbox table.roi-tbl thead th { position: sticky; top: 0; z-index: 2; }
+.acc-counts button { border: none; background: #F3F4F6; border-radius: 10px; padding: 5px 12px; font-size: 12px; color: #374151; cursor: pointer; }
+.acc-counts button b { color: #111; }
+html body .acc-counts button[aria-pressed="true"] { background: #1F2328 !important; color: #fff !important; -webkit-text-fill-color: #fff !important; }
+html body .acc-counts button[aria-pressed="true"] b { color: #fff !important; -webkit-text-fill-color: #fff !important; }
+.acc-counts[hidden] { display: none !important; }
+table.acc-tbl { width: max-content; min-width: 100%; }
+table.acc-tbl thead th { position: sticky; top: 0; z-index: 2; }
+table.acc-tbl.acc-month thead tr.acc-grp th { top: 0; }
+table.acc-tbl.acc-month thead tr:nth-child(2) th { top: 30px; }
+html body table.acc-tbl thead tr.acc-grp th { background: #374151 !important; text-align: center; height: 30px; }
+html body table.acc-tbl thead tr.acc-grp th.g2 { background: #1F2328 !important; }
+table.acc-tbl .stick { position: sticky; left: 0; z-index: 1; background: #fff; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+table.acc-tbl thead .stick { z-index: 3; }
+html body table.acc-tbl thead th.stick { background: var(--c1, #B0120A) !important; }
+html body table.acc-tbl thead tr.acc-grp th.stick { background: #374151 !important; }
+html body table.acc-tbl tr.acc-total td { background: #F3F4F6 !important; font-weight: 700 !important; position: sticky; top: 34px; z-index: 1; }
+table.acc-tbl.acc-month tr.acc-total td { top: 64px; }
+html body table.acc-tbl tr.acc-total td.stick { z-index: 2; }
+table.acc-tbl tbody tr:not(.acc-total):hover td { background: #FFF5F4; }
+html body table.acc-tbl td.neg { color: #6B7280 !important; -webkit-text-fill-color: #6B7280 !important; }
 /* detail dialog */
 .roi-ov { position: fixed; inset: 0; background: rgba(17,24,39,.45); z-index: 2000; display: none; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow: auto; }
 .roi-ov.open { display: flex; }
@@ -215,42 +250,35 @@ html body table.roi-tbl td.o small { font-size: 11px !important; }
         <select id="cBand" class="roi-f" aria-label="Achievement"><option value="">All results</option><option value="hit">On target</option><option value="near">Close</option><option value="low">Below</option><option value="none">No sales yet</option></select>
         <span class="roi-count" id="cCount"></span>
       </div>
-      <div class="table-card"><div class="overflow-x"><div id="cWrap"></div></div></div>
+      <div class="table-card"><div class="roi-scrollbox" id="cScroll"><div id="cWrap"></div></div></div>
     </section>
   </div>
   </div><!-- /vAnalysis -->
 
-  <!-- ── Accrual: rebate owed on actual off-take = value excl. VAT × rebate % of each contract SKU ── -->
+  <!-- ── Accrual: the team's "Accrual Summary" workbook layout (3 sheets), data from the system ── -->
   <div id="vAccrual" hidden>
     <div class="roi-acc-bar">
-      <label class="roi-f"><span>Accrual month</span><select id="aMonth"></select></label>
-      <div class="roi-acc-note">Accrual = actual off-take value <b>excl. VAT</b> × rebate % (from the ROI file) for every contract SKU, inside the contract period · Budget = Total Discount (Net) per year ÷ 12</div>
-      <button type="button" class="btn-export" onclick="exportAccrual()">Export Accrual</button>
+      <label class="roi-f"><span>As of month</span><select id="aMonth"></select></label>
+      <div class="roi-acc-note"><b>To be Paid</b> = Actual purchase (excl. VAT) × % Rebate &nbsp;·&nbsp; <b>Prepare Cover</b> = Committed × % − To be Paid</div>
+      <button type="button" class="btn-export" id="aExport" onclick="exportAccrual()">Export Excel</button>
     </div>
-    <div class="roi-kpis" id="aKpis"></div>
-    <div class="roi-grid">
-      <section class="roi-card wide">
-        <div class="roi-head"><h3 id="aMonthlyTitle">Monthly Accrual vs Budget (THB)</h3>
-          <div class="roi-legend"><span><i style="background:var(--c1,#B0120A)"></i>Accrual</span><span><i style="background:#4B5563;height:3px"></i>Budget</span></div></div>
-        <div class="roi-sub">Each month of the selected year, up to the accrual month</div>
-        <div class="roi-chart"><canvas id="aMonthly" aria-label="Monthly accrual vs budget"></canvas></div>
-      </section>
-      <section class="roi-card wide">
-        <div class="roi-head"><h3>Accrual YTD by Principle (THB)</h3>
-          <div class="roi-legend"><span><i style="background:#D1D5DB"></i>Budget YTD</span><span><i style="background:linear-gradient(90deg,#1F2328,#9CA3AF)"></i>Accrual YTD</span></div></div>
-        <div class="roi-sub">Accrual bar drawn on the budget bar</div>
-        <div class="roi-chart"><canvas id="aPrin" aria-label="Accrual year to date by principle"></canvas></div>
-      </section>
-      <section class="roi-card wide">
-        <h3>Accrual by Contract</h3>
-        <div class="roi-sub" id="aSub">Contracts with off-take or budget in the accrual month · click a contract to see its SKUs</div>
-        <div class="roi-tools">
-          <input type="search" id="aSearch" placeholder="Search outlet, contract, BDE, area..." aria-label="Search accrual contracts">
-          <span class="roi-count" id="aCount"></span>
-        </div>
-        <div class="table-card"><div class="overflow-x"><div id="aWrap"></div></div></div>
-      </section>
+    <div class="acc-tabs" role="tablist" aria-label="Accrual sheets">
+      <button type="button" role="tab" data-s="summary" aria-selected="true">Accrual Summary</button>
+      <button type="button" role="tab" data-s="brand" aria-selected="false">Brand Summary</button>
+      <button type="button" role="tab" data-s="monthly" aria-selected="false">Monthly Breakdown</button>
     </div>
+    <section class="roi-card wide acc-card">
+      <div class="acc-top">
+        <h3 id="accTitle">Accrual Summary by Outlet Contract</h3>
+        <div class="acc-counts" id="accCounts"></div>
+      </div>
+      <div class="roi-tools">
+        <input type="search" id="aSearch" placeholder="Search outlet, contract, group, area, BDE, brand..." aria-label="Search accrual">
+        <select id="aAnalytical" aria-label="Analytical"><option value="">All results</option><option>Reached Target (In period)</option><option>In period</option><option>Maximum paid</option><option>Under target</option></select>
+        <span class="roi-count" id="aCount"></span>
+      </div>
+      <div class="acc-scroll" id="accScroll"><div id="aWrap"><div class="empty">Coming in 3 2 1 ...</div></div></div>
+    </section>
   </div>
 </div>
 
@@ -471,7 +499,7 @@ FILTERS.forEach(([id]) => $(id).addEventListener('change', reloadView));
 $('fStatus').addEventListener('change', reloadView);
 $('fReset').onclick = () => { FILTERS.forEach(([id]) => { $(id).value = ''; }); $('fStatus').value = ''; D = null; reloadView(); };
 /* ── views: Analysis / Accrual (#accrual in the address keeps the tab) ── */
-let view = location.hash === '#accrual' ? 'accrual' : 'analysis', A = null, aShown = 100, aSeq = 0, aSort = 'acc_m', aAsc = false;
+let view = location.hash === '#accrual' ? 'accrual' : 'analysis', A = null, aShown = 150, aSeq = 0;
 function setView(v) {
   view = v;
   $('vAnalysis').hidden = v !== 'analysis'; $('vAccrual').hidden = v !== 'accrual';
@@ -488,93 +516,208 @@ async function loadAccrual() {
   const my = ++aSeq, args = filterArgs();
   args.p_month = $('aMonth').value || null;
   document.querySelector('.main').classList.add('search-busy');
-  const { data, error } = await supabase.rpc('roi_accrual', args);
+  const { data, error } = await supabase.rpc('roi_accrual_summary', args);
   if (my !== aSeq) return;
   document.querySelector('.main').classList.remove('search-busy');
   if (error) { $('aWrap').innerHTML = `<div class="empty">Could not load the accrual: ${esc(error.message)}</div>`; return; }
-  A = data; aShown = 100;
-  $('roiMeta').textContent = (window._roiMeta || '') + ` · accrual on off-take up to ${mLabel((A.months || [])[0] || A.month)}`;
-  const sel = $('aMonth'), keep = sel.value || A.month;
+  A = data; aShown = 150;
+  $('roiMeta').textContent = (window._roiMeta || '') + ` · accrual on off-take up to ${mLabel((A.months || [])[0] || A.as_of)}`;
+  const sel = $('aMonth'), keep = sel.value || A.as_of;
   sel.innerHTML = (A.months || []).map(m => `<option value="${m}"${m === keep ? ' selected' : ''}>${mLabel(m)}</option>`).join('');
   renderAccrual();
 }
+
+/* ── formats like the workbook: 1,234.56 · (1,234.56) · "-" · 12.3% · 1-Dec-24 · Dec-23 ── */
+const money = v => { v = Number(v || 0); if (Math.abs(v) < 0.005) return '-'; const s = Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); return v < 0 ? `(${s})` : s; };
+const pct1 = v => (Number(v || 0) * 100).toFixed(1) + '%';
+const dExcel = iso => { if (!iso) return ''; const d = new Date(iso + 'T00:00:00'); return d.getDate() + '-' + MON[d.getMonth()] + '-' + String(d.getFullYear()).slice(2); };
+const mExcel = iso => { const d = new Date(iso + 'T00:00:00'); return MON[d.getMonth()] + '-' + String(d.getFullYear()).slice(2); };
+const asOfTxt = () => { const d = new Date(A.as_of + 'T00:00:00'); return MON[d.getMonth()].toUpperCase() + ' ' + String(d.getFullYear()).slice(2); };
+const ANALYTICAL_CLS = { 'Reached Target (In period)': 'hit', 'Maximum paid': 'hit', 'In period': 'near', 'Under target': 'low' };
+let aSheet = 'summary';
+
+function sumOf(list, k) { return list.reduce((s, x) => s + Number(x[k] || 0), 0); }
+let aStatus = '';   /* '' all · 'active' · 'inactive' (set by the counters) */
+function aFiltered(list, keys) {
+  const q = $('aSearch').value.trim().toLowerCase(), an = $('aAnalytical').value;
+  return list.filter(x => (!q || keys.some(k => String(x[k] ?? '').toLowerCase().includes(q))) && (!an || !('analytical' in x) || x.analytical === an)
+    && (!aStatus || !('active' in x) || (aStatus === 'active') === !!x.active));
+}
 function renderAccrual() {
-  const k = A.kpi || {}, mon = mLabel(A.month), yr = String(A.month).slice(0, 4);
-  $('aKpis').innerHTML =
-    kpi('Accrual ' + mon, '฿' + short(k.acc_m), `Budget ฿${short(k.bud_m)} · ${pctTxt(pctOf(k.acc_m, k.bud_m))} of budget · ${fmt(k.contracts_m)} contracts with off-take`, pctOf(k.acc_m, k.bud_m)) +
-    kpi('Accrual YTD ' + yr, '฿' + short(k.acc_ytd), `Budget YTD ฿${short(k.bud_ytd)} · ${pctTxt(pctOf(k.acc_ytd, k.bud_ytd))} used`, pctOf(k.acc_ytd, k.bud_ytd)) +
-    kpi('Accrual to date', '฿' + short(k.acc), `All contract months up to ${mon} · budget ฿${short(k.bud)}`, pctOf(k.acc, k.bud)) +
-    kpi('Achievement to date', pctTxt(pctOf(k.a_vol, k.t_vol)), `Actual ${fmt(k.a_vol)} of ${fmt(k.t_vol)} btls target (up to ${mon})`, pctOf(k.a_vol, k.t_vol));
-
-  const c1 = cur(), mo = A.monthly || [];
-  $('aMonthlyTitle').textContent = `Monthly Accrual vs Budget ${yr} (THB)`;
-  draw('aMonthly', { data: { labels: mo.map(x => mLabel(x.m)), datasets: [
-      { type: 'line', label: 'Budget', data: mo.map(x => x.bud), borderColor: '#4B5563', backgroundColor: '#4B5563', borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, tension: .25, order: 0 },
-      { type: 'bar', label: 'Accrual', data: mo.map(x => x.acc), backgroundColor: c1, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 26, order: 1 }] },
-    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 250 }, interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ฿${fmt(c.parsed.y)}`,
-        afterBody: it => { const m = mo[it[0].dataIndex]; return m ? ` Accrual is ${pctTxt(pctOf(m.acc, m.bud))} of budget` : ''; } } } },
-      scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: MUTED } },
-                y: { beginAtZero: true, grid: { color: GRID }, border: { display: false }, ticks: { color: MUTED, callback: v => short(v) } } } } });
-
-  const pr = (A.by_principle || []).filter(x => x.acc_ytd > 0 || x.bud_ytd > 0).slice(0, 10);
-  draw('aPrin', { type: 'bar', data: { labels: pr.map(x => x.name), datasets: [
-      { label: 'Budget YTD', data: pr.map(x => x.bud_ytd), backgroundColor: '#D1D5DB', borderRadius: 4, borderSkipped: 'start', grouped: false, barPercentage: 0.8, maxBarThickness: 22, order: 2 },
-      { label: 'Accrual YTD', data: pr.map(x => x.acc_ytd), backgroundColor: ctx => barGrad(ctx, ['#1F2328', '#9CA3AF']), borderRadius: 4, borderSkipped: 'start', grouped: false, barPercentage: 0.45, maxBarThickness: 12, order: 1 }] },
-    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: { duration: 250 }, interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ฿${fmt(c.parsed.x)}`,
-        afterBody: it => { const x = pr[it[0].dataIndex]; return ` ${pctTxt(pctOf(x.acc_ytd, x.bud_ytd))} of budget · ${mon}: ฿${fmt(x.acc_m)}`; } } } },
-      scales: { x: { beginAtZero: true, grid: { color: GRID }, border: { display: false }, ticks: { color: MUTED, callback: v => short(v) } },
-                y: { grid: { display: false }, border: { display: false }, ticks: { color: INK, autoSkip: false } } } } });
-  renderAccrualTable();
+  if (!A) return;
+  document.querySelectorAll('.acc-tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.s === aSheet)));
+  $('aAnalytical').hidden = aSheet === 'brand';
+  const cs = A.contracts || [], act = cs.filter(c => c.active).length;
+  /* counters filter the table: Total = all, Active / Inactive = only those contracts (not on Brand Summary) */
+  const cnt = (k, n, l) => `<button type="button" data-st="${k}" aria-pressed="${aStatus === k}">${aSheet === 'brand' ? '' : ''}<b>${fmt(n)}</b> ${l}</button>`;
+  $('accCounts').hidden = aSheet === 'brand';
+  $('accCounts').innerHTML = cnt('', cs.length, 'Total Contracts') + cnt('active', act, 'Active') + cnt('inactive', cs.length - act, 'Inactive');
+  if (aSheet === 'summary') renderAccSummary(); else if (aSheet === 'brand') renderAccBrand(); else renderAccMonthly();
 }
-const ACOLS = [['outlet', 'Outlet'], ['contract', 'Contract'], ['bde', 'BDE'], ['received', 'Received'], ['d_end', 'Period'],
-  ['t_vol_m', 'Target (btl)', 1], ['a_vol_m', 'Actual (btl)', 1], ['ach_m', 'Achievement'], ['a_val_m', 'Value excl. VAT (฿)', 1],
-  ['acc_m', 'Accrual (฿)', 1], ['acc_ytd', 'Accrual YTD (฿)', 1], ['bud_ytd', 'Budget YTD (฿)', 1], ['acc', 'Accrual to date (฿)', 1], ['bud', 'Budget to date (฿)', 1]];
-function aRows() {
-  const q = $('aSearch').value.trim().toLowerCase();
-  let list = (A && A.contracts) || [];
-  if (q) list = list.filter(c => [c.outlet, c.outlet_code, c.contract, c.bde, c.area, c.grp].some(v => String(v ?? '').toLowerCase().includes(q)));
-  const val = c => aSort === 'ach_m' ? (pctOf(c.a_vol_m, c.t_vol_m) ?? -1) : c[aSort];
-  return list.slice().sort((a, b) => { const x = val(a), y = val(b); if (x == null) return 1; if (y == null) return -1; return (x > y ? 1 : x < y ? -1 : 0) * (aAsc ? 1 : -1); });
+function more(total) {
+  return total > aShown ? `<div class="roi-more"><span class="roi-count">Showing ${fmt(aShown)} of ${fmt(total)}</span><button type="button" onclick="aShown+=300;renderAccrual()">Show more</button><button type="button" onclick="aShown=Infinity;renderAccrual()">Show all</button></div>` : '';
 }
-function renderAccrualTable() {
-  const list = aRows(), mon = mLabel(A.month);
+
+function renderAccSummary() {
+  $('accTitle').textContent = 'Accrual Summary by Outlet Contract';
+  const list = aFiltered(A.contracts || [], ['outlet', 'contract', 'grp', 'area', 'bde', 'outlet_code']);
   $('aCount').textContent = `${fmt(list.length)} contracts`;
-  $('aSub').textContent = `Target, actual and accrual for ${mon} · YTD and to-date columns run up to ${mon} · click a contract to see its SKUs`;
-  if (!list.length) { $('aWrap').innerHTML = '<div class="empty">No accrual for these filters</div>'; return; }
-  const arrow = k => aSort === k ? (aAsc ? ' ▲' : ' ▼') : '';
-  $('aWrap').innerHTML = `<table class="roi-tbl"><thead><tr>${ACOLS.map(([k, l, n]) => `<th class="${n ? 'n' : ''}" data-k="${k}" aria-sort="${aSort === k ? (aAsc ? 'ascending' : 'descending') : 'none'}">${l}${arrow(k)}</th>`).join('')}</tr></thead><tbody>` +
-    list.slice(0, aShown).map(c => { const p = pctOf(c.a_vol_m, c.t_vol_m), [b, bl] = band(c.a_vol_m, c.t_vol_m), over = c.bud_ytd > 0 && c.acc_ytd > c.bud_ytd;
-      return `<tr data-c="${esc(c.contract)}" tabindex="0"><td class="o"><b>${esc(c.outlet)}</b><small>${esc(c.outlet_code)}</small></td><td>${esc(c.contract)}</td>` +
-        `<td>${esc(c.bde || '—')}</td><td>${c.received ? mLabel(c.received) : '—'}</td><td>${dText(c.d_start)} – ${dText(c.d_end)}</td>` +
-        `<td class="n">${fmt(c.t_vol_m)}</td><td class="n">${fmt(c.a_vol_m)}</td><td><span class="roi-band ${b}">${pctTxt(p)} ${bl}</span></td>` +
-        `<td class="n">${fmt(c.a_val_m)}</td><td class="n acc">${fmt(c.acc_m)}</td>` +
-        `<td class="n ${over ? 'over' : 'under'}" title="${over ? 'Accrual YTD is above budget' : ''}">${fmt(c.acc_ytd)}${over ? ' ▲' : ''}</td><td class="n">${fmt(c.bud_ytd)}</td>` +
-        `<td class="n">${fmt(c.acc)}</td><td class="n">${fmt(c.bud)}</td></tr>`; }).join('') + `</tbody></table>` +
-    (list.length > aShown ? `<div class="roi-more"><span class="roi-count">Showing ${fmt(aShown)} of ${fmt(list.length)}</span><button type="button" onclick="aShown+=200;renderAccrualTable()">Show more</button><button type="button" onclick="aShown=Infinity;renderAccrualTable()">Show all</button></div>` : '');
+  const K = sumOf(list, 'committed'), L = sumOf(list, 'actual');
+  const head = ['Outlet Name', 'Outlets Contract', 'Group', 'Area', 'BDE', 'Start Date', 'End Date', 'Status', 'Total Bottle', '% Rebate',
+    'Yearly Value Committed (THB)', 'Actual Purchase in Period (THB)', `To be Paid (THB) as of ${asOfTxt()}`, 'Prepare Cover 100% YTD (THB)', 'Total Paid (THB)',
+    'Achievement vs Commit %', 'Analytical'];
+  const num = new Set([8, 9, 10, 11, 12, 13, 14, 15]);
+  $('aWrap').innerHTML = `<table class="roi-tbl acc-tbl"><thead><tr>${head.map((h, i) => `<th class="${num.has(i) ? 'n' : ''}${i === 0 ? ' stick' : ''}">${esc(h)}</th>`).join('')}</tr></thead><tbody>` +
+    list.slice(0, aShown).map(c => `<tr data-c="${esc(c.contract)}" tabindex="0"><td class="stick"><b>${esc(c.outlet)}</b></td><td>${esc(c.contract)}</td><td>${esc(c.grp || '')}</td>` +
+      `<td>${esc(c.area || '')}</td><td>${esc(c.bde || '')}</td><td>${dExcel(c.d_start)}</td><td>${dExcel(c.d_end)}</td>` +
+      `<td><span class="roi-st${c.active ? ' on' : ''}">${c.active ? 'Active' : 'Inactive'}</span></td><td class="n">${fmt(c.btl)}</td><td class="n">${pct1(c.rate)}</td>` +
+      `<td class="n">${money(c.committed)}</td><td class="n">${money(c.actual)}</td><td class="n acc">${money(c.to_pay)}</td>` +
+      `<td class="n${c.prepare < 0 ? ' neg' : ''}">${money(c.prepare)}</td><td class="n">${money(c.total_paid)}</td><td class="n"><b>${pct1(c.ach)}</b></td>` +
+      `<td><span class="roi-band ${ANALYTICAL_CLS[c.analytical] || 'none'}">${esc(c.analytical)}</span></td></tr>`).join('') + `</tbody></table>` + more(list.length);
 }
-$('aWrap').addEventListener('click', e => {
-  const th = e.target.closest('th[data-k]');
-  if (th) { const k = th.dataset.k; if (aSort === k) aAsc = !aAsc; else { aSort = k; aAsc = ['outlet', 'contract', 'bde'].includes(k); } renderAccrualTable(); return; }
-  const tr = e.target.closest('tr[data-c]'); if (tr) openDetail(tr.dataset.c);
-});
+
+function renderAccBrand() {
+  $('accTitle').textContent = 'Accrual Summary by Brand';
+  const list = aFiltered(A.brands || [], ['category', 'principle', 'brand']);
+  $('aCount').textContent = `${fmt(list.length)} brands`;
+  const F = sumOf(list, 'committed'), G = sumOf(list, 'actual');
+  const head = ['Category', 'Principle', 'Brand', '% Rebate', 'Yearly Vol Committed (btl)', 'Yearly Value Committed (THB)', `Actual Purchase in Contract (THB) ${asOfTxt().replace(' ', '')}`,
+    'To be Paid Rebate (THB)', 'Prepare Cover 100% YTD (THB)', 'Total Paid (THB)', 'Achievement vs Commit %'];
+  $('aWrap').innerHTML = `<table class="roi-tbl acc-tbl"><thead><tr>${head.map((h, i) => `<th class="${i >= 3 ? 'n' : ''}${i === 0 ? ' stick' : ''}">${esc(h)}</th>`).join('')}</tr></thead><tbody>` +
+    list.slice(0, aShown).map(b => `<tr><td class="stick">${esc(b.category || '')}</td><td>${esc(b.principle || '')}</td><td><b>${esc(b.brand)}</b></td><td class="n">${pct1(b.rate)}</td>` +
+      `<td class="n">${fmt(b.btl)}</td><td class="n">${money(b.committed)}</td><td class="n">${money(b.actual)}</td><td class="n acc">${money(b.to_pay)}</td>` +
+      `<td class="n${b.prepare < 0 ? ' neg' : ''}">${money(b.prepare)}</td><td class="n">${money(b.total_paid)}</td><td class="n"><b>${pct1(b.ach)}</b></td></tr>`).join('') +
+    `</tbody></table>` + more(list.length);
+}
+
+function renderAccMonthly() {
+  $('accTitle').textContent = 'Accrual Summary - Monthly Breakdown by Outlet Contract';
+  const cols = A.month_cols || [], n = cols.length;
+  const list = aFiltered(A.monthly || [], ['outlet', 'contract', 'grp', 'area', 'outlet_code']);
+  $('aCount').textContent = `${fmt(list.length)} contracts`;
+  /* totals per month: actual, accrual = actual × the contract's % rebate */
+  const tA = new Array(n).fill(0), tR = new Array(n).fill(0);
+  list.forEach(r => (r.act || []).forEach((v, i) => { tA[i] += Number(v || 0); tR[i] += Number(v || 0) * Number(r.rate || 0); }));
+  const sA = tA.reduce((s, v) => s + v, 0), sR = tR.reduce((s, v) => s + v, 0);
+  const fixed = ['Outlet Name', 'Outlets Contract', 'Group', 'Area', '% Rebate', 'Start Date', 'End Date', 'Outlets Code'];
+  $('aWrap').innerHTML = `<table class="roi-tbl acc-tbl acc-month"><thead>` +
+    `<tr class="acc-grp"><th class="stick" colspan="1"></th><th colspan="${fixed.length - 1}"></th><th colspan="${n + 1}" class="g1">ACTUAL PURCHASE (THB, Exc.VAT)</th><th colspan="${n + 1}" class="g2">ACCRUAL TO BE PAID</th></tr>` +
+    `<tr>${fixed.map((h, i) => `<th class="${i === 4 ? 'n' : ''}${i === 0 ? ' stick' : ''}">${h}</th>`).join('')}${cols.map(m => `<th class="n">${mExcel(m)}</th>`).join('')}<th class="n">Total Actual Purchase</th>` +
+    `${cols.map(m => `<th class="n">${mExcel(m)}</th>`).join('')}<th class="n">Total Accrual</th></tr></thead><tbody>` +
+    `<tr class="acc-total"><td class="stick">TOTAL</td><td colspan="${fixed.length - 1}"></td>${tA.map(v => `<td class="n">${money(v)}</td>`).join('')}<td class="n">${money(sA)}</td>` +
+    `${tR.map(v => `<td class="n">${money(v)}</td>`).join('')}<td class="n">${money(sR)}</td></tr>` +
+    list.slice(0, aShown).map(r => { const a = r.act || [], tot = a.reduce((s, v) => s + Number(v || 0), 0);
+      return `<tr data-c="${esc(r.contract)}" tabindex="0"><td class="stick"><b>${esc(r.outlet)}</b></td><td>${esc(r.contract)}</td><td>${esc(r.grp || '')}</td><td>${esc(r.area || '')}</td>` +
+        `<td class="n">${pct1(r.rate)}</td><td>${dExcel(r.d_start)}</td><td>${dExcel(r.d_end)}</td><td>${esc(r.outlet_code || '')}</td>` +
+        a.map(v => `<td class="n">${money(v)}</td>`).join('') + `<td class="n"><b>${money(tot)}</b></td>` +
+        a.map(v => `<td class="n">${money(Number(v || 0) * r.rate)}</td>`).join('') + `<td class="n acc">${money(tot * r.rate)}</td></tr>`; }).join('') +
+    `</tbody></table>` + more(list.length);
+}
+
+$('accCounts').addEventListener('click', e => { const b = e.target.closest('button[data-st]'); if (!b) return; aStatus = b.dataset.st; aShown = 150; renderAccrual(); });
+document.querySelectorAll('.acc-tabs button').forEach(b => b.addEventListener('click', () => { aSheet = b.dataset.s; aShown = 150; $('accScroll').scrollTo(0, 0); renderAccrual(); }));
+$('aWrap').addEventListener('click', e => { const tr = e.target.closest('tr[data-c]'); if (tr) openDetail(tr.dataset.c); });
 $('aWrap').addEventListener('keydown', e => { const tr = e.target.closest('tr[data-c]'); if (tr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openDetail(tr.dataset.c); } });
-$('aSearch').addEventListener('input', () => { aShown = 100; renderAccrualTable(); });
+$('aSearch').addEventListener('input', () => { aShown = 150; renderAccrual(); });
+$('aAnalytical').addEventListener('change', () => { aShown = 150; renderAccrual(); });
 $('aMonth').addEventListener('change', loadAccrual);
 
-function exportAccrual() {
-  if (!A || !A.contracts || !A.contracts.length) return;
-  const mon = mLabel(A.month), wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(aRows().map(c => ({
-    'Accrual month': mon, 'Outlet Code': c.outlet_code, 'Outlet': c.outlet, 'Contract': c.contract, 'Group': c.grp, 'BDE': c.bde, 'Area': c.area, 'Tier': c.tier,
-    'Received': c.received ? mLabel(c.received) : null, 'Start': c.d_start, 'End': c.d_end,
-    'Target (btl)': c.t_vol_m, 'Actual (btl)': c.a_vol_m, 'Achievement %': pctOf(c.a_vol_m, c.t_vol_m) == null ? null : +pctOf(c.a_vol_m, c.t_vol_m).toFixed(1),
-    'Value excl. VAT (THB)': c.a_val_m, 'Accrual (THB)': c.acc_m, 'Budget (THB)': c.bud_m, 'Accrual YTD (THB)': c.acc_ytd, 'Budget YTD (THB)': c.bud_ytd,
-    'Accrual to date (THB)': c.acc, 'Budget to date (THB)': c.bud }))), 'Accrual ' + mon.replace(' ', '-'));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((A.by_principle || []).map(x => ({ 'Principle': x.name, ['Accrual ' + mon]: x.acc_m, 'Accrual YTD': x.acc_ytd, 'Budget YTD': x.bud_ytd }))), 'By Principle');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((A.monthly || []).map(x => ({ 'Month': mLabel(x.m), 'Accrual (THB)': x.acc, 'Budget (THB)': x.bud }))), 'Monthly');
-  XLSX.writeFile(wb, `ROI_Accrual_${String(A.month).slice(0, 7)}.xlsx`);
+/* ── Excel: the same 3 sheets and layout as the team's workbook ── */
+let excelJsLoading = null;
+function loadExcelJs() {
+  if (window.ExcelJS) return Promise.resolve();
+  return excelJsLoading || (excelJsLoading = new Promise((ok, fail) => {
+    const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+    s.onload = ok; s.onerror = () => { excelJsLoading = null; fail(new Error('Excel library did not load')); }; document.head.appendChild(s);
+  }));
+}
+async function exportAccrual() {
+  if (!A) return;
+  const btn = $('aExport'); btn.disabled = true; btn.textContent = 'Preparing…';
+  try {
+    await loadExcelJs();
+    const wb = new ExcelJS.Workbook(), NUM = '#,##0.00;(#,##0.00);"-"', PCT = '0.0%', INT = '#,##0;(#,##0);"-"';
+    /* Excel dates in UTC, so Thai time (+7) does not move them to the day before */
+    const dt = iso => { if (!iso) return null; const [y, m, d] = String(iso).slice(0, 10).split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+    const RED = 'FFB0120A', GREY = 'FFF3F4F6', asof = asOfTxt(), today = dt(A.today);
+    const hdr = (ws, row) => { ws.getRow(row).eachCell(c => { c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: RED } };
+      c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true }; }); ws.getRow(row).height = 32; };
+    const tot = (ws, row) => { ws.getRow(row).eachCell({ includeEmpty: true }, c => { c.font = { bold: true }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: GREY } }; }); };
+
+    /* Accrual Summary */
+    const cs = A.contracts || [], s1 = wb.addWorksheet('Accrual Summary', { views: [{ state: 'frozen', xSplit: 1, ySplit: 7 }] });
+    s1.getCell('A1').value = 'Accrual Summary by Outlet Contract'; s1.getCell('A1').font = { bold: true, size: 14 };
+    s1.getCell('A3').value = 'Total Contracts'; s1.getCell('C3').value = 'Active'; s1.getCell('D3').value = cs.filter(c => c.active).length;
+    s1.getCell('A4').value = cs.length; s1.getCell('C4').value = 'Inactive'; s1.getCell('D4').value = cs.filter(c => !c.active).length;
+    s1.getCell('L3').value = 'As-of Date'; s1.getCell('M3').value = today; s1.getCell('M3').numFmt = 'd-mmm-yy';
+    s1.getRow(7).values = ['Outlet Name', 'Outlets Contract', 'Group', 'Area', 'BDE', 'Start Date', 'End Date', 'Status', 'Total Bottle', '% Rebate',
+      'Yearly Value Committed (THB)', 'Actual Purchase in Period (THB)', `To be Paid (THB) as of ${asof}`, 'Prepare Cover 100% YTD (THB)', 'Total Paid (THB)',
+      'Achievement vs Commit %', 'Analytical'];
+    hdr(s1, 7);
+    cs.forEach((c, i) => { s1.getRow(8 + i).values = [c.outlet, c.contract, c.grp || '', c.area || '', c.bde || '', dt(c.d_start), dt(c.d_end), c.active ? 'Active' : 'Inactive',
+      c.btl, c.rate, c.committed, c.actual, c.to_pay, c.prepare, c.total_paid, c.ach, c.analytical]; });
+    const e1 = 7 + cs.length;
+    s1.getRow(6).values = ['TOTAL (All Contracts)'];
+    ['K', 'L', 'M', 'N', 'O'].forEach(col => { s1.getCell(col + '6').value = { formula: `SUBTOTAL(9,${col}8:${col}${e1})` }; });
+    s1.getCell('P6').value = { formula: 'IFERROR(L6/K6,0)' }; tot(s1, 6);
+    [['F', 'd-mmm-yy'], ['G', 'd-mmm-yy'], ['I', INT], ['J', PCT], ['K', NUM], ['L', NUM], ['M', NUM], ['N', NUM], ['O', NUM], ['P', PCT]].forEach(([col, f]) => { s1.getColumn(col).numFmt = f; });
+    s1.getCell('P6').numFmt = '0%'; s1.getCell('M3').numFmt = 'd-mmm-yy'; s1.getCell('D3').numFmt = '0'; s1.getCell('D4').numFmt = '0'; s1.getCell('A4').numFmt = '0';
+    [43, 50, 14, 14, 12, 12, 12, 9, 11, 9, 22, 22, 20, 21, 18, 14, 26].forEach((w, i) => { s1.getColumn(i + 1).width = w; });
+    s1.autoFilter = { from: 'A7', to: `Q${Math.max(8, e1)}` };
+
+    /* Brand Summary */
+    const bs = A.brands || [], s2 = wb.addWorksheet('Brand Summary', { views: [{ state: 'frozen', xSplit: 3, ySplit: 7 }] });
+    s2.getCell('A1').value = 'Accrual Summary by Brand'; s2.getCell('A1').font = { bold: true, size: 14 };
+    s2.getCell('K4').value = today; s2.getCell('K4').numFmt = 'd-mmm-yy';
+    s2.getRow(7).values = ['Category', 'Principle', 'Brand', '% Rebate', 'Yearly Vol Committed (btl)', 'Yearly Value Committed (THB)', `Actual Purchase in Contract (THB) ${asof.replace(' ', '')}`,
+      'To be Paid Rebate (THB)', 'Prepare Cover 100% YTD (THB)', 'Total Paid (THB)', 'Achievement vs Commit %'];
+    hdr(s2, 7);
+    bs.forEach((b, i) => { s2.getRow(8 + i).values = [b.category || '', b.principle || '', b.brand, b.rate, b.btl, b.committed, b.actual, b.to_pay, b.prepare, b.total_paid, b.ach]; });
+    const e2 = 7 + bs.length;
+    s2.getRow(6).values = ['TOTAL (All Contracts)'];
+    ['F', 'G', 'H', 'I', 'J'].forEach(col => { s2.getCell(col + '6').value = { formula: `SUM(${col}8:${col}${e2})` }; });
+    s2.getCell('K6').value = { formula: 'IFERROR(G6/F6,0)' }; tot(s2, 6);
+    [['D', PCT], ['E', INT], ['F', NUM], ['G', NUM], ['H', NUM], ['I', NUM], ['J', NUM], ['K', PCT]].forEach(([col, f]) => { s2.getColumn(col).numFmt = f; });
+    s2.getCell('K6').numFmt = '0%'; s2.getCell('K4').numFmt = 'd-mmm-yy';
+    [20, 16, 22, 10, 14, 22, 24, 20, 21, 18, 14].forEach((w, i) => { s2.getColumn(i + 1).width = w; });
+
+    /* Monthly Breakdown */
+    const mo = A.monthly || [], mc = A.month_cols || [], n = mc.length, s3 = wb.addWorksheet('Monthly Breakdown', { views: [{ state: 'frozen', xSplit: 2, ySplit: 7 }] });
+    s3.getCell('A1').value = 'Accrual Summary - Monthly Breakdown by Outlet Contract'; s3.getCell('A1').font = { bold: true, size: 14 };
+    const c0 = 9, cT = c0 + n, cR = cT + 2, cRT = cR + n;   /* I … months, total, blank, accrual months, total */
+    s3.getCell(6, c0).value = 'ACTUAL PURCHASE (THB, Exc.VAT)'; s3.mergeCells(6, c0, 6, cT);
+    s3.getCell(6, cR).value = 'ACCRUAL TO BE PAID'; s3.mergeCells(6, cR, 6, cRT);
+    [s3.getCell(6, c0), s3.getCell(6, cR)].forEach(c => { c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.alignment = { horizontal: 'center' };
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF374151' } }; });
+    const h7 = ['Outlet Name', 'Outlets Contract', 'Group', 'Area', '% Rebate', 'Start Date', 'End Date', 'Outlets Code'];
+    mc.forEach(m => h7.push(dt(m))); h7.push('Total Actual Purchase'); h7.push(''); mc.forEach(m => h7.push(dt(m))); h7.push('Total Accrual');
+    s3.getRow(7).values = h7; hdr(s3, 7);
+    for (let i = 0; i < n; i++) { s3.getCell(7, c0 + i).numFmt = 'mmm-yy'; s3.getCell(7, cR + i).numFmt = 'mmm-yy'; }
+    s3.getCell(7, cT + 1).fill = { type: 'pattern', pattern: 'none' };
+    const colL = c => s3.getColumn(c).letter;
+    mo.forEach((r, i) => {
+      const row = 9 + i, a = r.act || [], v = [r.outlet, r.contract, r.grp || '', r.area || '', r.rate, dt(r.d_start), dt(r.d_end), r.outlet_code || ''];
+      a.forEach(x => v.push(x)); v.push({ formula: `SUM(${colL(c0)}${row}:${colL(cT - 1)}${row})` }); v.push(null);
+      a.forEach((x, k) => v.push({ formula: `${colL(c0 + k)}${row}*$E${row}` })); v.push({ formula: `SUM(${colL(cR)}${row}:${colL(cRT - 1)}${row})` });
+      s3.getRow(row).values = v;
+    });
+    const e3 = 8 + mo.length, t8 = ['TOTAL'];
+    s3.getRow(8).values = t8;
+    for (let c = c0; c <= cRT; c++) { if (c === cT + 1) continue; s3.getCell(8, c).value = { formula: `SUM(${colL(c)}9:${colL(c)}${Math.max(9, e3)})` }; }
+    tot(s3, 8); s3.getCell(8, cT + 1).fill = { type: 'pattern', pattern: 'none' };
+    s3.getColumn(5).numFmt = PCT; s3.getColumn(6).numFmt = 'd-mmm-yy'; s3.getColumn(7).numFmt = 'd-mmm-yy';
+    for (let c = c0; c <= cRT; c++) if (c !== cT + 1) s3.getColumn(c).numFmt = NUM;
+    for (let i = 0; i < n; i++) { s3.getCell(7, c0 + i).numFmt = 'mmm-yy'; s3.getCell(7, cR + i).numFmt = 'mmm-yy'; }
+    [40, 44, 14, 12, 9, 11, 11, 18].forEach((w, i) => { s3.getColumn(i + 1).width = w; });
+    for (let c = c0; c <= cRT; c++) s3.getColumn(c).width = c === cT + 1 ? 3 : 14;
+
+    [s1, s2, s3].forEach(ws => { ws.pageSetup = { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0 }; });
+    const buf = await wb.xlsx.writeBuffer();
+    const url = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    const aEl = document.createElement('a'); aEl.href = url; aEl.download = `Accrual Summary ${asof}.xlsx`; document.body.appendChild(aEl); aEl.click(); aEl.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  } catch (e) { alert('Export failed: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Export Excel'; }
 }
 window.addEventListener('themechange', () => { if (view === 'accrual' && A) renderAccrual(); else if (D) renderCharts(); });
 
