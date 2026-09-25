@@ -114,3 +114,18 @@ DELETE FROM public.brand_offer_brands WHERE name IN ('Bols Liqueur', 'Bols Vodka
 -- brands under BBC (team request)
 UPDATE public.brand_offer_brands SET principle = 'BBC'
 WHERE name IN ('Branca', 'Clase Azul Tequila', 'Dictador', 'Kilo', 'The Kyoto Whisky', 'Lark', 'Teremana');
+
+-- 6) campaigns belong to a principle and can cover several brands (2026-09-25)
+--    page: principle cards → principle page (brand cards are display only) → upload with ticked brands
+ALTER TABLE public.brand_offer_files ADD COLUMN IF NOT EXISTS principle text;
+ALTER TABLE public.brand_offer_files ADD COLUMN IF NOT EXISTS brands text[];
+UPDATE public.brand_offer_files f SET principle = coalesce(b.principle, 'Other'), brands = ARRAY[f.brand]
+FROM public.brand_offer_brands b WHERE f.brand = b.name AND f.principle IS NULL;
+CREATE INDEX IF NOT EXISTS brand_offer_files_principle_idx ON public.brand_offer_files (principle);
+-- principle renamed Independent → Independence (team request); its logo = Independence_Logo.webp in "Brands Logo"
+UPDATE public.brand_offer_brands SET principle = 'Independence' WHERE principle = 'Independent';
+UPDATE public.brand_offer_files SET principle = 'Independence' WHERE principle = 'Independent';
+
+-- 7) campaign period (2026-09-25): Launch Date / Until on each file; category list on the page adds "Presentation"
+ALTER TABLE public.brand_offer_files ADD COLUMN IF NOT EXISTS launch_date date;
+ALTER TABLE public.brand_offer_files ADD COLUMN IF NOT EXISTS until_date date;
