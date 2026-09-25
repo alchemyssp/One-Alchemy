@@ -32,7 +32,7 @@ button { cursor: pointer; }
 .empty { text-align: center; padding: 48px 20px; color: #6B7280; }
 </style>
 <link rel="stylesheet" href="css/ssp-theme.css?v=22">
-<link rel="stylesheet" href="css/ssp-type.css?v=105">
+<link rel="stylesheet" href="css/ssp-type.css?v=106">
 <script src="js/theme.js?v=3"></script>
 <script src="js/sidebar-offtake.js?v=4" defer></script>
 <style>
@@ -56,6 +56,10 @@ button { cursor: pointer; }
 .roi-card { background: #fff; border-radius: 20px; padding: 16px 18px; box-shadow: 0 2px 10px rgba(0,0,0,.05); min-width: 0; }
 .roi-card.wide { grid-column: 1 / -1; }
 .roi-card h3 { font-size: 15px; font-weight: 700; color: #111; margin-bottom: 4px; }
+.roi-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.roi-head h3 { min-width: 0; }
+.roi-head .roi-legend { margin: 3px 0 0; flex: 0 0 auto; flex-wrap: nowrap; white-space: nowrap; gap: 10px; }
+html body .roi-head .roi-legend span { font-size: 11px !important; }
 .roi-card .roi-sub { font-size: 12px; color: #6B7280; margin-bottom: 10px; }
 .roi-chart { position: relative; height: 300px; }
 .roi-chart.tall { height: 460px; }
@@ -85,6 +89,16 @@ table.roi-tbl td.o small { color: #6B7280; }
 .roi-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #374151; margin-bottom: 6px; }
 .roi-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .roi-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.roi-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.roi-tabs button { padding: 9px 20px; border-radius: 999px; border: none; background: #fff; color: #111; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+html body .roi-tabs button[aria-selected="true"] { background: var(--c1, #B0120A) !important; color: #fff !important; -webkit-text-fill-color: #fff !important; }
+.roi-acc-bar { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; background: #fff; border-radius: 18px; padding: 12px 16px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+.roi-acc-bar .roi-f { min-width: 160px; }
+.roi-acc-note { flex: 1; min-width: 240px; font-size: 12px; color: #6B7280; line-height: 1.45; }
+html body .roi-acc-bar .btn-export { padding: 10px 18px !important; border-radius: 12px !important; white-space: nowrap; font-weight: 700; }
+table.roi-tbl td.acc { font-weight: 700; color: var(--c1, #B0120A); }
+html body table.roi-tbl td.acc { -webkit-text-fill-color: var(--c1, #B0120A); }
+table.roi-tbl td.over { color: #B91C1C; } table.roi-tbl td.under { color: #374151; }
 /* detail dialog */
 .roi-ov { position: fixed; inset: 0; background: rgba(17,24,39,.45); z-index: 2000; display: none; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow: auto; }
 .roi-ov.open { display: flex; }
@@ -92,6 +106,11 @@ table.roi-tbl td.o small { color: #6B7280; }
 .roi-dlg-h { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
 .roi-dlg-h h3 { font-size: 16px; color: #111; }
 .roi-dlg-h p { font-size: 12px; color: #6B7280; }
+html body .roi-band.hit, html body table.roi-tbl .roi-band.hit { background: #374151 !important; color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important; }
+.roi-dlg-h p.dp { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+html body .roi-dlg-h p.dp span { font-size: 13px !important; color: #374151 !important; -webkit-text-fill-color: #374151 !important; }
+html body .roi-dlg-h p.dp .dp-code { font-weight: 700; color: #111 !important; -webkit-text-fill-color: #111 !important; }
+html body .roi-dlg-h p.dp .dp-months { color: var(--c1, #B0120A) !important; -webkit-text-fill-color: var(--c1, #B0120A) !important; font-weight: 700; }
 .roi-dlg-h button { padding: 6px 14px; border-radius: 10px; border: none; background: #F3F4F6; font-weight: 600; }
 .roi-dlg .roi-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .roi-dlg .roi-kpi { box-shadow: none; background: #F9FAFB; padding: 10px 12px; }
@@ -151,6 +170,11 @@ html body table.roi-tbl td.o small { font-size: 11px !important; }
   </div>
   <div class="roi-meta" id="roiMeta">Coming in 3 2 1 ...</div>
 
+  <div class="roi-tabs" role="tablist" aria-label="ROI views">
+    <button type="button" role="tab" id="tabAnalysis" aria-selected="true" onclick="setView('analysis')">Analysis</button>
+    <button type="button" role="tab" id="tabAccrual" aria-selected="false" onclick="setView('accrual')">Accrual</button>
+  </div>
+
   <div class="roi-filters" role="group" aria-label="Filters">
     <label class="roi-f"><span>BDE</span><select id="fBde"></select></label>
     <label class="roi-f"><span>Area</span><select id="fArea"></select></label>
@@ -162,11 +186,12 @@ html body table.roi-tbl td.o small { font-size: 11px !important; }
     <button type="button" class="roi-reset" id="fReset">Reset</button>
   </div>
 
+  <div id="vAnalysis">
   <div class="roi-kpis" id="roiKpis"></div>
 
   <div class="roi-grid">
     <section class="roi-card wide">
-      <h3>Monthly Target vs Actual (Btls)</h3>
+      <h3 id="cMonthlyTitle">Monthly Target vs Actual (Btls)</h3>
       <div class="roi-sub">Target = yearly volume ÷ 12 for every contract SKU running that month · Actual = off-take of those outlet SKUs</div>
       <div class="roi-legend"><span><i style="background:var(--c1,#B0120A)"></i>Actual</span><span><i style="background:#4B5563;height:3px"></i>Target</span></div>
       <div class="roi-chart"><canvas id="cMonthly" aria-label="Monthly target vs actual bottles"></canvas></div>
@@ -177,9 +202,9 @@ html body table.roi-tbl td.o small { font-size: 11px !important; }
       <div><div class="roi-chart tall" id="cBdeBox"><canvas id="cBde" aria-label="Achievement by active contract, highest first"></canvas></div></div>
     </section>
     <section class="roi-card">
-      <h3>Target vs Actual by Principle (Btls)</h3>
-      <div class="roi-sub">Target to date and actual volume</div>
-      <div class="roi-legend"><span><i style="background:#D1D5DB"></i>Target to date</span><span><i style="background:linear-gradient(90deg,#1F2328,#9CA3AF)"></i>Actual</span></div>
+      <div class="roi-head"><h3>Target vs Actual by Principle (Btls)</h3>
+        <div class="roi-legend"><span><i style="background:#D1D5DB"></i>Target to date</span><span><i style="background:linear-gradient(90deg,#1F2328,#9CA3AF)"></i>Actual</span></div></div>
+      <div class="roi-sub">Actual bar drawn on the target bar — the grey that is left is the gap to target</div>
       <div class="roi-chart tall"><canvas id="cPrin" aria-label="Target vs actual by principle"></canvas></div>
     </section>
     <section class="roi-card wide">
@@ -193,11 +218,45 @@ html body table.roi-tbl td.o small { font-size: 11px !important; }
       <div class="table-card"><div class="overflow-x"><div id="cWrap"></div></div></div>
     </section>
   </div>
+  </div><!-- /vAnalysis -->
+
+  <!-- ── Accrual: rebate owed on actual off-take = value excl. VAT × rebate % of each contract SKU ── -->
+  <div id="vAccrual" hidden>
+    <div class="roi-acc-bar">
+      <label class="roi-f"><span>Accrual month</span><select id="aMonth"></select></label>
+      <div class="roi-acc-note">Accrual = actual off-take value <b>excl. VAT</b> × rebate % (from the ROI file) for every contract SKU, inside the contract period · Budget = Total Discount (Net) per year ÷ 12</div>
+      <button type="button" class="btn-export" onclick="exportAccrual()">Export Accrual</button>
+    </div>
+    <div class="roi-kpis" id="aKpis"></div>
+    <div class="roi-grid">
+      <section class="roi-card wide">
+        <div class="roi-head"><h3 id="aMonthlyTitle">Monthly Accrual vs Budget (THB)</h3>
+          <div class="roi-legend"><span><i style="background:var(--c1,#B0120A)"></i>Accrual</span><span><i style="background:#4B5563;height:3px"></i>Budget</span></div></div>
+        <div class="roi-sub">Each month of the selected year, up to the accrual month</div>
+        <div class="roi-chart"><canvas id="aMonthly" aria-label="Monthly accrual vs budget"></canvas></div>
+      </section>
+      <section class="roi-card wide">
+        <div class="roi-head"><h3>Accrual YTD by Principle (THB)</h3>
+          <div class="roi-legend"><span><i style="background:#D1D5DB"></i>Budget YTD</span><span><i style="background:linear-gradient(90deg,#1F2328,#9CA3AF)"></i>Accrual YTD</span></div></div>
+        <div class="roi-sub">Accrual bar drawn on the budget bar</div>
+        <div class="roi-chart"><canvas id="aPrin" aria-label="Accrual year to date by principle"></canvas></div>
+      </section>
+      <section class="roi-card wide">
+        <h3>Accrual by Contract</h3>
+        <div class="roi-sub" id="aSub">Contracts with off-take or budget in the accrual month · click a contract to see its SKUs</div>
+        <div class="roi-tools">
+          <input type="search" id="aSearch" placeholder="Search outlet, contract, BDE, area..." aria-label="Search accrual contracts">
+          <span class="roi-count" id="aCount"></span>
+        </div>
+        <div class="table-card"><div class="overflow-x"><div id="aWrap"></div></div></div>
+      </section>
+    </div>
+  </div>
 </div>
 
 <div class="roi-ov" id="dOv" role="dialog" aria-modal="true" aria-labelledby="dTitle">
   <div class="roi-dlg">
-    <div class="roi-dlg-h"><div><h3 id="dTitle"></h3><p id="dSub"></p></div><button type="button" id="dClose">Close</button></div>
+    <div class="roi-dlg-h"><div><h3 id="dTitle"></h3><p id="dSub" class="dp"></p></div><button type="button" id="dClose">Close</button></div>
     <div class="roi-kpis" id="dKpis"></div>
     <div class="table-card"><div class="overflow-x"><div id="dWrap"></div></div></div>
   </div>
@@ -240,7 +299,7 @@ async function checkAuth() {
   $('userEmail').textContent = u.email;
   const name = (p && p.username) || u.email.split('@')[0];
   $('userName').textContent = name; $('userAvatar').textContent = name.charAt(0).toUpperCase();
-  await loadOptions(); load();
+  await loadOptions(); setView(view);
 }
 
 async function loadOptions() {
@@ -267,7 +326,7 @@ async function load() {
   $('roiMeta').textContent = (window._roiMeta || '') + ` · off-take matched ${mLabel(D.data_from)} – ${mLabel(D.data_to)}`;
   renderKpis(); renderCharts(); renderTable();
 }
-window.roiReload = async () => { await loadOptions(); load(); };
+window.roiReload = async () => { await loadOptions(); D = null; setView(view); };
 
 function kpi(label, value, sub, pct) {
   return `<div class="roi-kpi"><div class="k-l">${label}</div><div class="k-v">${value}</div><div class="k-s">${sub}</div>` +
@@ -283,10 +342,16 @@ function renderKpis() {
         `${fmt(k.active)} active · SKUs selling ${fmt(k.skus_sold)} of ${fmt(k.skus)} (${pctTxt(pctOf(k.skus_sold, k.skus))})`, pctOf(k.hit, k.with_target));
 }
 
-function draw(id, cfg) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), cfg); }
+function draw(id, cfg) {
+  const old = charts[id] || Chart.getChart($(id)); if (old) old.destroy();   /* also clears a chart left by a failed draw */
+  charts[id] = new Chart($(id), cfg);
+}
 const GRID = '#EEEEEE', INK = '#111111', MUTED = '#6B7280';
 function renderCharts() {
-  const c1 = cur(), mo = D.monthly || [];
+  /* monthly chart: the latest year only (2026) */
+  const lastY = D.data_to ? D.data_to.slice(0, 4) : String(new Date().getFullYear());
+  const c1 = cur(), mo = (D.monthly || []).filter(x => String(x.m).slice(0, 4) === lastY);
+  $('cMonthlyTitle').textContent = `Monthly Target vs Actual ${lastY} (Btls)`;
   draw('cMonthly', { data: { labels: mo.map(x => mLabel(x.m)), datasets: [
       { type: 'line', label: 'Target', data: mo.map(x => x.t_vol), borderColor: '#4B5563', backgroundColor: '#4B5563', borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, tension: .25, order: 0 },
       { type: 'bar', label: 'Actual', data: mo.map(x => x.a_vol), backgroundColor: c1, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 22, order: 1 }] },
@@ -302,7 +367,7 @@ function renderCharts() {
   const bd = act.map(x => Object.assign({ p: pctOf(x.a_vol, x.t_vol), name: x.outlet }, x)).sort((a, b) => b.p - a.p || b.t_vol - a.t_vol).slice(0, 10);
   $('cBdeSub').textContent = `Top 10 of ${fmt(act.length)} active contracts · actual off-take ÷ target to date (volume), highest first`;
   draw('cBde', { type: 'bar', data: { labels: bd.map(x => x.name.length > 26 ? x.name.slice(0, 25) + '…' : x.name), datasets: [{ label: 'Achievement', data: bd.map(x => +x.p.toFixed(1)),
-      backgroundColor: ctx => barGrad(ctx, BAND_GRAD[band(bd[ctx.dataIndex].a_vol, bd[ctx.dataIndex].t_vol)[0]]), borderRadius: 4, borderSkipped: 'start', maxBarThickness: 16 }] },
+      backgroundColor: ctx => { const x = bd[ctx.dataIndex]; return x ? barGrad(ctx, BAND_GRAD[band(x.a_vol, x.t_vol)[0]]) : '#9CA3AF'; }, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 16 }] },
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: { duration: 250 },
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => { const x = bd[c.dataIndex];
         return [` ${x.outlet}`, ` ${x.contract} · BDE ${x.bde || '—'}`,
@@ -318,8 +383,9 @@ function renderCharts() {
 
   const pr = (D.by_principle || []).slice(0, 10);
   draw('cPrin', { type: 'bar', data: { labels: pr.map(x => x.name), datasets: [
-      { label: 'Target to date', data: pr.map(x => x.t_vol), backgroundColor: '#D1D5DB', borderRadius: 4, borderSkipped: 'start', maxBarThickness: 12 },
-      { label: 'Actual', data: pr.map(x => x.a_vol), backgroundColor: ctx => barGrad(ctx, ['#1F2328', '#9CA3AF']), borderRadius: 4, borderSkipped: 'start', maxBarThickness: 12 }] },
+      /* same row: target behind (wider, light), actual on top (thinner, dark grey gradient) */
+      { label: 'Target to date', data: pr.map(x => x.t_vol), backgroundColor: '#D1D5DB', borderRadius: 4, borderSkipped: 'start', grouped: false, barPercentage: 0.8, maxBarThickness: 22, order: 2 },
+      { label: 'Actual', data: pr.map(x => x.a_vol), backgroundColor: ctx => barGrad(ctx, ['#1F2328', '#9CA3AF']), borderRadius: 4, borderSkipped: 'start', grouped: false, barPercentage: 0.45, maxBarThickness: 12, order: 1 }] },
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: { duration: 250 }, interaction: { mode: 'index', intersect: false },
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${fmt(c.parsed.x)} btls`,
         afterBody: it => { const x = pr[it[0].dataIndex]; return ` Achievement: ${pctTxt(pctOf(x.a_vol, x.t_vol))}`; } } } },
@@ -342,7 +408,7 @@ function rows() {
   const val = c => sortKey === 'ach' ? (pctOf(c.a_vol, c.t_vol) ?? -1) : sortKey === 'spd' ? (c.inv > 0 ? c.a_val / c.inv : -1) : c[sortKey];
   return list.slice().sort((a, b) => { const x = val(a), y = val(b); if (x == null) return 1; if (y == null) return -1; return (x > y ? 1 : x < y ? -1 : 0) * (sortAsc ? 1 : -1); });
 }
-const COLS = [['outlet', 'Outlet'], ['contract', 'Contract'], ['bde', 'BDE'], ['area', 'Area'], ['tier', 'Tier'], ['d_start', 'Start'], ['d_end', 'End'],
+const COLS = [['outlet', 'Outlet'], ['contract', 'Contract'], ['bde', 'BDE'], ['area', 'Area'], ['tier', 'Tier'], ['d_start', 'Start'], ['d_end', 'End'], ['received', 'Received'],
   ['active', 'Status'], ['t_vol', 'Target to date (btl)', 1], ['a_vol', 'Actual (btl)', 1], ['ach', 'Achievement'], ['a_val', 'Actual value (฿)', 1],
   ['inv', 'Investment (฿)', 1], ['spd', 'Sales per ฿1', 1], ['skus_sold', 'SKUs selling', 1]];
 function renderTable() {
@@ -354,7 +420,7 @@ function renderTable() {
     list.slice(0, shown).map(c => { const p = pctOf(c.a_vol, c.t_vol), [b, bl] = band(c.a_vol, c.t_vol);
       return `<tr data-c="${esc(c.contract)}" tabindex="0"><td class="o"><b>${esc(c.outlet)}</b><small>${esc(c.outlet_code)}</small></td>` +
         `<td>${esc(c.contract)}</td><td>${esc(c.bde || '—')}</td><td>${esc(c.area || '—')}</td><td>${esc(c.tier || '—')}</td>` +
-        `<td>${dText(c.d_start)}</td><td>${dText(c.d_end)}</td><td><span class="roi-st${c.active ? ' on' : ''}">${c.active ? 'Active' : 'Ended'}</span></td>` +
+        `<td>${dText(c.d_start)}</td><td>${dText(c.d_end)}</td><td>${c.received ? mLabel(c.received) : '—'}</td><td><span class="roi-st${c.active ? ' on' : ''}">${c.active ? 'Active' : 'Ended'}</span></td>` +
         `<td class="n">${fmt(c.t_vol)}</td><td class="n">${fmt(c.a_vol)}</td>` +
         `<td><div class="roi-ach"><span class="b"><i style="width:${Math.min(100, p || 0)}%;background:${BAND_COLOR[b]}"></i></span><span class="roi-band ${b}">${pctTxt(p)} ${bl}</span></div></td>` +
         `<td class="n">${fmt(c.a_val)}</td><td class="n">${fmt(c.inv)}</td><td class="n">${c.inv > 0 ? (c.a_val / c.inv).toFixed(1) : '—'}</td>` +
@@ -374,7 +440,11 @@ $('cBand').addEventListener('change', () => { shown = 100; renderTable(); });
 async function openDetail(code) {
   const c = (D.contracts || []).find(x => x.contract === code); if (!c) return;
   $('dTitle').textContent = c.outlet + ' — ' + c.contract;
-  $('dSub').textContent = `${c.outlet_code} · BDE ${c.bde || '—'} · ${c.area || '—'} · ${c.tier || '—'} · ${dText(c.d_start)} – ${dText(c.d_end)} · ${c.months} months compared`;
+  /* outlet profile: code + area / tier + BDE / period / months compared (red) */
+  $('dSub').innerHTML = `<span class="dp-code">${esc(c.outlet_code)} ${esc(c.area || '')}</span>` +
+    `<span>· ${esc(c.tier || '—')} / BDE : ${esc(c.bde || '—')}</span>` +
+    `<span>· Period : ${dText(c.d_start)} – ${dText(c.d_end)}${c.received ? ' · Received : ' + mLabel(c.received) : ''}</span>` +
+    `<span class="dp-months">${fmt(c.months)} months compared</span>`;
   const p = pctOf(c.a_vol, c.t_vol);
   $('dKpis').innerHTML = kpi('Achievement (volume)', pctTxt(p), `${fmt(c.a_vol)} of ${fmt(c.t_vol)} btls`, p) +
     kpi('Actual value', '฿' + short(c.a_val), `target ฿${short(c.t_val)}`, pctOf(c.a_val, c.t_val)) +
@@ -397,10 +467,116 @@ $('dOv').addEventListener('click', e => { if (e.target === $('dOv')) closeDetail
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
 
 /* ── filters ── */
-FILTERS.forEach(([id]) => $(id).addEventListener('change', load));
-$('fStatus').addEventListener('change', load);
-$('fReset').onclick = () => { FILTERS.forEach(([id]) => { $(id).value = ''; }); $('fStatus').value = ''; load(); };
-window.addEventListener('themechange', () => { if (D) renderCharts(); });
+FILTERS.forEach(([id]) => $(id).addEventListener('change', reloadView));
+$('fStatus').addEventListener('change', reloadView);
+$('fReset').onclick = () => { FILTERS.forEach(([id]) => { $(id).value = ''; }); $('fStatus').value = ''; D = null; reloadView(); };
+/* ── views: Analysis / Accrual (#accrual in the address keeps the tab) ── */
+let view = location.hash === '#accrual' ? 'accrual' : 'analysis', A = null, aShown = 100, aSeq = 0, aSort = 'acc_m', aAsc = false;
+function setView(v) {
+  view = v;
+  $('vAnalysis').hidden = v !== 'analysis'; $('vAccrual').hidden = v !== 'accrual';
+  $('tabAnalysis').setAttribute('aria-selected', String(v === 'analysis')); $('tabAccrual').setAttribute('aria-selected', String(v === 'accrual'));
+  history.replaceState(null, '', v === 'accrual' ? '#accrual' : location.pathname);
+  if (v === 'accrual') loadAccrual(); else load();   /* always fresh: filters may have changed on the other tab */
+}
+function filterArgs() {
+  const a = {}; FILTERS.forEach(([id, , p]) => { a[p] = $(id).value || null; }); a.p_status = $('fStatus').value || null; return a;
+}
+function reloadView() { if (view === 'accrual') loadAccrual(); else load(); }
+
+async function loadAccrual() {
+  const my = ++aSeq, args = filterArgs();
+  args.p_month = $('aMonth').value || null;
+  document.querySelector('.main').classList.add('search-busy');
+  const { data, error } = await supabase.rpc('roi_accrual', args);
+  if (my !== aSeq) return;
+  document.querySelector('.main').classList.remove('search-busy');
+  if (error) { $('aWrap').innerHTML = `<div class="empty">Could not load the accrual: ${esc(error.message)}</div>`; return; }
+  A = data; aShown = 100;
+  $('roiMeta').textContent = (window._roiMeta || '') + ` · accrual on off-take up to ${mLabel((A.months || [])[0] || A.month)}`;
+  const sel = $('aMonth'), keep = sel.value || A.month;
+  sel.innerHTML = (A.months || []).map(m => `<option value="${m}"${m === keep ? ' selected' : ''}>${mLabel(m)}</option>`).join('');
+  renderAccrual();
+}
+function renderAccrual() {
+  const k = A.kpi || {}, mon = mLabel(A.month), yr = String(A.month).slice(0, 4);
+  $('aKpis').innerHTML =
+    kpi('Accrual ' + mon, '฿' + short(k.acc_m), `Budget ฿${short(k.bud_m)} · ${pctTxt(pctOf(k.acc_m, k.bud_m))} of budget · ${fmt(k.contracts_m)} contracts with off-take`, pctOf(k.acc_m, k.bud_m)) +
+    kpi('Accrual YTD ' + yr, '฿' + short(k.acc_ytd), `Budget YTD ฿${short(k.bud_ytd)} · ${pctTxt(pctOf(k.acc_ytd, k.bud_ytd))} used`, pctOf(k.acc_ytd, k.bud_ytd)) +
+    kpi('Accrual to date', '฿' + short(k.acc), `All contract months up to ${mon} · budget ฿${short(k.bud)}`, pctOf(k.acc, k.bud)) +
+    kpi('Achievement to date', pctTxt(pctOf(k.a_vol, k.t_vol)), `Actual ${fmt(k.a_vol)} of ${fmt(k.t_vol)} btls target (up to ${mon})`, pctOf(k.a_vol, k.t_vol));
+
+  const c1 = cur(), mo = A.monthly || [];
+  $('aMonthlyTitle').textContent = `Monthly Accrual vs Budget ${yr} (THB)`;
+  draw('aMonthly', { data: { labels: mo.map(x => mLabel(x.m)), datasets: [
+      { type: 'line', label: 'Budget', data: mo.map(x => x.bud), borderColor: '#4B5563', backgroundColor: '#4B5563', borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, tension: .25, order: 0 },
+      { type: 'bar', label: 'Accrual', data: mo.map(x => x.acc), backgroundColor: c1, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 26, order: 1 }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 250 }, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ฿${fmt(c.parsed.y)}`,
+        afterBody: it => { const m = mo[it[0].dataIndex]; return m ? ` Accrual is ${pctTxt(pctOf(m.acc, m.bud))} of budget` : ''; } } } },
+      scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: MUTED } },
+                y: { beginAtZero: true, grid: { color: GRID }, border: { display: false }, ticks: { color: MUTED, callback: v => short(v) } } } } });
+
+  const pr = (A.by_principle || []).filter(x => x.acc_ytd > 0 || x.bud_ytd > 0).slice(0, 10);
+  draw('aPrin', { type: 'bar', data: { labels: pr.map(x => x.name), datasets: [
+      { label: 'Budget YTD', data: pr.map(x => x.bud_ytd), backgroundColor: '#D1D5DB', borderRadius: 4, borderSkipped: 'start', grouped: false, barPercentage: 0.8, maxBarThickness: 22, order: 2 },
+      { label: 'Accrual YTD', data: pr.map(x => x.acc_ytd), backgroundColor: ctx => barGrad(ctx, ['#1F2328', '#9CA3AF']), borderRadius: 4, borderSkipped: 'start', grouped: false, barPercentage: 0.45, maxBarThickness: 12, order: 1 }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: { duration: 250 }, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ฿${fmt(c.parsed.x)}`,
+        afterBody: it => { const x = pr[it[0].dataIndex]; return ` ${pctTxt(pctOf(x.acc_ytd, x.bud_ytd))} of budget · ${mon}: ฿${fmt(x.acc_m)}`; } } } },
+      scales: { x: { beginAtZero: true, grid: { color: GRID }, border: { display: false }, ticks: { color: MUTED, callback: v => short(v) } },
+                y: { grid: { display: false }, border: { display: false }, ticks: { color: INK, autoSkip: false } } } } });
+  renderAccrualTable();
+}
+const ACOLS = [['outlet', 'Outlet'], ['contract', 'Contract'], ['bde', 'BDE'], ['received', 'Received'], ['d_end', 'Period'],
+  ['t_vol_m', 'Target (btl)', 1], ['a_vol_m', 'Actual (btl)', 1], ['ach_m', 'Achievement'], ['a_val_m', 'Value excl. VAT (฿)', 1],
+  ['acc_m', 'Accrual (฿)', 1], ['acc_ytd', 'Accrual YTD (฿)', 1], ['bud_ytd', 'Budget YTD (฿)', 1], ['acc', 'Accrual to date (฿)', 1], ['bud', 'Budget to date (฿)', 1]];
+function aRows() {
+  const q = $('aSearch').value.trim().toLowerCase();
+  let list = (A && A.contracts) || [];
+  if (q) list = list.filter(c => [c.outlet, c.outlet_code, c.contract, c.bde, c.area, c.grp].some(v => String(v ?? '').toLowerCase().includes(q)));
+  const val = c => aSort === 'ach_m' ? (pctOf(c.a_vol_m, c.t_vol_m) ?? -1) : c[aSort];
+  return list.slice().sort((a, b) => { const x = val(a), y = val(b); if (x == null) return 1; if (y == null) return -1; return (x > y ? 1 : x < y ? -1 : 0) * (aAsc ? 1 : -1); });
+}
+function renderAccrualTable() {
+  const list = aRows(), mon = mLabel(A.month);
+  $('aCount').textContent = `${fmt(list.length)} contracts`;
+  $('aSub').textContent = `Target, actual and accrual for ${mon} · YTD and to-date columns run up to ${mon} · click a contract to see its SKUs`;
+  if (!list.length) { $('aWrap').innerHTML = '<div class="empty">No accrual for these filters</div>'; return; }
+  const arrow = k => aSort === k ? (aAsc ? ' ▲' : ' ▼') : '';
+  $('aWrap').innerHTML = `<table class="roi-tbl"><thead><tr>${ACOLS.map(([k, l, n]) => `<th class="${n ? 'n' : ''}" data-k="${k}" aria-sort="${aSort === k ? (aAsc ? 'ascending' : 'descending') : 'none'}">${l}${arrow(k)}</th>`).join('')}</tr></thead><tbody>` +
+    list.slice(0, aShown).map(c => { const p = pctOf(c.a_vol_m, c.t_vol_m), [b, bl] = band(c.a_vol_m, c.t_vol_m), over = c.bud_ytd > 0 && c.acc_ytd > c.bud_ytd;
+      return `<tr data-c="${esc(c.contract)}" tabindex="0"><td class="o"><b>${esc(c.outlet)}</b><small>${esc(c.outlet_code)}</small></td><td>${esc(c.contract)}</td>` +
+        `<td>${esc(c.bde || '—')}</td><td>${c.received ? mLabel(c.received) : '—'}</td><td>${dText(c.d_start)} – ${dText(c.d_end)}</td>` +
+        `<td class="n">${fmt(c.t_vol_m)}</td><td class="n">${fmt(c.a_vol_m)}</td><td><span class="roi-band ${b}">${pctTxt(p)} ${bl}</span></td>` +
+        `<td class="n">${fmt(c.a_val_m)}</td><td class="n acc">${fmt(c.acc_m)}</td>` +
+        `<td class="n ${over ? 'over' : 'under'}" title="${over ? 'Accrual YTD is above budget' : ''}">${fmt(c.acc_ytd)}${over ? ' ▲' : ''}</td><td class="n">${fmt(c.bud_ytd)}</td>` +
+        `<td class="n">${fmt(c.acc)}</td><td class="n">${fmt(c.bud)}</td></tr>`; }).join('') + `</tbody></table>` +
+    (list.length > aShown ? `<div class="roi-more"><span class="roi-count">Showing ${fmt(aShown)} of ${fmt(list.length)}</span><button type="button" onclick="aShown+=200;renderAccrualTable()">Show more</button><button type="button" onclick="aShown=Infinity;renderAccrualTable()">Show all</button></div>` : '');
+}
+$('aWrap').addEventListener('click', e => {
+  const th = e.target.closest('th[data-k]');
+  if (th) { const k = th.dataset.k; if (aSort === k) aAsc = !aAsc; else { aSort = k; aAsc = ['outlet', 'contract', 'bde'].includes(k); } renderAccrualTable(); return; }
+  const tr = e.target.closest('tr[data-c]'); if (tr) openDetail(tr.dataset.c);
+});
+$('aWrap').addEventListener('keydown', e => { const tr = e.target.closest('tr[data-c]'); if (tr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openDetail(tr.dataset.c); } });
+$('aSearch').addEventListener('input', () => { aShown = 100; renderAccrualTable(); });
+$('aMonth').addEventListener('change', loadAccrual);
+
+function exportAccrual() {
+  if (!A || !A.contracts || !A.contracts.length) return;
+  const mon = mLabel(A.month), wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(aRows().map(c => ({
+    'Accrual month': mon, 'Outlet Code': c.outlet_code, 'Outlet': c.outlet, 'Contract': c.contract, 'Group': c.grp, 'BDE': c.bde, 'Area': c.area, 'Tier': c.tier,
+    'Received': c.received ? mLabel(c.received) : null, 'Start': c.d_start, 'End': c.d_end,
+    'Target (btl)': c.t_vol_m, 'Actual (btl)': c.a_vol_m, 'Achievement %': pctOf(c.a_vol_m, c.t_vol_m) == null ? null : +pctOf(c.a_vol_m, c.t_vol_m).toFixed(1),
+    'Value excl. VAT (THB)': c.a_val_m, 'Accrual (THB)': c.acc_m, 'Budget (THB)': c.bud_m, 'Accrual YTD (THB)': c.acc_ytd, 'Budget YTD (THB)': c.bud_ytd,
+    'Accrual to date (THB)': c.acc, 'Budget to date (THB)': c.bud }))), 'Accrual ' + mon.replace(' ', '-'));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((A.by_principle || []).map(x => ({ 'Principle': x.name, ['Accrual ' + mon]: x.acc_m, 'Accrual YTD': x.acc_ytd, 'Budget YTD': x.bud_ytd }))), 'By Principle');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((A.monthly || []).map(x => ({ 'Month': mLabel(x.m), 'Accrual (THB)': x.acc, 'Budget (THB)': x.bud }))), 'Monthly');
+  XLSX.writeFile(wb, `ROI_Accrual_${String(A.month).slice(0, 7)}.xlsx`);
+}
+window.addEventListener('themechange', () => { if (view === 'accrual' && A) renderAccrual(); else if (D) renderCharts(); });
 
 /* ── export ── */
 function exportExcel() {
@@ -408,7 +584,7 @@ function exportExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows().map(c => ({
     'Outlet Code': c.outlet_code, 'Outlet': c.outlet, 'Contract': c.contract, 'Group': c.grp, 'BDE': c.bde, 'Area': c.area, 'Tier': c.tier,
-    'Start': c.d_start, 'End': c.d_end, 'Status': c.active ? 'Active' : 'Ended', 'Months compared': c.months,
+    'Start': c.d_start, 'End': c.d_end, 'Received': c.received ? mLabel(c.received) : null, 'Status': c.active ? 'Active' : 'Ended', 'Months compared': c.months,
     'Yearly target (btl)': c.vol_y, 'Target to date (btl)': c.t_vol, 'Actual (btl)': c.a_vol, 'Achievement %': pctOf(c.a_vol, c.t_vol) == null ? null : +pctOf(c.a_vol, c.t_vol).toFixed(1),
     'Result': band(c.a_vol, c.t_vol)[1], 'Target value to date (THB)': c.t_val, 'Actual value (THB)': c.a_val, 'Investment to date (THB)': c.inv,
     'Sales per 1 THB discount': c.inv > 0 ? +(c.a_val / c.inv).toFixed(2) : null, 'SKUs': c.skus, 'SKUs selling': c.skus_sold }))), 'Contracts');

@@ -63,22 +63,24 @@ FROM "Return of investment";
 CREATE OR REPLACE VIEW public.roi_offtake_monthly WITH (security_invoker = true) AS
 SELECT nullif(trim("Code"), '') AS outlet_code, nullif(trim("SKU Code"), '') AS sku,
        to_date('20' || "Received Month", 'YYYY-Mon') AS month,
-       sum(coalesce("Vol. Btls.", 0))::numeric AS vol, sum(coalesce(roi_num("Total Price Inc.VAT"), 0)) AS val
+       sum(coalesce("Vol. Btls.", 0))::numeric AS vol, sum(coalesce(roi_num("Total Price Inc.VAT"), 0)) AS val,
+       sum(coalesce(roi_num("Total Price Exc.VAT"), 0)) AS val_ex
 FROM "Off-take 2026" WHERE "Received Month" ~ '^\d{2}-[A-Za-z]{3}$'
 GROUP BY 1, 2, 3;
 
 -- ── stored results ──
-CREATE MATERIALIZED VIEW IF NOT EXISTS public.roi_offtake_mv AS SELECT * FROM public.roi_offtake_monthly;
-CREATE INDEX IF NOT EXISTS roi_offtake_mv_key ON public.roi_offtake_mv (outlet_code, sku, month);
-
 DROP MATERIALIZED VIEW IF EXISTS public.roi_month_mv;
 DROP MATERIALIZED VIEW IF EXISTS public.roi_lines_mv;
+DROP MATERIALIZED VIEW IF EXISTS public.roi_offtake_mv;
+CREATE MATERIALIZED VIEW public.roi_offtake_mv AS SELECT * FROM public.roi_offtake_monthly;
+CREATE INDEX roi_offtake_mv_key ON public.roi_offtake_mv (outlet_code, sku, month);
+
 CREATE MATERIALIZED VIEW public.roi_lines_mv AS
 WITH b AS (SELECT min(month) AS f, max(month) AS l FROM roi_offtake_mv),
 k AS (
   SELECT f.contract, f.sku, max(f.outlet_code) outlet_code, max(f.outlet) outlet, max(f.grp) grp, max(f.bde) bde, max(f.area) area,
          max(f.tier) tier, max(f.principle) principle, max(f.brand) brand, max(f.product) product, max(f.proposed) proposed,
-         max(f.rebate_pct) rebate_pct, min(f.d_start) d_start, max(f.d_end) d_end,
+         max(f.rebate_pct) rebate_pct, min(f.d_start) d_start, max(f.d_end) d_end, min(f.received) received,
          greatest(date_trunc('month', min(f.d_start))::date, (SELECT f FROM b)) ws,
          least(date_trunc('month', max(f.d_end))::date, (SELECT l FROM b)) we,
          sum(f.vol_y) vol_y, sum(f.val_y) val_y, sum(f.disc_y) disc_y
@@ -91,12 +93,17 @@ FROM k2 LEFT JOIN LATERAL (
   WHERE om.outlet_code = k2.outlet_code AND om.sku = k2.sku AND om.month BETWEEN k2.ws AND k2.we HAVING count(*) > 0) a ON true;
 CREATE INDEX roi_lines_mv_contract ON public.roi_lines_mv (contract);
 
+-- month by month per contract × SKU: target, actual, value excl. VAT, rebate %, monthly budget (discount / 12), accrual
 CREATE MATERIALIZED VIEW public.roi_month_mv AS
-SELECT l.contract, l.sku, l.bde, l.area, l.principle, l.brand, l.tier, l.grp, l.d_end, g.m::date AS m,
-       l.vol_y / 12.0 AS t_vol, coalesce(om.vol, 0) AS a_vol
+SELECT l.contract, l.sku, l.outlet_code, l.outlet, l.bde, l.area, l.principle, l.brand, l.tier, l.grp, l.d_start, l.d_end, l.received,
+       l.rebate_pct, g.m::date AS m,
+       l.vol_y / 12.0 AS t_vol, l.disc_y / 12.0 AS budget,
+       coalesce(om.vol, 0) AS a_vol, coalesce(om.val, 0) AS a_val, coalesce(om.val_ex, 0) AS a_val_ex,
+       coalesce(om.val_ex, 0) * coalesce(l.rebate_pct, 0) / 100.0 AS accrual
 FROM roi_lines_mv l
 JOIN LATERAL generate_series(l.ws, l.we, interval '1 month') g(m) ON l.we >= l.ws
 LEFT JOIN roi_offtake_mv om ON om.outlet_code = l.outlet_code AND om.sku = l.sku AND om.month = g.m::date;
+CREATE INDEX roi_month_mv_m ON public.roi_month_mv (m);
 
 REVOKE ALL ON public.roi_offtake_mv, public.roi_lines_mv, public.roi_month_mv FROM anon;
 GRANT SELECT ON public.roi_offtake_mv, public.roi_lines_mv, public.roi_month_mv TO authenticated;
@@ -163,7 +170,7 @@ WITH x AS (
     AND (p_status IS NULL OR (p_status = 'active') = (l.d_end >= current_date))),
 c AS (
   SELECT contract, max(outlet_code) outlet_code, max(outlet) outlet, max(grp) grp, max(bde) bde, max(area) area, max(tier) tier,
-         min(d_start) d_start, max(d_end) d_end, bool_or(active) active, max(months) months,
+         min(d_start) d_start, max(d_end) d_end, min(received) received, bool_or(active) active, max(months) months,
          count(*) skus, count(*) FILTER (WHERE sold) skus_sold,
          round(sum(t_vol)) t_vol, round(sum(a_vol)) a_vol, round(sum(t_val)) t_val, round(sum(a_val)) a_val, round(sum(inv)) inv,
          round(sum(vol_y)) vol_y, round(sum(val_y)) val_y, round(sum(disc_y)) disc_y
@@ -219,3 +226,47 @@ RETURNS json LANGUAGE sql STABLE SET search_path TO 'public' AS $$
     'last_import', (SELECT row_to_json(l) FROM (SELECT file_name, rows_after, imported_by, imported_at FROM roi_import_log ORDER BY id DESC LIMIT 1) l))
 $$;
 GRANT EXECUTE ON FUNCTION public.roi_options() TO authenticated;
+
+-- ── Accrual (tab "Accrual" on roi.html) ──
+-- accrual = actual off-take value excl. VAT × rebate % (per contract SKU, inside the contract period)
+--   month / YTD (same year) / contract to date (up to that month); budget = Total Discount (Net) per year / 12 per month
+CREATE OR REPLACE FUNCTION public.roi_accrual(p_month date DEFAULT NULL, p_bde text DEFAULT NULL, p_area text DEFAULT NULL,
+  p_principle text DEFAULT NULL, p_brand text DEFAULT NULL, p_tier text DEFAULT NULL, p_group text DEFAULT NULL, p_status text DEFAULT NULL)
+RETURNS json LANGUAGE sql STABLE SET search_path TO 'public' AS $$
+WITH pm AS (SELECT coalesce(date_trunc('month', p_month)::date, (SELECT max(month) FROM roi_offtake_mv)) AS m),
+x AS (
+  SELECT mm.*, mm.d_end >= current_date AS active FROM roi_month_mv mm, pm
+  WHERE mm.m <= pm.m
+    AND (p_bde IS NULL OR mm.bde = p_bde) AND (p_area IS NULL OR mm.area = p_area)
+    AND (p_principle IS NULL OR mm.principle = p_principle) AND (p_brand IS NULL OR mm.brand = p_brand)
+    AND (p_tier IS NULL OR mm.tier = p_tier) AND (p_group IS NULL OR mm.grp = p_group)
+    AND (p_status IS NULL OR (p_status = 'active') = (mm.d_end >= current_date))),
+c AS (
+  SELECT x.contract, max(outlet_code) outlet_code, max(outlet) outlet, max(bde) bde, max(area) area, max(tier) tier, max(grp) grp,
+         min(d_start) d_start, max(d_end) d_end, min(received) received, bool_or(active) active,
+         round(sum(t_vol) FILTER (WHERE x.m = pm.m)) t_vol_m, round(sum(a_vol) FILTER (WHERE x.m = pm.m)) a_vol_m,
+         round(sum(a_val_ex) FILTER (WHERE x.m = pm.m)) a_val_m, round(sum(accrual) FILTER (WHERE x.m = pm.m)) acc_m,
+         round(sum(budget) FILTER (WHERE x.m = pm.m)) bud_m,
+         round(sum(accrual) FILTER (WHERE extract(year FROM x.m) = extract(year FROM pm.m))) acc_ytd,
+         round(sum(budget) FILTER (WHERE extract(year FROM x.m) = extract(year FROM pm.m))) bud_ytd,
+         round(sum(t_vol)) t_vol, round(sum(a_vol)) a_vol, round(sum(a_val_ex)) a_val, round(sum(accrual)) acc, round(sum(budget)) bud
+  FROM x, pm GROUP BY x.contract)
+SELECT json_build_object(
+  'month', (SELECT m FROM pm),
+  'months', (SELECT json_agg(m ORDER BY m DESC) FROM (SELECT DISTINCT month m FROM roi_offtake_mv) t),
+  'kpi', (SELECT json_build_object(
+      'acc_m', coalesce(sum(acc_m), 0), 'bud_m', coalesce(sum(bud_m), 0), 'acc_ytd', coalesce(sum(acc_ytd), 0), 'bud_ytd', coalesce(sum(bud_ytd), 0),
+      'acc', coalesce(sum(acc), 0), 'bud', coalesce(sum(bud), 0), 't_vol', coalesce(sum(t_vol), 0), 'a_vol', coalesce(sum(a_vol), 0),
+      'a_val_m', coalesce(sum(a_val_m), 0), 'contracts_m', count(*) FILTER (WHERE a_vol_m > 0)) FROM c),
+  'contracts', (SELECT json_agg(c ORDER BY c.acc_m DESC NULLS LAST, c.acc DESC NULLS LAST) FROM c WHERE c.acc > 0 OR c.bud_m > 0),
+  'by_principle', (SELECT json_agg(t ORDER BY t.acc_ytd DESC NULLS LAST) FROM (
+      SELECT coalesce(principle, '(blank)') name,
+             round(sum(accrual) FILTER (WHERE x.m = pm.m)) acc_m, round(sum(accrual) FILTER (WHERE extract(year FROM x.m) = extract(year FROM pm.m))) acc_ytd,
+             round(sum(budget) FILTER (WHERE extract(year FROM x.m) = extract(year FROM pm.m))) bud_ytd
+      FROM x, pm GROUP BY 1) t),
+  'monthly', (SELECT json_agg(t ORDER BY t.m) FROM (
+      SELECT x.m, round(sum(accrual)) acc, round(sum(budget)) bud FROM x, pm
+      WHERE extract(year FROM x.m) = extract(year FROM pm.m) GROUP BY x.m) t)
+)
+$$;
+GRANT EXECUTE ON FUNCTION public.roi_accrual(date, text, text, text, text, text, text, text) TO authenticated;

@@ -1271,3 +1271,5 @@ html body .otd-neon .otd-pie-canvas { height: 440px !important; }
 html body .otd-neon .otd-legend button { grid-template-columns: 20px 12px minmax(0, 1fr) auto 52px !important; }
 html body .otd-neon .otd-lg-bar { grid-column: 3 / -1 !important; }
 html body .otd-neon .otd-lg-name { text-align: left !important; }
+/* Sidebar: menu items one size smaller (group headings unchanged) */
+html body .sidebar .nav-links a, html body .sidebar .nav-links a.nav-sub, html body .sidebar .nav-links a > span { font-size: 13px !important; }
